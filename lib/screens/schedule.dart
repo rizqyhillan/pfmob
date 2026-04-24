@@ -1,0 +1,325 @@
+import 'package:flutter/material.dart';
+import '../theme/tema_app.dart';
+
+class ScheduleContent extends StatefulWidget {
+  const ScheduleContent({super.key});
+
+  @override
+  State<ScheduleContent> createState() => _ScheduleContentState();
+}
+
+class _ScheduleContentState extends State<ScheduleContent> {
+  int _selectedTab = 0; // 0 = Mendatang, 1 = Riwayat
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        _buildHeader(),
+        const SizedBox(height: 16),
+        _buildTabBar(),
+        const SizedBox(height: 8),
+        Expanded(
+          child: _selectedTab == 0
+              ? _buildMendatangList()
+              : _buildRiwayatList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      child: Row(
+        children: [
+          Container(
+            width: 44, height: 44,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.primary, width: 2),
+              color: AppColors.primaryLight,
+            ),
+            child: const ClipOval(child: Center(child: Text('🐱', style: TextStyle(fontSize: 22)))),
+          ),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: const [
+              Text('OWNER', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.textLight, letterSpacing: 1.2)),
+              Text('Kayla Nadine', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+            ],
+          ),
+          const Spacer(),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white, borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.divider),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+            ),
+            child: const Icon(Icons.notifications_outlined, color: AppColors.textDark, size: 22),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabBar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.categoryBg1,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        padding: const EdgeInsets.all(4),
+        child: Row(
+          children: [
+            _buildTab('Mendatang', 0),
+            _buildTab('Riwayat', 1),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTab(String label, int index) {
+    final selected = _selectedTab == index;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _selectedTab = index),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: selected ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: selected
+                ? [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, 2))]
+                : [],
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: selected ? AppColors.textDark : AppColors.textLight,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMendatangList() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildDateLabel('HARI INI, 14 NOV'),
+          const SizedBox(height: 12),
+          _buildScheduleCard(
+            emoji: '🐱',
+            title: 'Premium Grooming',
+            subtitle: 'Cooper • Golden Retriever Mix',
+            date: '14 Nov 2025',
+            time: '10:30 AM',
+            status: 'CONFIRMED',
+            statusColor: const Color(0xFF4A9B8E),
+            showActions: true,
+          ),
+          const SizedBox(height: 12),
+          _buildScheduleCard(
+            emoji: '🐱',
+            title: 'Vet Consultation',
+            subtitle: 'Luna • Calico Cat',
+            date: '14 Nov 2025',
+            time: '02:15 PM',
+            status: 'PENDING',
+            statusColor: const Color(0xFFFF9800),
+            showActions: true,
+          ),
+          const SizedBox(height: 20),
+          _buildDateLabel('BESOK, 15 NOV'),
+          const SizedBox(height: 12),
+          _buildScheduleCard(
+            emoji: '🐶',
+            title: 'Penitipan (Boarding)',
+            subtitle: 'Max • Labrador',
+            date: '15 Nov 2025',
+            time: '08:00 AM',
+            status: 'CONFIRMED',
+            statusColor: const Color(0xFF4A9B8E),
+            showActions: true,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRiwayatList() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildDateLabel('13 NOVEMBER 2025'),
+          const SizedBox(height: 12),
+          _buildScheduleCard(
+            emoji: '🐱',
+            title: 'Premium Grooming',
+            subtitle: 'Cooper • Golden Retriever Mix',
+            date: '12 Nov 2025',
+            time: '09:30 AM',
+            status: 'SELESAI',
+            statusColor: const Color(0xFF4A9B8E),
+            showActions: false,
+            showSelesai: true,
+          ),
+          const SizedBox(height: 12),
+          _buildScheduleCard(
+            emoji: '🐶',
+            title: 'Vet Consultation',
+            subtitle: 'Max • Labrador',
+            date: '10 Nov 2025',
+            time: '11:00 AM',
+            status: 'SELESAI',
+            statusColor: const Color(0xFF4A9B8E),
+            showActions: false,
+            showSelesai: true,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDateLabel(String label) {
+    return Text(
+      label,
+      style: const TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w700,
+        color: AppColors.textLight,
+        letterSpacing: 1.2,
+      ),
+    );
+  }
+
+  Widget _buildScheduleCard({
+    required String emoji,
+    required String title,
+    required String subtitle,
+    required String date,
+    required String time,
+    required String status,
+    required Color statusColor,
+    required bool showActions,
+    bool showSelesai = false,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.divider),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 3))],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header kartu
+          Row(
+            children: [
+              Container(
+                width: 48, height: 48,
+                decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.categoryBg1),
+                child: Center(child: Text(emoji, style: const TextStyle(fontSize: 26))),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+                    const SizedBox(height: 2),
+                    Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textLight, fontWeight: FontWeight.w500)),
+                  ],
+                ),
+              ),
+              // Badge status
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: statusColor.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  status,
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: statusColor),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          const Divider(height: 1),
+          const SizedBox(height: 14),
+          // Tanggal & waktu
+          Row(
+            children: [
+              const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textLight),
+              const SizedBox(width: 6),
+              Text(date, style: const TextStyle(fontSize: 13, color: AppColors.textMedium, fontWeight: FontWeight.w600)),
+              const SizedBox(width: 16),
+              const Icon(Icons.access_time_outlined, size: 14, color: AppColors.textLight),
+              const SizedBox(width: 6),
+              Text(time, style: const TextStyle(fontSize: 13, color: AppColors.textMedium, fontWeight: FontWeight.w600)),
+            ],
+          ),
+          if (showActions) ...[
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      color: AppColors.categoryBg1,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text('Reschedule', textAlign: TextAlign.center, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFEBEB),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text('Cancel', textAlign: TextAlign.center, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFFE57373))),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (showSelesai) ...[
+            const SizedBox(height: 14),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFD4F5E9),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text('SELESAI', textAlign: TextAlign.center, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF2E7D32), letterSpacing: 1)),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}

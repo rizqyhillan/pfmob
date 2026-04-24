@@ -10,6 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.6
+  flutter_launcher_icons: ^0.14.1
 
 dev_dependencies:
   flutter_test:
@@ -18,3 +19,13 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/LOGO_PawPet.PNG
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/LOGO_PawPet.PNG"
+  background_color: "#FFF8F3"
+  adaptive_icon_background: "#FFF8F3"
+  adaptive_icon_foreground: "assets/images/LOGO_PawPet.PNG"

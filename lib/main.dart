@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'theme/tema_app.dart';
-import 'screens/dashboard.dart';
+import 'screens/splash_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,7 +23,7 @@ class PetCareApp extends StatelessWidget {
       title: 'PetCare',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.theme,
-      home: const DashboardScreen(),
+      home: const SplashScreen(),
     );
   }
 }
