@@ -12,6 +12,7 @@ class DaftarDokterScreen extends StatelessWidget {
       'rating': '4.9',
       'pengalaman': '8+ tahun',
       'emoji': '👩‍⚕️',
+      'foto': 'assets/images/dokter1.jpg', // ← foto Dr. Sarah
       'tersedia': true,
     },
     {
@@ -20,6 +21,7 @@ class DaftarDokterScreen extends StatelessWidget {
       'rating': '4.7',
       'pengalaman': '5+ tahun',
       'emoji': '👨‍⚕️',
+      'foto': null, // ← belum ada foto, pakai emoji
       'tersedia': true,
     },
     {
@@ -28,6 +30,7 @@ class DaftarDokterScreen extends StatelessWidget {
       'rating': '4.8',
       'pengalaman': '6+ tahun',
       'emoji': '👩‍⚕️',
+      'foto': null, // ← belum ada foto, pakai emoji
       'tersedia': false,
     },
   ];
@@ -115,9 +118,18 @@ class DaftarDokterScreen extends StatelessWidget {
                 color: AppColors.categoryBg1,
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Center(
-                child: Text(dokter['emoji'], style: const TextStyle(fontSize: 34)),
-              ),
+              child: dokter['foto'] != null
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image.asset(
+                        dokter['foto'] as String,
+                        width: 64, height: 64,
+                        fit: BoxFit.cover,
+                      ),
+                    )
+                  : Center(
+                      child: Text(dokter['emoji'], style: const TextStyle(fontSize: 34)),
+                    ),
             ),
             const SizedBox(width: 14),
 
@@ -133,7 +145,6 @@ class DaftarDokterScreen extends StatelessWidget {
                         dokter['nama'],
                         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDark),
                       ),
-                      // Badge tersedia / tidak
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(

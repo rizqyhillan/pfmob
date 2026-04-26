@@ -57,7 +57,7 @@ class PembayaranDokterScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 16),
-          const Text('Ringkasan & Pembayaran', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+          const Text('Ringkasan', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textDark)),
         ],
       ),
     );
@@ -103,10 +103,20 @@ class PembayaranDokterScreen extends StatelessWidget {
           child: Row(
             children: [
               Container(
+            width: 56, height: 56,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: Image.asset(
+                'assets/images/dokter1.jpg',
                 width: 56, height: 56,
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
-                child: const Center(child: Text('👩‍⚕️', style: TextStyle(fontSize: 28))),
+                fit: BoxFit.cover,
               ),
+            ),
+          ),
               const SizedBox(width: 14),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

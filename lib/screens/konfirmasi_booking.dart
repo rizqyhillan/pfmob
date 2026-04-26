@@ -113,8 +113,18 @@ class _KonfirmasiBookingScreenState extends State<KonfirmasiBookingScreen> {
         children: [
           Container(
             width: 56, height: 56,
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
-            child: const Center(child: Text('👩‍⚕️', style: TextStyle(fontSize: 28))),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: Image.asset(
+                'assets/images/dokter1.jpg',
+                width: 56, height: 56,
+                fit: BoxFit.cover,
+              ),
+            ),
           ),
           const SizedBox(width: 14),
           Column(

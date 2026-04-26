@@ -18,7 +18,6 @@ class DokterDetailScreen extends StatelessWidget {
               _buildDokterInfo(),
               _buildTentangDokter(),
               _buildLayanan(context),
-              _buildUlasan(),
               const SizedBox(height: 30),
             ],
           ),
@@ -34,8 +33,11 @@ class DokterDetailScreen extends StatelessWidget {
           height: 220,
           width: double.infinity,
           color: AppColors.primaryLight,
-          child: const Center(
-            child: Text('👩‍⚕️', style: TextStyle(fontSize: 100)),
+          child: Image.asset(
+            'assets/images/dokter1.jpg',
+            width: double.infinity,
+            height: 220,
+            fit: BoxFit.cover,
           ),
         ),
         Positioned(
@@ -47,20 +49,6 @@ class DokterDetailScreen extends StatelessWidget {
               decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
               child: const Icon(Icons.arrow_back_ios_new_rounded, size: 16, color: AppColors.primary),
             ),
-          ),
-        ),
-        Positioned(
-          bottom: 16, left: 16,
-          child: Row(
-            children: const [
-              Icon(Icons.star_rounded, color: AppColors.gold, size: 18),
-              SizedBox(width: 4),
-              Text('4.9', style: TextStyle(fontWeight: FontWeight.w700, color: Colors.white, fontSize: 14)),
-              SizedBox(width: 12),
-              Icon(Icons.workspace_premium_outlined, color: Colors.white, size: 16),
-              SizedBox(width: 4),
-              Text('8+ years', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white, fontSize: 13)),
-            ],
           ),
         ),
       ],
@@ -184,67 +172,6 @@ class DokterDetailScreen extends StatelessWidget {
                     const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.textLight),
                   ],
                 ),
-              ),
-            ),
-          )),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildUlasan() {
-    final ulasan = [
-      {'nama': 'Andi Pratama', 'bintang': 5, 'komentar': 'Dr. Sarah sangat sabar menangani kucing saya yang sangat penakut. Penjelasannya sangat jelas dan menenangkan.'},
-      {'nama': 'Maya Sari', 'bintang': 4, 'komentar': 'Pelayanan sangat bagus. Klinik bersih dan nyaman. Recomended!'},
-    ];
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('Ulasan Pengguna', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.textDark)),
-          const SizedBox(height: 12),
-          ...ulasan.map((u) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.divider),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 38, height: 38,
-                    decoration: const BoxDecoration(color: AppColors.categoryBg1, shape: BoxShape.circle),
-                    child: const Center(child: Text('👤', style: TextStyle(fontSize: 18))),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(u['nama'] as String, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textDark)),
-                            Row(
-                              children: List.generate(5, (i) => Icon(
-                                i < (u['bintang'] as int) ? Icons.star_rounded : Icons.star_outline_rounded,
-                                color: AppColors.gold, size: 14,
-                              )),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(u['komentar'] as String, style: const TextStyle(fontSize: 12, color: AppColors.textMedium, height: 1.5)),
-                      ],
-                    ),
-                  ),
-                ],
               ),
             ),
           )),

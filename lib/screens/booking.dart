@@ -25,12 +25,12 @@ class BookingContent extends StatelessWidget {
             buttonText: 'Booking Sekarang',
             buttonColor: const Color(0xFF2C6E65),
             bgColor: const Color(0xFFE0F5F2),
-            imagePlaceholder: '🐕‍🦺',
-             onTap: () {                                              // ← tambahkan ini
-              Navigator.push(                                        // ← pindah halaman
+            backgroundImage: 'assets/images/dokterHewan.jpg',
+            onTap: () {
+              Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => const DaftarDokterScreen(),        // ← ke halaman ini
+                  builder: (_) => const DaftarDokterScreen(),
                 ),
               );
             },
@@ -45,7 +45,7 @@ class BookingContent extends StatelessWidget {
             buttonText: 'Pilih Paket',
             buttonColor: const Color(0xFF2E7D32),
             bgColor: const Color(0xFFE8F5E9),
-            imagePlaceholder: '✂️',
+            backgroundImage: 'assets/images/grooming.jpg',
           ),
           const SizedBox(height: 16),
           _buildServiceCard(
@@ -57,7 +57,7 @@ class BookingContent extends StatelessWidget {
             buttonText: 'Booking Sekarang',
             buttonColor: const Color(0xFFE65100),
             bgColor: const Color(0xFFFFF3E0),
-            imagePlaceholder: '🏠',
+            backgroundImage: 'assets/images/boarding.jpg',
           ),
         ],
       ),
@@ -114,26 +114,35 @@ class BookingContent extends StatelessWidget {
     required String buttonText,
     required Color buttonColor,
     required Color bgColor,
-    required String imagePlaceholder,
+    String imagePlaceholder = '', // ← tidak required lagi, default kosong
     VoidCallback? onTap,
+    String? backgroundImage,
   }) {
     return Container(
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(20),
+        image: backgroundImage != null
+            ? DecorationImage(
+                image: AssetImage(backgroundImage),
+                fit: BoxFit.cover,
+                colorFilter: ColorFilter.mode(
+                  Colors.black.withOpacity(0.55),
+                  BlendMode.darken,
+                ),
+              )
+            : null,
       ),
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Icon
           Container(
             width: 42, height: 42,
             decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(12)),
             child: Icon(icon, color: iconColor, size: 22),
           ),
           const SizedBox(height: 14),
-          // Konten + gambar
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -141,28 +150,45 @@ class BookingContent extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textDark)),
-                    const SizedBox(height: 6),
-                    Text(description, style: const TextStyle(fontSize: 12, color: AppColors.textMedium, height: 1.5)),
-                    const SizedBox(height: 16),
-                    // Tombol
-                    GestureDetector(
-                    onTap: onTap,    // ← pakai onTap yang tadi kita tambahkan
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                      decoration: BoxDecoration(
-                      color: buttonColor,
-                      borderRadius: BorderRadius.circular(12),
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: backgroundImage != null ? Colors.white : AppColors.textDark,
+                      ),
                     ),
-                    child: Text(buttonText, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
-                  ),
-                ),
+                    const SizedBox(height: 6),
+                    Text(
+                      description,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: backgroundImage != null ? Colors.white70 : AppColors.textMedium,
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    GestureDetector(
+                      onTap: onTap,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: buttonColor,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          buttonText,
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
-              // Emoji placeholder gambar
-              Text(imagePlaceholder, style: const TextStyle(fontSize: 64)),
+              if (imagePlaceholder.isNotEmpty) ...[
+                const SizedBox(width: 12),
+                Text(imagePlaceholder, style: const TextStyle(fontSize: 64)),
+              ],
             ],
           ),
         ],

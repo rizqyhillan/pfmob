@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/tema_app.dart';
-import 'pembayaran_dokter.dart';
+import 'ringkasan.dart';
 
 class DataPasienScreen extends StatefulWidget {
   const DataPasienScreen({super.key});
@@ -230,7 +230,7 @@ class _DataPasienScreenState extends State<DataPasienScreen> {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(16)),
-          child: const Text('Lanjut ke Pembayaran', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16)),
+          child: const Text('Lanjut', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16)),
         ),
       ),
     );
