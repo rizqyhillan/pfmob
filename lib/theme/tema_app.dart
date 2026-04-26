@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const Color primary = Color(0xFF8B5E3C);
-  static const Color primaryDark = Color(0xFF6B4226);
-  static const Color primaryLight = Color(0xFFD4A574);
+  static const Color primary = Color(0xFFE87722);        // Orange utama
+  static const Color primaryDark = Color(0xFFC45E0A);    // Orange gelap
+  static const Color primaryLight = Color(0xFFFFD4A8);   // Orange muda
   static const Color accent = Color(0xFF4A9B8E);
   static const Color accentLight = Color(0xFFE8F5F3);
-  static const Color background = Color(0xFFFFF8F3);
+  static const Color background = Color(0xFFF5F5F5);     // Abu-abu muda
   static const Color cardBg = Color(0xFFFFFFFF);
-  static const Color textDark = Color(0xFF2C1810);
-  static const Color textMedium = Color(0xFF6B4226);
-  static const Color textLight = Color(0xFF9E7B5A);
-  static const Color divider = Color(0xFFF0E6DC);
-  static const Color categoryBg1 = Color(0xFFFFF3E8);
+  static const Color textDark = Color(0xFF1A1A1A);       // Hitam
+  static const Color textMedium = Color(0xFF4A4A4A);
+  static const Color textLight = Color(0xFF9E9E9E);      // Abu-abu
+  static const Color divider = Color(0xFFEEEEEE);
+  static const Color categoryBg1 = Color(0xFFFFF3E8);    // Orange muda
   static const Color categoryBg2 = Color(0xFFE8F4FF);
   static const Color categoryBg3 = Color(0xFFE8F5F3);
-  static const Color categoryBg4 = Color(0xFFF3F0FF);
-  static const Color gold = Color(0xFFC8922A);
+  static const Color categoryBg4 = Color(0xFFFFF3E8);
+  static const Color gold = Color(0xFFE87722);           // Sama dengan primary
   static const Color wishlist = Color(0xFFE57373);
 }
 
@@ -30,7 +30,7 @@ class AppTheme {
           background: AppColors.background,
         ),
         appBarTheme: const AppBarTheme(
-          backgroundColor: AppColors.background,
+          backgroundColor: Colors.white,
           elevation: 0,
           scrolledUnderElevation: 0,
           iconTheme: IconThemeData(color: AppColors.textDark),

@@ -52,7 +52,7 @@ class _RegisterScreenState extends State<RegisterScreen>
     if (!_agreeTerms) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: const Text('Kamu harus menyetujui syarat & ketentuan'),
-        backgroundColor: AppColors.primary,
+        backgroundColor: const Color.fromARGB(255, 255, 0, 0),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ));

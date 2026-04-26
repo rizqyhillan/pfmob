@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/tema_app.dart';
+import 'keranjang.dart';
 
 class ShopContent extends StatefulWidget {
   const ShopContent({super.key});
@@ -10,15 +11,15 @@ class ShopContent extends StatefulWidget {
 
 class _ShopContentState extends State<ShopContent> {
   int _selectedCategory = 0;
-  final List<String> _categories = ['All Products', 'Food', 'Toys', 'Grooming', 'Vitamins'];
+  final List<String> _categories = ['All Products', 'Food', 'Grooming', 'Vitamins', 'Fashion', 'Accessories'];
 
   final List<_ShopProduct> _products = [
-    _ShopProduct(name: 'Organic Grain-Free Salmon', price: 24.99, rating: 4.9, reviews: 124, emoji: '🐟', bgColor: Color(0xFFE8F4FF)),
-    _ShopProduct(name: 'Dura-Tough Rubber Bone', price: 12.50, rating: 4.7, reviews: 89, emoji: '🦴', bgColor: Color(0xFFFFF3E8)),
-    _ShopProduct(name: 'Eco-Friendly Shampoo', price: 18.00, rating: 5.0, reviews: 56, emoji: '🧴', bgColor: Color(0xFFE8F5F3)),
-    _ShopProduct(name: 'Hip & Joint Daily', price: 22.00, rating: 4.8, reviews: 210, emoji: '💊', bgColor: Color(0xFFF3F0FF)),
-    _ShopProduct(name: 'Grooming Brush Set', price: 32.00, rating: 4.6, reviews: 78, emoji: '🪮', bgColor: Color(0xFFFFF3E8)),
-    _ShopProduct(name: 'Pet Vitamin Drops', price: 15.99, rating: 4.5, reviews: 143, emoji: '🌿', bgColor: Color(0xFFE8F4FF)),
+    _ShopProduct(name: 'Collapsible Bowl', price: 185000, image: 'assets/images/product5.jpg', bgColor: Color(0xFFFFF3E8), kategori: 'Accessories'), 
+    _ShopProduct(name: 'Pet Carrier Bag', price: 95000, image: 'assets/images/product6.jpg', bgColor: Color(0xFFE8F4FF), kategori: 'Accessories'),
+    _ShopProduct(name: 'Paw Balm', price: 45000, image: 'assets/images/product7.jpg', bgColor: Color(0xFFE8F5F3), kategori: 'Grooming'),
+    _ShopProduct(name: 'Ear Finger Wipes', price: 55000, image: 'assets/images/product8.jpg', bgColor: Color(0xFFFFE8F0), kategori: 'Grooming'),
+    _ShopProduct(name: 'Pet Hoodie Costume', price: 250000, image: 'assets/images/product9.jpg', bgColor: Color(0xFFE8F5F3), kategori: 'Fashion'),
+    _ShopProduct(name: 'Steam Grooming Brush', price: 35000, image: 'assets/images/product10.jpg', bgColor: Color(0xFFE8F4FF), kategori: 'Grooming'),
   ];
 
   @override
@@ -41,7 +42,11 @@ class _ShopContentState extends State<ShopContent> {
         children: [
           Container(
             width: 44, height: 44,
-            decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.primary, width: 2), color: AppColors.primaryLight),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.primary, width: 2),
+              color: AppColors.primaryLight,
+            ),
             child: const ClipOval(child: Center(child: Text('🐱', style: TextStyle(fontSize: 22)))),
           ),
           const SizedBox(width: 12),
@@ -53,14 +58,21 @@ class _ShopContentState extends State<ShopContent> {
             ],
           ),
           const Spacer(),
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.white, borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.divider),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+          GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const KeranjangScreen()),
             ),
-            child: const Icon(Icons.shopping_cart_outlined, color: AppColors.textDark, size: 22),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.divider),
+                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+              ),
+              child: const Icon(Icons.shopping_cart_outlined, color: AppColors.textDark, size: 22),
+            ),
           ),
         ],
       ),
@@ -72,7 +84,8 @@ class _ShopContentState extends State<ShopContent> {
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(16),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppColors.divider),
           boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
         ),
@@ -80,7 +93,9 @@ class _ShopContentState extends State<ShopContent> {
           decoration: InputDecoration(
             hintText: 'Search',
             prefixIcon: Icon(Icons.search, color: AppColors.textLight, size: 22),
-            border: InputBorder.none, enabledBorder: InputBorder.none, focusedBorder: InputBorder.none,
+            border: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            focusedBorder: InputBorder.none,
             contentPadding: EdgeInsets.symmetric(vertical: 14),
           ),
         ),
@@ -109,7 +124,14 @@ class _ShopContentState extends State<ShopContent> {
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: selected ? AppColors.primary : AppColors.divider),
                 ),
-                child: Text(_categories[i], style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: selected ? Colors.white : AppColors.textMedium)),
+                child: Text(
+                  _categories[i],
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: selected ? Colors.white : AppColors.textMedium,
+                  ),
+                ),
               ),
             );
           },
@@ -131,33 +153,51 @@ class _ShopContentState extends State<ShopContent> {
               Text("Based on your pet's needs", style: TextStyle(fontSize: 12, color: AppColors.textLight, fontWeight: FontWeight.w500)),
             ],
           ),
-          TextButton(
-            onPressed: () {},
-            style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-            child: const Text('View All', style: TextStyle(color: AppColors.gold, fontWeight: FontWeight.w700, fontSize: 13)),
-          ),
         ],
       ),
     );
   }
 
   Widget _buildProductGrid() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: GridView.builder(
-        itemCount: _products.length,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2, mainAxisSpacing: 14, crossAxisSpacing: 14, childAspectRatio: 0.72,
-        ),
-        itemBuilder: (context, i) => _buildProductCard(_products[i]),
-      ),
-    );
-  }
+  // Filter produk berdasarkan kategori yang dipilih
+  final filtered = _selectedCategory == 0
+      ? _products
+      : _products.where((p) => p.kategori == _categories[_selectedCategory]).toList();
+
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 20),
+    child: filtered.isEmpty
+        ? const Center(
+            child: Padding(
+              padding: EdgeInsets.only(top: 60),
+              child: Column(
+                children: [
+                  Text('🛒', style: TextStyle(fontSize: 48)),
+                  SizedBox(height: 12),
+                  Text('Belum ada produk di kategori ini',
+                      style: TextStyle(fontSize: 14, color: AppColors.textLight)),
+                ],
+              ),
+            ),
+          )
+        : GridView.builder(
+            itemCount: filtered.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 14,
+              crossAxisSpacing: 14,
+              childAspectRatio: 0.70,
+            ),
+            itemBuilder: (context, i) => _buildProductCard(filtered[i]),
+          ),
+  );
+}
 
   Widget _buildProductCard(_ShopProduct product) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white, borderRadius: BorderRadius.circular(18),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: AppColors.divider),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 3))],
       ),
@@ -165,22 +205,20 @@ class _ShopContentState extends State<ShopContent> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            child: Stack(
-              children: [
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(color: product.bgColor, borderRadius: const BorderRadius.vertical(top: Radius.circular(18))),
-                  child: Center(child: Text(product.emoji, style: const TextStyle(fontSize: 56))),
-                ),
-                Positioned(
-                  top: 8, right: 10,
-                  child: Container(
-                    width: 30, height: 30,
-                    decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 6)]),
-                    child: const Icon(Icons.favorite_border, color: AppColors.textLight, size: 16),
-                  ),
-                ),
-              ],
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+              child: product.image != null
+                  ? Image.asset(
+                      product.image!,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    )
+                  : Container(
+                      color: product.bgColor,
+                      child: Center(
+                        child: Text(product.emoji ?? '', style: const TextStyle(fontSize: 56)),
+                      ),
+                    ),
             ),
           ),
           Padding(
@@ -188,24 +226,27 @@ class _ShopContentState extends State<ShopContent> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    const Icon(Icons.star_rounded, color: AppColors.gold, size: 14),
-                    const SizedBox(width: 3),
-                    Text('${product.rating} (${product.reviews})', style: const TextStyle(fontSize: 11, color: AppColors.textLight, fontWeight: FontWeight.w600)),
-                  ],
-                ),
                 const SizedBox(height: 4),
-                Text(product.name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textDark, height: 1.3), maxLines: 2),
+                Text(
+                  product.name,
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textDark, height: 1.3),
+                  maxLines: 2,
+                ),
                 const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('\$${product.price.toStringAsFixed(2)}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+                    Text(
+                      'Rp ${_formatHarga(product.price.toInt())}',
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textDark),
+                    ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(10)),
-                      child: const Text('Beli', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+                      width: 30, height: 30,
+                      decoration: const BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                      ),
+                    child: const Icon(Icons.add, color: Colors.white, size: 18),
                     ),
                   ],
                 ),
@@ -216,14 +257,29 @@ class _ShopContentState extends State<ShopContent> {
       ),
     );
   }
+
+  String _formatHarga(int harga) {
+    return harga.toString().replaceAllMapped(
+      RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+      (m) => '${m[1]}.',
+    );
+  }
 }
 
 class _ShopProduct {
   final String name;
   final double price;
-  final double rating;
-  final int reviews;
-  final String emoji;
+  final String? emoji;
+  final String? image;
   final Color bgColor;
-  const _ShopProduct({required this.name, required this.price, required this.rating, required this.reviews, required this.emoji, required this.bgColor});
+  final String kategori;
+
+  const _ShopProduct({
+    required this.name,
+    required this.price,
+    this.emoji,
+    this.image,
+    required this.bgColor,
+    required this.kategori,
+  });
 }

@@ -10,22 +10,49 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.6
-  flutter_launcher_icons: ^0.14.1
+  flutter_svg: ^2.0.10
+  flutter_native_splash: ^2.4.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.0
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.1
 
 flutter:
   uses-material-design: true
   assets:
-    - assets/images/LOGO_PawPet.PNG
+    - assets/images/PawPetlogo.svg
+    - assets/images/PawPetNew.png
+    - assets/images/paw3.png
+    - assets/images/iklan1.jpg
+    - assets/images/iklan2.jpg
+    - assets/images/iklan3.jpg
+    - assets/images/product1.jpg
+    - assets/images/product2.jpg
+    - assets/images/product3.jpg
+    - assets/images/product4.jpg
+    - assets/images/product5.jpg
+    - assets/images/product6.jpg
+    - assets/images/product7.jpg
+    - assets/images/product8.jpg
+    - assets/images/product9.jpg 
+    - assets/images/product10.jpg
 
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/images/LOGO_PawPet.PNG"
+  image_path: "assets/images/PawPetNew.png"
   background_color: "#FFF8F3"
   adaptive_icon_background: "#FFF8F3"
-  adaptive_icon_foreground: "assets/images/LOGO_PawPet.PNG"
+  adaptive_icon_foreground: "assets/images/PawPetNew.png"
+
+flutter_native_splash:
+  color: "#FFF8F3"
+  image: assets/images/PawPetNew.png
+  color_dark: "#FFF8F3"
+  android: true
+  ios: true
+  android_12:
+    color: "#FFF8F3"
+    image: assets/images/PawPetNew.png

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/tema_app.dart';
+import 'daftar_dokter.dart';
 
 class BookingContent extends StatelessWidget {
   const BookingContent({super.key});
@@ -25,6 +26,14 @@ class BookingContent extends StatelessWidget {
             buttonColor: const Color(0xFF2C6E65),
             bgColor: const Color(0xFFE0F5F2),
             imagePlaceholder: '🐕‍🦺',
+             onTap: () {                                              // ← tambahkan ini
+              Navigator.push(                                        // ← pindah halaman
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const DaftarDokterScreen(),        // ← ke halaman ini
+                ),
+              );
+            },
           ),
           const SizedBox(height: 16),
           _buildServiceCard(
@@ -106,6 +115,7 @@ class BookingContent extends StatelessWidget {
     required Color buttonColor,
     required Color bgColor,
     required String imagePlaceholder,
+    VoidCallback? onTap,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -136,14 +146,17 @@ class BookingContent extends StatelessWidget {
                     Text(description, style: const TextStyle(fontSize: 12, color: AppColors.textMedium, height: 1.5)),
                     const SizedBox(height: 16),
                     // Tombol
-                    Container(
+                    GestureDetector(
+                    onTap: onTap,    // ← pakai onTap yang tadi kita tambahkan
+                    child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                       decoration: BoxDecoration(
-                        color: buttonColor,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(buttonText, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
+                      color: buttonColor,
+                      borderRadius: BorderRadius.circular(12),
                     ),
+                    child: Text(buttonText, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
+                  ),
+                ),
                   ],
                 ),
               ),

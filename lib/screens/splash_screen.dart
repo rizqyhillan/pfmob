@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/tema_app.dart';
 import 'dashboard.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -89,7 +90,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color.fromARGB(255, 253, 253, 253),
       body: Center(
         child: FadeTransition(
           opacity: _fadeOut,
@@ -97,9 +98,9 @@ class _SplashScreenState extends State<SplashScreen>
             opacity: _fadeIn,
             child: SlideTransition(
               position: _slideAnimation,
-              child: Image.asset(
-                'assets/images/LOGO_PawPet.PNG',
-                width: 220,
+              child: SvgPicture.asset(
+                'assets/images/PawPetlogo.svg',
+              width: 250,
               ),
             ),
           ),

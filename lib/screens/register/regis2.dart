@@ -22,8 +22,8 @@ class RegisterStep2Screen extends StatefulWidget {
 class _RegisterStep2ScreenState extends State<RegisterStep2Screen>
     with SingleTickerProviderStateMixin {
   final List<TextEditingController> _controllers =
-      List.generate(6, (_) => TextEditingController());
-  final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
+      List.generate(4, (_) => TextEditingController());
+  final List<FocusNode> _focusNodes = List.generate(4, (_) => FocusNode());
   bool _isLoading = false;
   int _countdown = 60;
   Timer? _timer;
@@ -69,7 +69,7 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen>
   String get _otpCode => _controllers.map((c) => c.text).join();
 
   void _onChanged(int index, String value) {
-    if (value.length == 1 && index < 5) {
+    if (value.length == 1 && index < 3) {
       _focusNodes[index + 1].requestFocus();
     } else if (value.isEmpty && index > 0) {
       _focusNodes[index - 1].requestFocus();
@@ -78,10 +78,10 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen>
   }
 
   void _verify() async {
-    if (_otpCode.length < 6) {
+    if (_otpCode.length < 4) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text('Masukkan 6 digit kode verifikasi'),
-        backgroundColor: AppColors.primary,
+        content: const Text('Masukkan 4 digit kode verifikasi'),
+        backgroundColor: const Color.fromARGB(255, 255, 0, 0),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ));
@@ -199,10 +199,10 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen>
                       ),
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
                   Center(
                     child: Text(
-                      'Kode verifikasi 6 digit telah dikirim ke\n${_maskEmail(widget.email)}',
+                      'Kode verifikasi 4 digit telah dikirim ke\n${_maskEmail(widget.email)}',
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontSize: 14,
@@ -218,7 +218,7 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen>
                   // OTP boxes
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: List.generate(6, (i) => _buildOtpBox(i)),
+                    children: List.generate(4, (i) => _buildOtpBox(i)),
                   ),
 
                   const SizedBox(height: 28),
