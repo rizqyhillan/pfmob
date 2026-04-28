@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import '../theme/tema_app.dart';
+import '../../theme/tema_app.dart';
 import 'daftar_dokter.dart';
+import 'paket_grooming.dart';
+import 'paket_penitipan.dart';
 
 class BookingContent extends StatelessWidget {
   const BookingContent({super.key});
@@ -46,6 +48,14 @@ class BookingContent extends StatelessWidget {
             buttonColor: const Color(0xFF2E7D32),
             bgColor: const Color(0xFFE8F5E9),
             backgroundImage: 'assets/images/grooming.jpg',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const PaketGroomingScreen(),
+                ),
+              );
+            },
           ),
           const SizedBox(height: 16),
           _buildServiceCard(
@@ -58,6 +68,10 @@ class BookingContent extends StatelessWidget {
             buttonColor: const Color(0xFFE65100),
             bgColor: const Color(0xFFFFF3E0),
             backgroundImage: 'assets/images/boarding.jpg',
+            onTap: () => Navigator.push(
+             context,
+            MaterialPageRoute(builder: (_) => const PaketPenitipanScreen()),
+  ),
           ),
         ],
       ),

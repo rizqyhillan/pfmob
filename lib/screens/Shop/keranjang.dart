@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../theme/tema_app.dart';
+import '../../theme/tema_app.dart';
 import 'checkout.dart';
+import 'shop.dart';
 
 class KeranjangScreen extends StatefulWidget {
   const KeranjangScreen({super.key});
@@ -11,9 +12,9 @@ class KeranjangScreen extends StatefulWidget {
 
 class _KeranjangScreenState extends State<KeranjangScreen> {
   final List<_CartItem> _items = [
-    _CartItem(name: 'NutriPaws Premium Beef', desc: '1.5 kg • Kibble', price: 125000, qty: 2, emoji: '🥩', selected: true),
-    _CartItem(name: 'Feather Frenzy Cat Toy', desc: 'Ocean Blue • Interactive', price: 45000, qty: 1, emoji: '🪶', selected: true),
-    _CartItem(name: 'SoftCoat Aloe Shampoo', desc: '500ml • Hypoallergenic', price: 89000, qty: 1, emoji: '🧴', selected: false),
+    _CartItem(name: 'Steam Grooming Brush', category: 'Grooming', price: 185000, qty: 2, image: 'assets/images/product5.jpg', selected: true),
+    _CartItem(name: 'Paw Balm', category: 'Skincare', price: 55000, qty: 1, image: 'assets/images/product8.jpg', selected: true),
+    _CartItem(name: 'Ear Finger Wipes', category: 'Grooming', price: 45000, qty: 1, image: 'assets/images/product7.jpg', selected: false),
   ];
 
   bool get _allSelected => _items.every((i) => i.selected);
@@ -139,10 +140,14 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
             ),
           ),
           const SizedBox(width: 12),
-          Container(
-            width: 70, height: 70,
-            decoration: BoxDecoration(color: AppColors.categoryBg1, borderRadius: BorderRadius.circular(14)),
-            child: Center(child: Text(item.emoji, style: const TextStyle(fontSize: 36))),
+          // Gambar produk
+          ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: Image.asset(
+              item.image,
+              width: 70, height: 70,
+              fit: BoxFit.cover,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -151,7 +156,7 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
               children: [
                 Text(item.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textDark)),
                 const SizedBox(height: 2),
-                Text(item.desc, style: const TextStyle(fontSize: 12, color: AppColors.textLight)),
+                Text(item.category, style: const TextStyle(fontSize: 12, color: AppColors.textLight)),
                 const SizedBox(height: 6),
                 Text('Rp ${_formatHarga(item.price)}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.primary)),
                 const SizedBox(height: 8),
@@ -243,10 +248,10 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
 
 class _CartItem {
   final String name;
-  final String desc;
+  final String category;
   final int price;
   int qty;
-  final String emoji;
+  final String image;
   bool selected;
-  _CartItem({required this.name, required this.desc, required this.price, required this.qty, required this.emoji, required this.selected});
+  _CartItem({required this.name, required this.category, required this.price, required this.qty, required this.image, required this.selected});
 }

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import '../theme/tema_app.dart';
-import '../services/servis_auth.dart';
-import 'profile.dart';
-import 'login.dart';
-import 'shop.dart';
-import 'booking.dart';
-import 'schedule.dart';
+import '../../theme/tema_app.dart';
+import '../../services/servis_auth.dart';
+import '../profile.dart';
+import '../login.dart';
+import '../Shop/shop.dart';
+import '../Booking/booking.dart';
+import '../Schedule/schedule.dart';
+import '../Booking/konfirmasi_grooming.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});

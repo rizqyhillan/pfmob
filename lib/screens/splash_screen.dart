@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/tema_app.dart';
-import 'dashboard.dart';
+import 'Home/dashboard.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class SplashScreen extends StatefulWidget {

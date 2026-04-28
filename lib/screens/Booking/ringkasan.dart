@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../theme/tema_app.dart';
+import '../../theme/tema_app.dart';
 
 class PembayaranDokterScreen extends StatelessWidget {
   final String namaHewan;
@@ -27,7 +27,7 @@ class PembayaranDokterScreen extends StatelessWidget {
                   children: [
                     _buildProgress(),
                     const SizedBox(height: 24),
-                    _buildKonfirmasiPesanan(),
+                    _buildKonfirmasiBooking(),
                     const SizedBox(height: 20),
                     _buildPilihanHewan(),
                     const SizedBox(height: 20),
@@ -61,7 +61,7 @@ class PembayaranDokterScreen extends StatelessWidget {
         ],
       ),
     );
-  }
+      }
 
   Widget _buildProgress() {
     return Column(
@@ -88,11 +88,11 @@ class PembayaranDokterScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildKonfirmasiPesanan() {
+  Widget _buildKonfirmasiBooking() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Konfirmasi Pesanan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+        const Text('Konfirmasi Booking', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDark)),
         const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.all(14),

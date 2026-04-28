@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../theme/tema_app.dart';
+import '../../theme/tema_app.dart';
 import 'ringkasan.dart';
 
 class DataPasienScreen extends StatefulWidget {
@@ -174,19 +174,6 @@ class _DataPasienScreenState extends State<DataPasienScreen> {
                   hintStyle: const TextStyle(color: AppColors.textLight, fontSize: 13),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.all(16),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Container(
-                      width: 36, height: 36,
-                      decoration: BoxDecoration(color: AppColors.categoryBg1, borderRadius: BorderRadius.circular(10)),
-                      child: const Icon(Icons.attach_file_outlined, size: 18, color: AppColors.textLight),
-                    ),
-                  ],
                 ),
               ),
             ],

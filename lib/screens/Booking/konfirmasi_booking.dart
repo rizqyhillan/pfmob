@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../theme/tema_app.dart';
+import '../../theme/tema_app.dart';
 import 'data_pasien.dart';
 
 class KonfirmasiBookingScreen extends StatefulWidget {
@@ -13,6 +13,15 @@ class KonfirmasiBookingScreen extends StatefulWidget {
 class _KonfirmasiBookingScreenState extends State<KonfirmasiBookingScreen> {
   int _selectedDay = 0;
   int _selectedTime = 1;
+  String _selectedLayanan = 'Konsultasi Umum';
+
+  final List<String> _layananList = [
+    'Konsultasi Umum',
+    'Vaksinasi',
+    'Sterilisasi',
+    'Kontrol',
+    'Lainnya',
+  ];
 
   final List<Map<String, String>> _days = [
     {'day': 'Sen', 'date': '12'},
@@ -42,6 +51,8 @@ class _KonfirmasiBookingScreenState extends State<KonfirmasiBookingScreen> {
                     _buildProgress(),
                     const SizedBox(height: 20),
                     _buildDetailLayanan(),
+                    const SizedBox(height: 20),
+                    _buildPilihLayanan(),
                     const SizedBox(height: 24),
                     _buildPilihTanggal(),
                     const SizedBox(height: 24),
@@ -105,45 +116,69 @@ class _KonfirmasiBookingScreenState extends State<KonfirmasiBookingScreen> {
   Widget _buildDetailLayanan() {
     return Container(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.categoryBg1,
-        borderRadius: BorderRadius.circular(16),
-      ),
+      decoration: BoxDecoration(color: AppColors.categoryBg1, borderRadius: BorderRadius.circular(16)),
       child: Row(
         children: [
           Container(
             width: 56, height: 56,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-            ),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(14),
-              child: Image.asset(
-                'assets/images/dokter1.jpg',
-                width: 56, height: 56,
-                fit: BoxFit.cover,
-              ),
+              child: Image.asset('assets/images/dokter1.jpg', width: 56, height: 56, fit: BoxFit.cover),
             ),
           ),
           const SizedBox(width: 14),
-          Column(
+          const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Dr. Sarah', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDark)),
-              const Text('Spesialis Bedah Hewan', style: TextStyle(fontSize: 12, color: AppColors.textLight)),
-              const SizedBox(height: 4),
+              Text('Dr. Sarah', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+              Text('Spesialis Bedah Hewan', style: TextStyle(fontSize: 12, color: AppColors.textLight)),
+              SizedBox(height: 4),
               Row(
                 children: [
-                  const Icon(Icons.medical_services_outlined, size: 13, color: AppColors.primary),
-                  const SizedBox(width: 4),
-                  Text(widget.namaLayanan, style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w600)),
+                  Icon(Icons.star_rounded, color: AppColors.gold, size: 14),
+                  SizedBox(width: 4),
+                  Text('8+ years', style: TextStyle(fontSize: 12, color: AppColors.textMedium, fontWeight: FontWeight.w600)),
                 ],
               ),
             ],
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildPilihLayanan() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Pilih Layanan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+        const SizedBox(height: 10),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.divider),
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: _selectedLayanan,
+              isExpanded: true,
+              icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textLight),
+              style: const TextStyle(fontSize: 14, color: AppColors.textDark, fontFamily: 'Nunito'),
+              items: _layananList.map((layanan) {
+                return DropdownMenuItem<String>(
+                  value: layanan,
+                  child: Text(layanan),
+                );
+              }).toList(),
+              onChanged: (value) => setState(() => _selectedLayanan = value!),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -237,7 +272,10 @@ class _KonfirmasiBookingScreenState extends State<KonfirmasiBookingScreen> {
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 16, offset: const Offset(0, -4))],
       ),
       child: GestureDetector(
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DataPasienScreen())),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const DataPasienScreen()),
+        ),
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 16),

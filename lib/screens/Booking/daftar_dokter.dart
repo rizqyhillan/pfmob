@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../theme/tema_app.dart';
+import '../../theme/tema_app.dart';
 import 'dokter_detail.dart';
 
 class DaftarDokterScreen extends StatelessWidget {

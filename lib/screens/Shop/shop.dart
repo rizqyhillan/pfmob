@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../theme/tema_app.dart';
+import '../../theme/tema_app.dart';
 import 'keranjang.dart';
 
 class ShopContent extends StatefulWidget {

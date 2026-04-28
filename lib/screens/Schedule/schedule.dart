@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../theme/tema_app.dart';
+import '../../theme/tema_app.dart';
 
 class ScheduleContent extends StatefulWidget {
   const ScheduleContent({super.key});
@@ -113,89 +113,145 @@ class _ScheduleContentState extends State<ScheduleContent> {
     );
   }
 
-  Widget _buildMendatangList() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildDateLabel('HARI INI, 14 NOV'),
-          const SizedBox(height: 12),
-          _buildScheduleCard(
-            emoji: '🐱',
-            title: 'Premium Grooming',
-            subtitle: 'Cooper • Golden Retriever Mix',
-            date: '14 Nov 2025',
-            time: '10:30 AM',
-            status: 'CONFIRMED',
-            statusColor: const Color(0xFF4A9B8E),
+Widget _buildMendatangList() {
+  final items = [
+    {
+      'emoji': '🐱',
+      'title': 'Premium Grooming',
+      'subtitle': 'Cooper • Golden Retriever Mix',
+      'date': '14 Nov 2025',
+      'time': '10:30 AM',
+      'status': 'CONFIRMED',
+      'statusColor': const Color(0xFF4A9B8E),
+    },
+    {
+      'emoji': '🐱',
+      'title': 'Vet Consultation',
+      'subtitle': 'Luna • Calico Cat',
+      'date': '14 Nov 2025',
+      'time': '02:15 PM',
+      'status': 'PENDING',
+      'statusColor': const Color(0xFFFF9800),
+    },
+  ];
+
+  if (items.isEmpty) {
+    return _buildKosong(
+      emoji: '📅',
+      judul: 'Belum Ada Jadwal',
+      deskripsi: 'Kamu belum punya jadwal mendatang.\nYuk booking layanan untuk anabul kamu!',
+    );
+  }
+
+  return SingleChildScrollView(
+    padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildDateLabel('HARI INI, 14 NOV'),
+        const SizedBox(height: 12),
+        ...items.map((item) => Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: _buildScheduleCard(
+            emoji: item['emoji'] as String,
+            title: item['title'] as String,
+            subtitle: item['subtitle'] as String,
+            date: item['date'] as String,
+            time: item['time'] as String,
+            status: item['status'] as String,
+            statusColor: item['statusColor'] as Color,
             showActions: true,
           ),
-          const SizedBox(height: 12),
-          _buildScheduleCard(
-            emoji: '🐱',
-            title: 'Vet Consultation',
-            subtitle: 'Luna • Calico Cat',
-            date: '14 Nov 2025',
-            time: '02:15 PM',
-            status: 'PENDING',
-            statusColor: const Color(0xFFFF9800),
-            showActions: true,
+        )),
+      ],
+    ),
+  );
+}
+
+Widget _buildRiwayatList() {
+  final items = [
+    {
+      'emoji': '🐱',
+      'title': 'Premium Grooming',
+      'subtitle': 'Cooper • Golden Retriever Mix',
+      'date': '12 Nov 2025',
+      'time': '09:30 AM',
+      'status': 'SELESAI',
+      'statusColor': const Color(0xFF4A9B8E),
+    },
+  ];
+
+  if (items.isEmpty) {
+    return _buildKosong(
+      emoji: '🗂️',
+      judul: 'Belum Ada Riwayat',
+      deskripsi: 'Riwayat booking kamu akan\nmuncul di sini setelah selesai.',
+    );
+  }
+
+  return SingleChildScrollView(
+    padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildDateLabel('13 NOVEMBER 2025'),
+        const SizedBox(height: 12),
+        ...items.map((item) => Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: _buildScheduleCard(
+            emoji: item['emoji'] as String,
+            title: item['title'] as String,
+            subtitle: item['subtitle'] as String,
+            date: item['date'] as String,
+            time: item['time'] as String,
+            status: item['status'] as String,
+            statusColor: item['statusColor'] as Color,
+            showActions: false,
+            showSelesai: false,
+          ),
+        )),
+      ],
+    ),
+  );
+}
+
+Widget _buildKosong({
+  required String emoji,
+  required String judul,
+  required String deskripsi,
+}) {
+  return Center(
+    child: Padding(
+      padding: const EdgeInsets.only(top: 60),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 90, height: 90,
+            decoration: BoxDecoration(
+              color: AppColors.categoryBg1,
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(emoji, style: const TextStyle(fontSize: 42)),
+            ),
           ),
           const SizedBox(height: 20),
-          _buildDateLabel('BESOK, 15 NOV'),
-          const SizedBox(height: 12),
-          _buildScheduleCard(
-            emoji: '🐶',
-            title: 'Penitipan (Boarding)',
-            subtitle: 'Max • Labrador',
-            date: '15 Nov 2025',
-            time: '08:00 AM',
-            status: 'CONFIRMED',
-            statusColor: const Color(0xFF4A9B8E),
-            showActions: true,
+          Text(
+            judul,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textDark),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            deskripsi,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 13, color: AppColors.textLight, height: 1.6),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildRiwayatList() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildDateLabel('13 NOVEMBER 2025'),
-          const SizedBox(height: 12),
-          _buildScheduleCard(
-            emoji: '🐱',
-            title: 'Premium Grooming',
-            subtitle: 'Cooper • Golden Retriever Mix',
-            date: '12 Nov 2025',
-            time: '09:30 AM',
-            status: 'SELESAI',
-            statusColor: const Color(0xFF4A9B8E),
-            showActions: false,
-            showSelesai: true,
-          ),
-          const SizedBox(height: 12),
-          _buildScheduleCard(
-            emoji: '🐶',
-            title: 'Vet Consultation',
-            subtitle: 'Max • Labrador',
-            date: '10 Nov 2025',
-            time: '11:00 AM',
-            status: 'SELESAI',
-            statusColor: const Color(0xFF4A9B8E),
-            showActions: false,
-            showSelesai: true,
-          ),
-        ],
-      ),
-    );
-  }
-
+    ),
+  );
+}
   Widget _buildDateLabel(String label) {
     return Text(
       label,

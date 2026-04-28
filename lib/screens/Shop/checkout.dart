@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../theme/tema_app.dart';
+import '../../theme/tema_app.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -25,8 +25,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   ];
 
   final List<_OrderItem> _items = [
-    _OrderItem(name: 'Organic Puppy Mix', desc: '2.5 kg • Salmon & Sweet Potato', price: 185000, qty: 1, emoji: '🥣'),
-    _OrderItem(name: 'Cotton Rope Tug', desc: 'Large • Eco-friendly Cotton', price: 45000, qty: 2, emoji: '🪢'),
+    _OrderItem(name: 'Paw Balm', category: 'Plant Extract • 40g', price: 55000, qty: 1, image: 'assets/images/product8.jpg'),
+    _OrderItem(name: 'Ear Finger Wipes', category: 'Coconut Oil • 60pcs', price: 45000, qty: 2, image: 'assets/images/product7.jpg'),
   ];
 
   final List<_PaymentMethod> _payments = [
@@ -40,11 +40,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   int get _shipping => 12000;
   int get _tax => (_subtotal * 0.11).round();
   int get _total => _subtotal + _shipping + _tax;
-
-  @override
-  void initState() {
-  super.initState();
-  }
 
   @override
   void dispose() {
@@ -109,7 +104,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  // ─── ALAMAT ───────────────────────────────────────────────
   Widget _buildAlamatSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,21 +116,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               onTap: () => setState(() => _showAddAddress = !_showAddAddress),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  _showAddAddress ? 'Batal' : '+ Tambah',
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primary),
-                ),
+                decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                child: Text(_showAddAddress ? 'Batal' : '+ Tambah', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primary)),
               ),
             ),
           ],
         ),
         const SizedBox(height: 14),
-
-        // Daftar alamat tersimpan
         ..._savedAddresses.map((addr) => Padding(
           padding: const EdgeInsets.only(bottom: 10),
           child: GestureDetector(
@@ -146,10 +132,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: _selectedAddress == addr ? AppColors.primary : AppColors.divider,
-                  width: _selectedAddress == addr ? 2 : 1,
-                ),
+                border: Border.all(color: _selectedAddress == addr ? AppColors.primary : AppColors.divider, width: _selectedAddress == addr ? 2 : 1),
                 boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
               ),
               child: Row(
@@ -160,22 +143,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       color: _selectedAddress == addr ? AppColors.primary.withOpacity(0.1) : AppColors.categoryBg1,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(Icons.location_on_outlined,
-                      color: _selectedAddress == addr ? AppColors.primary : AppColors.textLight, size: 20),
+                    child: Icon(Icons.location_on_outlined, color: _selectedAddress == addr ? AppColors.primary : AppColors.textLight, size: 20),
                   ),
                   const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(addr, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textDark)),
-                  ),
-                  if (_selectedAddress == addr)
-                    const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 20),
+                  Expanded(child: Text(addr, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textDark))),
+                  if (_selectedAddress == addr) const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 20),
                 ],
               ),
             ),
           ),
         )),
-
-        // Form tambah alamat baru
         if (_showAddAddress) _buildFormTambahAlamat(),
       ],
     );
@@ -186,8 +163,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       margin: const EdgeInsets.only(top: 4),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.white, borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.divider),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
       ),
@@ -205,30 +181,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           Row(
             children: [
               Expanded(
-  child: Container(
-    decoration: BoxDecoration(
-      color: AppColors.background,
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: AppColors.divider),
-    ),
-    padding: const EdgeInsets.symmetric(horizontal: 12),
-    child: DropdownButtonHideUnderline(
-      child: DropdownButton<String>(
-        value: _selectedKota,
-        isExpanded: true,
-        icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textLight),
-        style: const TextStyle(fontSize: 13, color: AppColors.textDark),
-        items: const [
-          DropdownMenuItem(value: 'Jember', child: Text('Jember')),
-          // nanti bisa tambah kota lain di sini
-        ],
-        onChanged: (value) {
-          setState(() => _selectedKota = value!);
-        },
-      ),
-    ),
-  ),
-),
+                child: Container(
+                  decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.divider)),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _selectedKota,
+                      isExpanded: true,
+                      icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textLight),
+                      style: const TextStyle(fontSize: 13, color: AppColors.textDark),
+                      items: const [DropdownMenuItem(value: 'Jember', child: Text('Jember'))],
+                      onChanged: (value) => setState(() => _selectedKota = value!),
+                    ),
+                  ),
+                ),
+              ),
               const SizedBox(width: 10),
               Expanded(child: _buildInputField(_kodeposController, 'Kode Pos', Icons.markunread_mailbox_outlined, keyboardType: TextInputType.number)),
             ],
@@ -263,11 +230,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildInputField(TextEditingController controller, String hint, IconData icon, {int maxLines = 1, TextInputType keyboardType = TextInputType.text}) {
     return Container(
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.divider),
-      ),
+      decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.divider)),
       child: TextField(
         controller: controller,
         maxLines: maxLines,
@@ -277,16 +240,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           hintText: hint,
           hintStyle: const TextStyle(color: AppColors.textLight, fontSize: 13),
           prefixIcon: Icon(icon, color: AppColors.textLight, size: 18),
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: InputBorder.none,
+          border: InputBorder.none, enabledBorder: InputBorder.none, focusedBorder: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 12),
         ),
       ),
     );
   }
 
-  // ─── ORDER SUMMARY ────────────────────────────────────────
   Widget _buildOrderSummary() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -317,10 +277,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       ),
       child: Row(
         children: [
-          Container(
-            width: 64, height: 64,
-            decoration: BoxDecoration(color: AppColors.categoryBg1, borderRadius: BorderRadius.circular(12)),
-            child: Center(child: Text(item.emoji, style: const TextStyle(fontSize: 32))),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.asset(item.image, width: 64, height: 64, fit: BoxFit.cover),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -329,7 +288,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               children: [
                 Text(item.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textDark)),
                 const SizedBox(height: 2),
-                Text(item.desc, style: const TextStyle(fontSize: 12, color: AppColors.textLight)),
+                Text(item.category, style: const TextStyle(fontSize: 12, color: AppColors.textLight)),
                 const SizedBox(height: 6),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -350,7 +309,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  // ─── PAYMENT ──────────────────────────────────────────────
   Widget _buildPaymentMethod() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -407,7 +365,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  // ─── PRICE SUMMARY ────────────────────────────────────────
   Widget _buildPriceSummary() {
     return Column(
       children: [
@@ -468,14 +425,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               content: Text('Pembayaran berhasil! 🎉'),
               backgroundColor: Color(0xFF4A9B8E),
               duration: Duration(seconds: 2),
-              ),
-            );
-            Future.delayed(const Duration(seconds: 2), () {
-              if (mounted) {
-                Navigator.popUntil(context, (route) => route.isFirst);
-                }
-              });
-            },
+            ),
+          );
+          Future.delayed(const Duration(seconds: 2), () {
+            if (mounted) Navigator.popUntil(context, (route) => route.isFirst);
+          });
+        },
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -493,11 +448,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
 class _OrderItem {
   final String name;
-  final String desc;
+  final String category;
   final int price;
   final int qty;
-  final String emoji;
-  const _OrderItem({required this.name, required this.desc, required this.price, required this.qty, required this.emoji});
+  final String image;
+  const _OrderItem({required this.name, required this.category, required this.price, required this.qty, required this.image});
 }
 
 class _PaymentMethod {
