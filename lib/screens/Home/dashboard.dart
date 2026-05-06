@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/tema_app.dart';
 import '../../services/servis_auth.dart';
-import '../profile.dart';
+import '../profile/profile.dart';
 import '../login.dart';
 import '../Shop/shop.dart';
 import '../Booking/booking.dart';

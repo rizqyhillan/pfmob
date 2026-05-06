@@ -1,7 +1,22 @@
 import 'package:flutter/material.dart';
-import '../theme/tema_app.dart';
-import '../services/servis_auth.dart';
-import 'login.dart';
+import '../../theme/tema_app.dart';
+import '../../services/servis_auth.dart';
+import '../login.dart';
+import 'medical_report_list.dart';
+import 'shop_report.dart';
+
+
+// ════════════════════════════════════════════════════════════
+// 📌 Uncomment import ini saat halaman sudah kamu buat
+// di dalam folder: lib/screens/profile/
+// ════════════════════════════════════════════════════════════
+// import 'edit_profil.dart';
+// import 'ubah_password.dart';
+// import 'notifikasi.dart';
+// import 'bantuan_faq.dart';
+// import 'kebijakan_privasi.dart';
+// import 'tentang_aplikasi.dart';
+// ════════════════════════════════════════════════════════════
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -67,12 +82,10 @@ class ProfileScreen extends StatelessWidget {
       backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
-          // Header dengan avatar
           SliverToBoxAdapter(
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-                // Background gradient
                 Container(
                   height: 180,
                   decoration: const BoxDecoration(
@@ -103,14 +116,18 @@ class ProfileScreen extends StatelessWidget {
                           IconButton(
                             icon: const Icon(Icons.edit_outlined,
                                 color: Colors.white70, size: 22),
-                            onPressed: () {},
+                            onPressed: () {
+                              // 📌 Uncomment saat edit_profil.dart sudah dibuat
+                              // Navigator.push(context, MaterialPageRoute(
+                              //   builder: (_) => const EditProfilPage(),
+                              // ));
+                            },
                           ),
                         ],
                       ),
                     ),
                   ),
                 ),
-                // Avatar card — overlap
                 Positioned(
                   bottom: -60,
                   left: 0,
@@ -145,10 +162,8 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
 
-          // Spacer for avatar overlap
           const SliverToBoxAdapter(child: SizedBox(height: 74)),
 
-          // Name & email
           SliverToBoxAdapter(
             child: Column(
               children: [
@@ -174,7 +189,6 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                // Stats row
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Container(
@@ -209,7 +223,6 @@ class ProfileScreen extends StatelessWidget {
 
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-          // Menu items
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -226,25 +239,77 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  _buildMenuCard([
+                  _buildMenuCard(context, [
+
                     _MenuItem(
-                        Icons.person_outline,
-                        'Edit Profil',
-                        'Ubah nama, foto, dan info pribadi',
-                        AppColors.categoryBg1,
-                        AppColors.primary),
+                      icon: Icons.person_outline,
+                      title: 'Edit Profil',
+                      subtitle: 'Ubah nama, foto, dan info pribadi',
+                      bgColor: AppColors.categoryBg1,
+                      iconColor: AppColors.primary,
+                      onTap: (ctx) {
+                        // 📌 Uncomment saat edit_profil.dart sudah dibuat
+                        // Navigator.push(ctx, MaterialPageRoute(
+                        //   builder: (_) => const EditProfilPage(),
+                        // ));
+                      },
+                    ),
+
+                    // ✅ SUDAH TERSAMBUNG ke medical_report.dart
                     _MenuItem(
-                        Icons.lock_outline,
-                        'Ubah Password',
-                        'Perbarui keamanan akunmu',
-                        AppColors.categoryBg2,
-                        const Color(0xFF2196F3)),
+                      icon: Icons.insert_drive_file_outlined,
+                      title: 'Laporan',
+                      subtitle: 'Lihat dan kelola laporanmu',
+                      bgColor: AppColors.categoryBg1,
+                      iconColor: AppColors.primary,
+                      onTap: (ctx) {
+                        Navigator.push(ctx, MaterialPageRoute(
+                          builder: (_) => const MedicalReportPage(),
+                        ));
+                      },
+                    ),
+
                     _MenuItem(
-                        Icons.notifications_outlined,
-                        'Notifikasi',
-                        'Atur preferensi notifikasi',
-                        AppColors.categoryBg3,
-                        AppColors.accent),
+                      icon: Icons.shopping_basket_outlined,
+                      title: 'Riwayat Belanja',
+                      subtitle: 'Lihat riwayat belanjamu',
+                      bgColor: AppColors.categoryBg1,
+                      iconColor: AppColors.primary,
+                      onTap: (ctx) {
+                        Navigator.push(ctx, MaterialPageRoute(
+                          builder: (_) => const ShopReportPage(),
+                        ));
+                      },
+                    ),
+
+                    _MenuItem(
+                      icon: Icons.lock_outline,
+                      title: 'Ubah Password',
+                      subtitle: 'Perbarui keamanan akunmu',
+                      bgColor: AppColors.categoryBg2,
+                      iconColor: const Color(0xFF2196F3),
+                      onTap: (ctx) {
+                        // 📌 Uncomment saat ubah_password.dart sudah dibuat
+                        // Navigator.push(ctx, MaterialPageRoute(
+                        //   builder: (_) => const UbahPasswordPage(),
+                        // ));
+                      },
+                    ),
+
+                    _MenuItem(
+                      icon: Icons.notifications_outlined,
+                      title: 'Notifikasi',
+                      subtitle: 'Atur preferensi notifikasi',
+                      bgColor: AppColors.categoryBg3,
+                      iconColor: AppColors.accent,
+                      onTap: (ctx) {
+                        // 📌 Uncomment saat notifikasi.dart sudah dibuat
+                        // Navigator.push(ctx, MaterialPageRoute(
+                        //   builder: (_) => const NotifikasiPage(),
+                        // ));
+                      },
+                    ),
+
                   ]),
 
                   const SizedBox(height: 20),
@@ -259,26 +324,54 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  _buildMenuCard([
+                  _buildMenuCard(context, [
+
                     _MenuItem(
-                        Icons.help_outline,
-                        'Bantuan & FAQ',
-                        'Punya pertanyaan? Kami siap membantu',
-                        AppColors.categoryBg4,
-                        const Color(0xFF7C4DFF)),
+                      icon: Icons.help_outline,
+                      title: 'Bantuan & FAQ',
+                      subtitle: 'Punya pertanyaan? Kami siap membantu',
+                      bgColor: AppColors.categoryBg4,
+                      iconColor: const Color(0xFF7C4DFF),
+                      onTap: (ctx) {
+                        // 📌 Uncomment saat bantuan_faq.dart sudah dibuat
+                        // Navigator.push(ctx, MaterialPageRoute(
+                        //   builder: (_) => const BantuanFaqPage(),
+                        // ));
+                      },
+                    ),
+
                     _MenuItem(
-                        Icons.shield_outlined,
-                        'Kebijakan Privasi',
-                        'Pelajari bagaimana data kamu digunakan',
-                        AppColors.categoryBg1,
-                        AppColors.primary),
-                    _MenuItem(Icons.info_outline, 'Tentang Aplikasi',
-                        'Versi 1.0.0', AppColors.categoryBg3, AppColors.accent),
+                      icon: Icons.shield_outlined,
+                      title: 'Kebijakan Privasi',
+                      subtitle: 'Pelajari bagaimana data kamu digunakan',
+                      bgColor: AppColors.categoryBg1,
+                      iconColor: AppColors.primary,
+                      onTap: (ctx) {
+                        // 📌 Uncomment saat kebijakan_privasi.dart sudah dibuat
+                        // Navigator.push(ctx, MaterialPageRoute(
+                        //   builder: (_) => const KebijakanPrivasiPage(),
+                        // ));
+                      },
+                    ),
+
+                    _MenuItem(
+                      icon: Icons.info_outline,
+                      title: 'Tentang Aplikasi',
+                      subtitle: 'Versi 1.0.0',
+                      bgColor: AppColors.categoryBg3,
+                      iconColor: AppColors.accent,
+                      onTap: (ctx) {
+                        // 📌 Uncomment saat tentang_aplikasi.dart sudah dibuat
+                        // Navigator.push(ctx, MaterialPageRoute(
+                        //   builder: (_) => const TentangAplikasiPage(),
+                        // ));
+                      },
+                    ),
+
                   ]),
 
                   const SizedBox(height: 20),
 
-                  // Logout button
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
@@ -318,35 +411,25 @@ class ProfileScreen extends StatelessWidget {
       children: [
         Text(emoji, style: const TextStyle(fontSize: 20)),
         const SizedBox(height: 4),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: AppColors.textDark,
-          ),
-        ),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12,
-            color: AppColors.textLight,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
+        Text(value,
+            style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textDark)),
+        Text(label,
+            style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.textLight,
+                fontWeight: FontWeight.w500)),
       ],
     );
   }
 
   Widget _buildStatDivider() {
-    return Container(
-      width: 1,
-      height: 40,
-      color: AppColors.divider,
-    );
+    return Container(width: 1, height: 40, color: AppColors.divider);
   }
 
-  Widget _buildMenuCard(List<_MenuItem> items) {
+  Widget _buildMenuCard(BuildContext context, List<_MenuItem> items) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -375,25 +458,19 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   child: Icon(item.icon, color: item.iconColor, size: 20),
                 ),
-                title: Text(
-                  item.title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textDark,
-                  ),
-                ),
-                subtitle: Text(
-                  item.subtitle,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textLight,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                title: Text(item.title,
+                    style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textDark)),
+                subtitle: Text(item.subtitle,
+                    style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textLight,
+                        fontWeight: FontWeight.w500)),
                 trailing: const Icon(Icons.chevron_right,
                     color: AppColors.textLight, size: 20),
-                onTap: () {},
+                onTap: () => item.onTap?.call(context),
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               ),
@@ -417,6 +494,14 @@ class _MenuItem {
   final String subtitle;
   final Color bgColor;
   final Color iconColor;
-  const _MenuItem(
-      this.icon, this.title, this.subtitle, this.bgColor, this.iconColor);
+  final void Function(BuildContext ctx)? onTap;
+
+  const _MenuItem({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.bgColor,
+    required this.iconColor,
+    this.onTap,
+  });
 }

@@ -4,7 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../theme/tema_app.dart';
 import '../services/servis_auth.dart';
 import 'register/regis1.dart';
-import 'profile.dart';
+import 'profile/profile.dart';
 import 'lupa_pass.dart';
 
 class LoginScreen extends StatefulWidget {
