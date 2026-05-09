@@ -6,6 +6,7 @@ import '../services/servis_auth.dart';
 import 'register/regis1.dart';
 import 'profile/profile.dart';
 import 'lupa_pass.dart';
+import 'Home/dashboard.dart';
 
 class LoginScreen extends StatefulWidget {
   final bool redirectToProfile;
@@ -29,10 +30,13 @@ class _LoginScreenState extends State<LoginScreen>
   @override
   void initState() {
     super.initState();
-    _animController = AnimationController(vsync: this, duration: const Duration(milliseconds: 800));
-    _fadeAnim = CurvedAnimation(parent: _animController, curve: Curves.easeOut);
-    _slideAnim = Tween<Offset>(begin: const Offset(0, 0.08), end: Offset.zero)
-        .animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
+    _animController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 800));
+    _fadeAnim =
+        CurvedAnimation(parent: _animController, curve: Curves.easeOut);
+    _slideAnim =
+        Tween<Offset>(begin: const Offset(0, 0.08), end: Offset.zero).animate(
+            CurvedAnimation(parent: _animController, curve: Curves.easeOut));
     _animController.forward();
   }
 
@@ -57,8 +61,11 @@ class _LoginScreenState extends State<LoginScreen>
       );
 
       if (widget.redirectToProfile) {
-        Navigator.pop(context);
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()));
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => DashboardScreen(initialIndex: 4)),
+          (route) => false,
+        );
       } else {
         Navigator.pop(context);
       }
@@ -72,23 +79,36 @@ class _LoginScreenState extends State<LoginScreen>
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
         backgroundColor: AppColors.background,
-        leading: widget.redirectToProfile
-            ? IconButton(
-                icon: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.divider),
-                  ),
-                  child: const Icon(Icons.arrow_back_ios_new, size: 16, color: AppColors.textDark),
-                ),
-                onPressed: () => Navigator.pop(context),
-              )
-            : null,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        leading: GestureDetector(
+          onTap: () => Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+                builder: (_) => const DashboardScreen(initialIndex: 0)),
+            (route) => false,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.only(left: 16),
+            child: Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: AppColors.categoryBg1,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                size: 16,
+                color: AppColors.primary,
+              ),
+            ),
+          ),
+        ),
       ),
       body: Stack(
         children: [
+          // Gambar paw di bawah
           Positioned(
             bottom: 0,
             left: 0,
@@ -102,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen>
               ),
             ),
           ),
-          
+
           // Konten utama
           SafeArea(
             child: SingleChildScrollView(
@@ -116,17 +136,23 @@ class _LoginScreenState extends State<LoginScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(height: widget.redirectToProfile ? 8 : 48),
+                        const SizedBox(height: 8),
 
                         // Logo & Header
                         Center(
                           child: Column(
                             children: [
-                              SvgPicture.asset('assets/images/PawPetlogo.svg', width: 150),
+                              SvgPicture.asset('assets/images/PawPetlogo.svg',
+                                  width: 150),
                               const SizedBox(height: 10),
                               const Text(
                                 'LOGIN',
-                                style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800, color: AppColors.textDark, letterSpacing: -0.5),
+                                style: TextStyle(
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.textDark,
+                                  letterSpacing: -0.5,
+                                ),
                               ),
                             ],
                           ),
@@ -135,17 +161,26 @@ class _LoginScreenState extends State<LoginScreen>
                         const SizedBox(height: 20),
 
                         // Email
-                        const Text('Email', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+                        const Text(
+                          'Email',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textDark,
+                          ),
+                        ),
                         const SizedBox(height: 8),
                         TextFormField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
                           decoration: const InputDecoration(
                             hintText: 'Masukkan email kamu',
-                            prefixIcon: Icon(Icons.email_outlined, color: AppColors.textLight),
+                            prefixIcon: Icon(Icons.email_outlined,
+                                color: AppColors.textLight),
                           ),
                           validator: (v) {
-                            if (v == null || v.isEmpty) return 'Email wajib diisi';
+                            if (v == null || v.isEmpty)
+                              return 'Email wajib diisi';
                             if (!v.contains('@')) return 'Email tidak valid';
                             return null;
                           },
@@ -154,38 +189,53 @@ class _LoginScreenState extends State<LoginScreen>
                         const SizedBox(height: 18),
 
                         // Password
-                        const Text('Password', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+                        const Text(
+                          'Password',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textDark,
+                          ),
+                        ),
                         const SizedBox(height: 8),
                         TextFormField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
                           decoration: InputDecoration(
                             hintText: 'Masukkan password kamu',
-                            prefixIcon: const Icon(Icons.lock_outline, color: AppColors.textLight),
+                            prefixIcon: const Icon(Icons.lock_outline,
+                                color: AppColors.textLight),
                             suffixIcon: IconButton(
                               icon: Icon(
-                                _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                                _obscurePassword
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
                                 color: AppColors.textLight,
                               ),
-                              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                              onPressed: () => setState(
+                                  () => _obscurePassword = !_obscurePassword),
                             ),
                           ),
                           validator: (v) {
-                            if (v == null || v.isEmpty) return 'Password wajib diisi';
-                            if (v.length < 6) return 'Password minimal 6 karakter';
+                            if (v == null || v.isEmpty)
+                              return 'Password wajib diisi';
+                            if (v.length < 6)
+                              return 'Password minimal 6 karakter';
                             return null;
                           },
                         ),
 
                         const SizedBox(height: 10),
 
-                        // Forgot Password
+                        // Lupa password
                         Align(
                           alignment: Alignment.centerRight,
                           child: TextButton(
                             onPressed: () => Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
+                              MaterialPageRoute(
+                                  builder: (_) =>
+                                      const ForgotPasswordScreen()),
                             ),
                             style: TextButton.styleFrom(
                               padding: EdgeInsets.zero,
@@ -194,47 +244,68 @@ class _LoginScreenState extends State<LoginScreen>
                             ),
                             child: const Text(
                               'Lupa password?',
-                              style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600, fontSize: 13),
+                              style: TextStyle(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
                             ),
                           ),
                         ),
 
                         const SizedBox(height: 24),
 
-                        // Login Button
+                        // Tombol login
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
                             onPressed: _isLoading ? null : _login,
                             child: _isLoading
-                                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                        color: Colors.white, strokeWidth: 2),
+                                  )
                                 : const Text('Masuk'),
                           ),
                         ),
 
                         const SizedBox(height: 24),
 
-                        // Register Link
+                        // Daftar
                         Center(
                           child: RichText(
                             text: TextSpan(
                               text: 'Belum punya akun? ',
-                              style: const TextStyle(color: AppColors.textLight, fontSize: 14, fontFamily: 'Nunito'),
+                              style: const TextStyle(
+                                color: AppColors.textLight,
+                                fontSize: 14,
+                                fontFamily: 'Nunito',
+                              ),
                               children: [
                                 TextSpan(
                                   text: 'Daftar sekarang',
-                                  style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 14, fontFamily: 'Nunito'),
+                                  style: const TextStyle(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14,
+                                    fontFamily: 'Nunito',
+                                  ),
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = () => Navigator.push(
                                           context,
-                                          MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                                          MaterialPageRoute(
+                                              builder: (_) =>
+                                                  const RegisterScreen()),
                                         ),
                                 ),
                               ],
                             ),
                           ),
                         ),
-                        const SizedBox(height: 150), // ruang untuk paw
+
+                        const SizedBox(height: 150),
                       ],
                     ),
                   ),
@@ -242,9 +313,6 @@ class _LoginScreenState extends State<LoginScreen>
               ),
             ),
           ),
-
-          // Gambar paw di bawah layar
-        
         ],
       ),
     );

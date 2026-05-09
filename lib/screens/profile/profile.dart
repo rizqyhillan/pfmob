@@ -6,18 +6,6 @@ import 'medical_report_list.dart';
 import 'shop_report.dart';
 
 
-// ════════════════════════════════════════════════════════════
-// 📌 Uncomment import ini saat halaman sudah kamu buat
-// di dalam folder: lib/screens/profile/
-// ════════════════════════════════════════════════════════════
-// import 'edit_profil.dart';
-// import 'ubah_password.dart';
-// import 'notifikasi.dart';
-// import 'bantuan_faq.dart';
-// import 'kebijakan_privasi.dart';
-// import 'tentang_aplikasi.dart';
-// ════════════════════════════════════════════════════════════
-
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
@@ -87,7 +75,7 @@ class ProfileScreen extends StatelessWidget {
               clipBehavior: Clip.none,
               children: [
                 Container(
-                  height: 180,
+                  height: 100,
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
                       colors: [AppColors.primaryDark, AppColors.primary],
@@ -186,35 +174,6 @@ class ProfileScreen extends StatelessWidget {
                     fontSize: 14,
                     color: AppColors.textLight,
                     fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: AppColors.divider),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _buildStat('3', 'Hewan', '🐾'),
-                        _buildStatDivider(),
-                        _buildStat('12', 'Booking', '📅'),
-                        _buildStatDivider(),
-                        _buildStat('5', 'Pesanan', '🛍️'),
-                      ],
-                    ),
                   ),
                 ),
               ],

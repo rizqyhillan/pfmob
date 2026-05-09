@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/tema_app.dart';
 import 'keranjang.dart';
+import 'detail_produk.dart';
 
 class ShopContent extends StatefulWidget {
   const ShopContent({super.key});
@@ -14,7 +15,7 @@ class _ShopContentState extends State<ShopContent> {
   final List<String> _categories = ['All Products', 'Food', 'Grooming', 'Vitamins', 'Fashion', 'Accessories'];
 
   final List<_ShopProduct> _products = [
-    _ShopProduct(name: 'Collapsible Bowl', price: 185000, image: 'assets/images/product5.jpg', bgColor: Color(0xFFFFF3E8), kategori: 'Accessories'), 
+    _ShopProduct(name: 'Collapsible Bowl', price: 185000, image: 'assets/images/product5.jpg', bgColor: Color(0xFFFFF3E8), kategori: 'Accessories'),
     _ShopProduct(name: 'Pet Carrier Bag', price: 95000, image: 'assets/images/product6.jpg', bgColor: Color(0xFFE8F4FF), kategori: 'Accessories'),
     _ShopProduct(name: 'Paw Balm', price: 45000, image: 'assets/images/product7.jpg', bgColor: Color(0xFFE8F5F3), kategori: 'Grooming'),
     _ShopProduct(name: 'Ear Finger Wipes', price: 55000, image: 'assets/images/product8.jpg', bgColor: Color(0xFFFFE8F0), kategori: 'Grooming'),
@@ -159,39 +160,53 @@ class _ShopContentState extends State<ShopContent> {
   }
 
   Widget _buildProductGrid() {
-  // Filter produk berdasarkan kategori yang dipilih
-  final filtered = _selectedCategory == 0
-      ? _products
-      : _products.where((p) => p.kategori == _categories[_selectedCategory]).toList();
+    final filtered = _selectedCategory == 0
+        ? _products
+        : _products.where((p) => p.kategori == _categories[_selectedCategory]).toList();
 
-  return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 20),
-    child: filtered.isEmpty
-        ? const Center(
-            child: Padding(
-              padding: EdgeInsets.only(top: 60),
-              child: Column(
-                children: [
-                  Text('🛒', style: TextStyle(fontSize: 48)),
-                  SizedBox(height: 12),
-                  Text('Belum ada produk di kategori ini',
-                      style: TextStyle(fontSize: 14, color: AppColors.textLight)),
-                ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: filtered.isEmpty
+          ? const Center(
+              child: Padding(
+                padding: EdgeInsets.only(top: 60),
+                child: Column(
+                  children: [
+                    Text('🛒', style: TextStyle(fontSize: 48)),
+                    SizedBox(height: 12),
+                    Text('Belum ada produk di kategori ini',
+                        style: TextStyle(fontSize: 14, color: AppColors.textLight)),
+                  ],
+                ),
+              ),
+            )
+          : GridView.builder(
+              itemCount: filtered.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 14,
+                crossAxisSpacing: 14,
+                childAspectRatio: 0.70,
+              ),
+              itemBuilder: (context, i) => GestureDetector(
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => DetailProdukScreen(
+                      nama: filtered[i].name,
+                      harga: filtered[i].price,
+                      image: filtered[i].image,
+                      bgColor: filtered[i].bgColor,
+                      pilihanjenis: filtered[i].pilihanJenis,
+                      deskripsi: filtered[i].deskripsi,
+                    ),
+                  ),
+                ),
+                child: _buildProductCard(filtered[i]),
               ),
             ),
-          )
-        : GridView.builder(
-            itemCount: filtered.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              mainAxisSpacing: 14,
-              crossAxisSpacing: 14,
-              childAspectRatio: 0.70,
-            ),
-            itemBuilder: (context, i) => _buildProductCard(filtered[i]),
-          ),
-  );
-}
+    );
+  }
 
   Widget _buildProductCard(_ShopProduct product) {
     return Container(
@@ -233,22 +248,9 @@ class _ShopContentState extends State<ShopContent> {
                   maxLines: 2,
                 ),
                 const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Rp ${_formatHarga(product.price.toInt())}',
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textDark),
-                    ),
-                    Container(
-                      width: 30, height: 30,
-                      decoration: const BoxDecoration(
-                        color: AppColors.primary,
-                        shape: BoxShape.circle,
-                      ),
-                    child: const Icon(Icons.add, color: Colors.white, size: 18),
-                    ),
-                  ],
+                Text(
+                  'Rp ${_formatHarga(product.price.toInt())}',
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.primary),
                 ),
               ],
             ),
@@ -273,6 +275,8 @@ class _ShopProduct {
   final String? image;
   final Color bgColor;
   final String kategori;
+  final List<String> pilihanJenis;
+  final String deskripsi;
 
   const _ShopProduct({
     required this.name,
@@ -281,5 +285,7 @@ class _ShopProduct {
     this.image,
     required this.bgColor,
     required this.kategori,
+    this.pilihanJenis = const [],
+    this.deskripsi = '',
   });
 }

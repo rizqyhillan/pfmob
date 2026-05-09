@@ -101,7 +101,7 @@ class _KonfirmasiPenitipanScreenState extends State<KonfirmasiPenitipanScreen> {
                     const SizedBox(height: 24),
                     _buildCatatan(),
                     const SizedBox(height: 24),
-                    _buildEstimasiTotal(),
+                    _buildEstimasiBiaya(),
                   ],
                 ),
               ),
@@ -323,7 +323,7 @@ class _KonfirmasiPenitipanScreenState extends State<KonfirmasiPenitipanScreen> {
     );
   }
 
-  Widget _buildEstimasiTotal() {
+  Widget _buildEstimasiBiaya() {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -352,7 +352,7 @@ class _KonfirmasiPenitipanScreenState extends State<KonfirmasiPenitipanScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('ESTIMASI TOTAL', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textDark, letterSpacing: 0.5)),
+              const Text('ESTIMASI BIAYA', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textDark, letterSpacing: 0.5)),
               Text(
                 'Rp ${_formatHarga(_totalHarga)}',
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.primary),

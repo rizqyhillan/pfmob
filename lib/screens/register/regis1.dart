@@ -17,8 +17,6 @@ class _RegisterScreenState extends State<RegisterScreen>
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  bool _obscurePassword = true;
-  bool _obscureConfirm = true;
   bool _isLoading = false;
   bool _agreeTerms = false;
   late AnimationController _animController;
@@ -101,17 +99,6 @@ class _RegisterScreenState extends State<RegisterScreen>
           decoration: InputDecoration(
             hintText: hint,
             prefixIcon: Icon(icon, color: AppColors.textLight),
-            suffixIcon: onToggleObscure != null
-                ? IconButton(
-                    icon: Icon(
-                      obscure
-                          ? Icons.visibility_outlined
-                          : Icons.visibility_off_outlined,
-                      color: AppColors.textLight,
-                    ),
-                    onPressed: onToggleObscure,
-                  )
-                : null,
           ),
           validator: validator,
         ),
@@ -211,9 +198,6 @@ class _RegisterScreenState extends State<RegisterScreen>
                       label: 'Password',
                       hint: 'Buat password (min. 6 karakter)',
                       icon: Icons.lock_outline,
-                      obscure: _obscurePassword,
-                      onToggleObscure: () =>
-                          setState(() => _obscurePassword = !_obscurePassword),
                       validator: (v) {
                         if (v == null || v.isEmpty)
                           return 'Password wajib diisi';
@@ -226,9 +210,6 @@ class _RegisterScreenState extends State<RegisterScreen>
                       label: 'Konfirmasi Password',
                       hint: 'Ulangi password kamu',
                       icon: Icons.lock_outline,
-                      obscure: _obscureConfirm,
-                      onToggleObscure: () =>
-                          setState(() => _obscureConfirm = !_obscureConfirm),
                       validator: (v) {
                         if (v == null || v.isEmpty)
                           return 'Konfirmasi password wajib diisi';

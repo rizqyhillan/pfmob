@@ -15,8 +15,8 @@ class OtpScreen extends StatefulWidget {
 class _OtpScreenState extends State<OtpScreen>
     with SingleTickerProviderStateMixin {
   final List<TextEditingController> _controllers =
-      List.generate(6, (_) => TextEditingController());
-  final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
+      List.generate(4, (_) => TextEditingController());
+  final List<FocusNode> _focusNodes = List.generate(4, (_) => FocusNode());
   bool _isLoading = false;
   int _countdown = 60;
   Timer? _timer;
@@ -63,10 +63,10 @@ class _OtpScreenState extends State<OtpScreen>
   String get _otpCode => _controllers.map((c) => c.text).join();
 
   void _verify() async {
-    if (_otpCode.length < 6) {
+    if (_otpCode.length < 4) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Masukkan 6 digit kode verifikasi'),
+          content: const Text('Masukkan 4 digit kode verifikasi'),
           backgroundColor: AppColors.primary,
           behavior: SnackBarBehavior.floating,
           shape:
@@ -86,7 +86,7 @@ class _OtpScreenState extends State<OtpScreen>
   }
 
   void _onChanged(int index, String value) {
-    if (value.length == 1 && index < 5) {
+    if (value.length == 1 && index < 3) {
       _focusNodes[index + 1].requestFocus();
     } else if (value.isEmpty && index > 0) {
       _focusNodes[index - 1].requestFocus();
@@ -153,7 +153,7 @@ class _OtpScreenState extends State<OtpScreen>
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Kode verifikasi 6 digit telah dikirim ke\n$maskedEmail',
+                  'Kode verifikasi 4 digit telah dikirim ke\n$maskedEmail',
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 14,
@@ -168,7 +168,7 @@ class _OtpScreenState extends State<OtpScreen>
                 // OTP Input
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: List.generate(6, (i) => _buildOtpBox(i)),
+                  children: List.generate(4, (i) => _buildOtpBox(i)),
                 ),
 
                 const SizedBox(height: 32),

@@ -54,7 +54,7 @@ class _KonfirmasiGroomingScreenState extends State<KonfirmasiGroomingScreen> {
                     const SizedBox(height: 24),
                     _buildWaktuKunjungan(),
                     const SizedBox(height: 24),
-                    _buildEstimasiTotal(),
+                    _buildEstimasiBiaya(),
                     const SizedBox(height: 8),
                   ],
                 ),
@@ -254,7 +254,7 @@ class _KonfirmasiGroomingScreenState extends State<KonfirmasiGroomingScreen> {
     );
   }
 
-  Widget _buildEstimasiTotal() {
+  Widget _buildEstimasiBiaya() {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -283,7 +283,7 @@ class _KonfirmasiGroomingScreenState extends State<KonfirmasiGroomingScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('ESTIMASI TOTAL', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textDark, letterSpacing: 0.5)),
+              const Text('ESTIMASI BIAYA', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textDark, letterSpacing: 0.5)),
               Text(
                 widget.harga,
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.primary),

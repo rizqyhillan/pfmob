@@ -122,49 +122,86 @@ class PaketPenitipanScreen extends StatelessWidget {
         decoration: BoxDecoration(
           color: bgColor,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: isFavorit ? warna : Colors.transparent, width: 2),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 3))],
+          border: Border.all(
+            color: isFavorit ? warna : Colors.transparent,
+            width: 2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ── Header card: nama paket + harga ──
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          paket,
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: warna),
-                        ),
-                        if (isFavorit) ...[
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: warna,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Text(
-                              'TERLARIS',
-                              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white),
+                // Kolom kiri: nama + deskripsi
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              paket,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: warna,
+                              ),
                             ),
                           ),
+                          if (isFavorit) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: warna,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Text(
+                                'TERLARIS',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
                         ],
-                      ],
-                    ),
-                    Text(deskripsi, style: const TextStyle(fontSize: 12, color: AppColors.textLight)),
-                  ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        deskripsi,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textLight,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 12),
+                // Kolom kanan: harga
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
                       harga,
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: warna),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: warna,
+                      ),
                     ),
                     const Text(
                       '/ malam',
@@ -174,20 +211,32 @@ class PaketPenitipanScreen extends StatelessWidget {
                 ),
               ],
             ),
+
             const SizedBox(height: 14),
             const Divider(),
             const SizedBox(height: 10),
+
+            // ── Fasilitas ──
             ...fasilitas.map((f) => Padding(
               padding: const EdgeInsets.only(bottom: 6),
               child: Row(
                 children: [
                   Icon(Icons.check_circle_rounded, color: warna, size: 16),
                   const SizedBox(width: 8),
-                  Text(f, style: const TextStyle(fontSize: 13, color: AppColors.textMedium)),
+                  Text(
+                    f,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textMedium,
+                    ),
+                  ),
                 ],
               ),
             )),
+
             const SizedBox(height: 14),
+
+            // ── Tombol pilih ──
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 12),
@@ -198,7 +247,11 @@ class PaketPenitipanScreen extends StatelessWidget {
               child: Text(
                 'Pilih $paket',
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                ),
               ),
             ),
           ],

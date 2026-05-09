@@ -15,24 +15,6 @@ class DaftarDokterScreen extends StatelessWidget {
       'foto': 'assets/images/dokter1.jpg', // ← foto Dr. Sarah
       'tersedia': true,
     },
-    {
-      'nama': 'Dr. Budi',
-      'spesialis': 'Spesialis Bedah Hewan',
-      'rating': '4.7',
-      'pengalaman': '5+ tahun',
-      'emoji': '👨‍⚕️',
-      'foto': null, // ← belum ada foto, pakai emoji
-      'tersedia': true,
-    },
-    {
-      'nama': 'Dr. Liana',
-      'spesialis': 'Spesialis Dermatologi',
-      'rating': '4.8',
-      'pengalaman': '6+ tahun',
-      'emoji': '👩‍⚕️',
-      'foto': null, // ← belum ada foto, pakai emoji
-      'tersedia': false,
-    },
   ];
 
   @override

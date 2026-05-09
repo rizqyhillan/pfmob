@@ -152,7 +152,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                           SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              'Kode verifikasi 6 digit akan dikirim ke email kamu. Berlaku selama 5 menit.',
+                              'Kode verifikasi 4 digit akan dikirim ke email kamu. Berlaku selama 5 menit.',
                               style: TextStyle(
                                 fontSize: 13,
                                 color: AppColors.accent,

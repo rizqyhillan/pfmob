@@ -43,6 +43,9 @@ flutter:
     - assets/images/product8.jpg
     - assets/images/product9.jpg 
     - assets/images/product10.jpg
+    - assets/images/buddy.jpg
+    - assets/images/charlie.jpg
+    - assets/images/mittens.jpg
 
 flutter_launcher_icons:
   android: true
