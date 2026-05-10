@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/tema_app.dart';
 import 'regis1.dart' show buildStepIndicator;
-import '../login.dart';
+import '../profile/profile.dart';
 
 class RegisterStep3Screen extends StatefulWidget {
   final String name;
@@ -119,7 +119,7 @@ class _RegisterStep3ScreenState extends State<RegisterStep3Screen>
                           onPressed: () {
                             Navigator.pushAndRemoveUntil(
                               context,
-                              MaterialPageRoute(builder: (_) => const LoginScreen()),
+                              MaterialPageRoute(builder: (_) => const ProfileScreen()),
                               (route) => false,
                             );
                           },

@@ -4,15 +4,21 @@ import 'package:flutter/services.dart';
 import '../../theme/tema_app.dart';
 import 'regis1.dart' show buildStepIndicator;
 import 'regis3.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../config/api_config.dart';
 
 class RegisterStep2Screen extends StatefulWidget {
   final String name;
   final String email;
+  final String password;
 
   const RegisterStep2Screen({
     super.key,
     required this.name,
     required this.email,
+    required this.password,
   });
 
   @override
@@ -21,6 +27,7 @@ class RegisterStep2Screen extends StatefulWidget {
 
 class _RegisterStep2ScreenState extends State<RegisterStep2Screen>
     with SingleTickerProviderStateMixin {
+  final storage = const FlutterSecureStorage();
   final List<TextEditingController> _controllers =
       List.generate(4, (_) => TextEditingController());
   final List<FocusNode> _focusNodes = List.generate(4, (_) => FocusNode());
@@ -78,26 +85,78 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen>
   }
 
   void _verify() async {
-    if (_otpCode.length < 4) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+  if (_otpCode.length < 4) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
         content: const Text('Masukkan 4 digit kode verifikasi'),
-        backgroundColor: const Color.fromARGB(255, 255, 0, 0),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ));
-      return;
-    }
-    setState(() => _isLoading = true);
-    await Future.delayed(const Duration(seconds: 1));
+        backgroundColor: Colors.red,
+      ),
+    );
+    return;
+  }
+
+  setState(() => _isLoading = true);
+
+  try {
+    final response = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}/verify-otp'),
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'nama': widget.name,
+        'email': widget.email,
+        'password': widget.password,
+        'otp': _otpCode,
+      }),
+    );
+
+    final data = jsonDecode(response.body);
+
     setState(() => _isLoading = false);
-    if (!mounted) return;
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => RegisterStep3Screen(name: widget.name),
+
+    if (response.statusCode == 200) {
+
+      await storage.write(
+        key: 'token',
+        value: data['token'],
+      );
+
+      await storage.write(
+        key: 'user',
+        value: jsonEncode(data['user']),
+      );
+
+      if (!mounted) return;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => RegisterStep3Screen(
+            name: widget.name,
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(data['message']),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  } catch (e) {
+    setState(() => _isLoading = false);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Error: $e'),
+        backgroundColor: Colors.red,
       ),
     );
   }
+}
 
   String _maskEmail(String email) {
     final parts = email.split('@');

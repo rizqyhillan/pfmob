@@ -49,28 +49,40 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   void _login() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
-      await Future.delayed(const Duration(seconds: 1));
-      setState(() => _isLoading = false);
-      if (!mounted) return;
+  if (_formKey.currentState!.validate()) {
+    setState(() => _isLoading = true);
 
-      AuthService().login(
-        name: 'Kayla Nadine',
-        email: _emailController.text.trim(),
-      );
+    final success = await AuthService().login(
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+    );
 
+    setState(() => _isLoading = false);
+
+    if (!mounted) return;
+
+    if (success) {
       if (widget.redirectToProfile) {
-        Navigator.pushAndRemoveUntil(
+        Navigator.pop(context);
+
+        Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => DashboardScreen(initialIndex: 4)),
-          (route) => false,
+          MaterialPageRoute(
+            builder: (_) => const ProfileScreen(),
+          ),
         );
       } else {
         Navigator.pop(context);
       }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Email atau password salah'),
+        ),
+      );
     }
   }
+}
 
   @override
   Widget build(BuildContext context) {

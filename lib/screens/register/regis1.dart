@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import '../../theme/tema_app.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../../config/api_config.dart';
 import 'regis2.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -46,32 +49,71 @@ class _RegisterScreenState extends State<RegisterScreen>
     super.dispose();
   }
 
-  void _lanjut() async {
-    if (!_agreeTerms) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text('Kamu harus menyetujui syarat & ketentuan'),
-        backgroundColor: const Color.fromARGB(255, 255, 0, 0),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ));
-      return;
-    }
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
-      await Future.delayed(const Duration(milliseconds: 800));
+void _lanjut() async {
+  if (!_agreeTerms) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text(
+          'Kamu harus menyetujui syarat & ketentuan',
+        ),
+        backgroundColor: Colors.red,
+      ),
+    );
+    return;
+  }
+
+  if (_formKey.currentState!.validate()) {
+    setState(() => _isLoading = true);
+
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}/send-otp'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'email': _emailController.text.trim(),
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+
       setState(() => _isLoading = false);
-      if (!mounted) return;
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => RegisterStep2Screen(
-            name: _nameController.text.trim(),
-            email: _emailController.text.trim(),
+
+      if (response.statusCode == 200) {
+        if (!mounted) return;
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => RegisterStep2Screen(
+              name: _nameController.text.trim(),
+              email: _emailController.text.trim(),
+              password: _passwordController.text.trim(),
+            ),
           ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(data['message']),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red,
         ),
       );
     }
   }
+}
 
   Widget _buildField({
     required TextEditingController controller,

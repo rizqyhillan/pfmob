@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../../theme/tema_app.dart';
 import '../../services/api_service.dart';
+import '../../config/api_config.dart';
 
 // ─── Model Item Barang dalam struk ───────────────────────────
 class TransactionItem {
@@ -122,7 +123,7 @@ class TransactionDetail {
 // ─── Fetch detail transaksi dari API ─────────────────────────
 Future<TransactionDetail> fetchTransactionDetail(int id) async {
   final response = await http.get(
-    Uri.parse('${ApiService.baseUrl}/transactions/$id'),
+    Uri.parse('${ApiConfig.baseUrl}/transactions/$id'),
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json',

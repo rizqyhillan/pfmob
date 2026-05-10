@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import '../../theme/tema_app.dart';
 import '../../services/api_service.dart';
 import 'transaction_detail.dart';
+import '../../config/api_config.dart';
 
 // ─── Model Transaksi sesuai field Laravel ────────────────────
 class Transaction {
@@ -49,7 +50,7 @@ class Transaction {
 // ─── Fetch dari API ──────────────────────────────────────────
 Future<List<Transaction>> fetchTransactions() async {
   final response = await http.get(
-    Uri.parse('${ApiService.baseUrl}/transactions'),
+    Uri.parse('${ApiConfig.baseUrl}/transactions'),
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
