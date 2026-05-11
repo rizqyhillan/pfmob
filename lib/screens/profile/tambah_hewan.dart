@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../../theme/tema_app.dart';
+import '../../services/api_service.dart';
 
 class TambahHewanScreen extends StatefulWidget {
   const TambahHewanScreen({super.key});
@@ -12,6 +14,7 @@ class _TambahHewanScreenState extends State<TambahHewanScreen> {
   int _selectedJenis = 0;
   String _selectedKelamin = 'Jantan';
   DateTime? _tanggalLahir;
+  bool _isLoading = false;
 
   final List<Map<String, dynamic>> _jenisHewan = [
     {'label': 'Anjing', 'icon': Icons.pets},
@@ -46,9 +49,103 @@ class _TambahHewanScreenState extends State<TambahHewanScreen> {
     if (picked != null) setState(() => _tanggalLahir = picked);
   }
 
+  String _hitungUmur(DateTime tanggalLahir) {
+  final sekarang = DateTime.now();
+
+  int tahun = sekarang.year - tanggalLahir.year;
+  int bulan = sekarang.month - tanggalLahir.month;
+
+  if (sekarang.day < tanggalLahir.day) {
+    bulan--;
+  }
+
+  if (bulan < 0) {
+    tahun--;
+    bulan += 12;
+  }
+
+  if (tahun > 0) {
+    return '$tahun tahun';
+  }
+
+  if (bulan > 0) {
+    return '$bulan bulan';
+  }
+
+  return 'Kurang dari 1 bulan';
+}
+
   String _formatTanggal(DateTime dt) {
     return '${dt.day.toString().padLeft(2, '0')} / ${dt.month.toString().padLeft(2, '0')} / ${dt.year}';
   }
+
+  Future<void> _simpanHewan() async {
+  final nama = _namaController.text.trim();
+  final ras = _rasController.text.trim();
+  final jenis = _jenisHewan[_selectedJenis]['label'] as String;
+
+  if (nama.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Nama hewan wajib diisi!'),
+        backgroundColor: AppColors.primary,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
+    return;
+  }
+
+  setState(() => _isLoading = true);
+
+  try {
+    await ApiService.addPet(
+  namaHewan: nama,
+  jenis: jenis,
+  jenisKelamin: _selectedKelamin,
+  tanggalLahir: _tanggalLahir == null
+      ? null
+      : '${_tanggalLahir!.year.toString().padLeft(4, '0')}-${_tanggalLahir!.month.toString().padLeft(2, '0')}-${_tanggalLahir!.day.toString().padLeft(2, '0')}',
+  ras: ras.isEmpty ? null : ras,
+  umur: _tanggalLahir == null ? null : _hitungUmur(_tanggalLahir!),
+  catatan: null,
+);
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Hewan berhasil ditambahkan'),
+        backgroundColor: AppColors.accent,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
+
+    Navigator.pop(context, true);
+  } catch (e) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(e.toString().replaceAll('Exception: ', '')),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
+  } finally {
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -430,34 +527,30 @@ class _TambahHewanScreenState extends State<TambahHewanScreen> {
   }
 
   // ── Tombol simpan ──────────────────────────────────────────────────────────
-  Widget _buildSimpanButton(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        if (_namaController.text.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Nama hewan wajib diisi!'),
-              backgroundColor: AppColors.primary,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-            ),
-          );
-          return;
-        }
-        Navigator.pop(context);
-      },
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: AppColors.primary,
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
+Widget _buildSimpanButton(BuildContext context) {
+  return GestureDetector(
+    onTap: _isLoading ? null : _simpanHewan,
+    child: Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      decoration: BoxDecoration(
+        color: _isLoading ? AppColors.textLight : AppColors.primary,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (_isLoading)
+            const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            )
+          else ...[
+            const Text(
               'Simpan Profil',
               style: TextStyle(
                 color: Colors.white,
@@ -465,13 +558,18 @@ class _TambahHewanScreenState extends State<TambahHewanScreen> {
                 fontSize: 16,
               ),
             ),
-            SizedBox(width: 8),
-            Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            const Icon(
+              Icons.check_circle_outline,
+              color: Colors.white,
+              size: 20,
+            ),
           ],
-        ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   // ── Helper: label section ──────────────────────────────────────────────────
   Widget _buildSectionLabel(String label, {required Widget child}) {

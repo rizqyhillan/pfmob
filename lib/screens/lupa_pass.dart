@@ -1,5 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+
 import '../theme/tema_app.dart';
+import '../config/api_config.dart';
 import 'otp.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -40,20 +45,58 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
     super.dispose();
   }
 
-  void _sendCode() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
-      await Future.delayed(const Duration(seconds: 1));
-      setState(() => _isLoading = false);
-      if (!mounted) return;
+  Future<void> _sendCode() async {
+  if (!_formKey.currentState!.validate()) return;
+
+  setState(() => _isLoading = true);
+
+  try {
+    final response = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}/forgot-password/send-otp'),
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'email': _emailController.text.trim(),
+      }),
+    );
+
+    final data = jsonDecode(response.body);
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    if (response.statusCode == 200) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => OtpScreen(email: _emailController.text.trim()),
+          builder: (_) => OtpScreen(
+            email: _emailController.text.trim(),
+            isForgotPassword: true,
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(data['message'] ?? 'Gagal mengirim OTP'),
+          backgroundColor: Colors.red,
         ),
       );
     }
+  } catch (e) {
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Error: $e'),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {

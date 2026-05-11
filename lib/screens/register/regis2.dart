@@ -1,13 +1,15 @@
 import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
+
 import '../../theme/tema_app.dart';
+import '../../config/api_config.dart';
+import '../../services/api_service.dart';
 import 'regis1.dart' show buildStepIndicator;
 import 'regis3.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../../config/api_config.dart';
 
 class RegisterStep2Screen extends StatefulWidget {
   final String name;
@@ -27,7 +29,6 @@ class RegisterStep2Screen extends StatefulWidget {
 
 class _RegisterStep2ScreenState extends State<RegisterStep2Screen>
     with SingleTickerProviderStateMixin {
-  final storage = const FlutterSecureStorage();
   final List<TextEditingController> _controllers =
       List.generate(4, (_) => TextEditingController());
   final List<FocusNode> _focusNodes = List.generate(4, (_) => FocusNode());
@@ -84,11 +85,11 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen>
     setState(() {});
   }
 
-  void _verify() async {
+Future<void> _verify() async {
   if (_otpCode.length < 4) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Masukkan 4 digit kode verifikasi'),
+      const SnackBar(
+        content: Text('Masukkan 4 digit kode verifikasi'),
         backgroundColor: Colors.red,
       ),
     );
@@ -114,21 +115,13 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen>
 
     final data = jsonDecode(response.body);
 
+    if (!mounted) return;
     setState(() => _isLoading = false);
 
     if (response.statusCode == 200) {
+      final token = data['token'] ?? '';
 
-      await storage.write(
-        key: 'token',
-        value: data['token'],
-      );
-
-      await storage.write(
-        key: 'user',
-        value: jsonEncode(data['user']),
-      );
-
-      if (!mounted) return;
+      ApiService.setToken(token);
 
       Navigator.pushReplacement(
         context,
@@ -141,12 +134,63 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen>
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(data['message']),
+          content: Text(data['message'] ?? 'Verifikasi gagal'),
           backgroundColor: Colors.red,
         ),
       );
     }
   } catch (e) {
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Error: $e'),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+}
+
+Future<void> _resendOtp() async {
+  setState(() => _isLoading = true);
+
+  try {
+    final response = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}/send-otp'),
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'email': widget.email,
+      }),
+    );
+
+    final data = jsonDecode(response.body);
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    if (response.statusCode == 200) {
+      _startCountdown();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Kode OTP berhasil dikirim ulang'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(data['message'] ?? 'Gagal mengirim ulang OTP'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  } catch (e) {
+    if (!mounted) return;
     setState(() => _isLoading = false);
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -305,7 +349,7 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen>
                             ),
                           )
                         : TextButton(
-                            onPressed: _startCountdown,
+                            onPressed: _isLoading ? null : _resendOtp,
                             child: const Text(
                               'Kirim Ulang Kode',
                               style: TextStyle(

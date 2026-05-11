@@ -1,10 +1,19 @@
 import 'package:flutter/material.dart';
 import '../theme/tema_app.dart';
 import 'login.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../config/api_config.dart';
 
 class NewPasswordScreen extends StatefulWidget {
-  const NewPasswordScreen({super.key});
+  final String email;
+  final String otp;
 
+  const NewPasswordScreen({
+    super.key,
+    required this.email,
+    required this.otp,
+  });
   @override
   State<NewPasswordScreen> createState() => _NewPasswordScreenState();
 }
@@ -39,31 +48,68 @@ class _NewPasswordScreenState extends State<NewPasswordScreen>
     super.dispose();
   }
 
-  void _save() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
-      await Future.delayed(const Duration(seconds: 1));
-      setState(() => _isLoading = false);
-      if (!mounted) return;
+Future<void> _save() async {
+  if (!_formKey.currentState!.validate()) return;
+
+  setState(() => _isLoading = true);
+
+  try {
+    final response = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}/forgot-password/reset'),
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'email': widget.email,
+        'otp': widget.otp,
+        'password': _passwordController.text,
+      }),
+    );
+
+    final data = jsonDecode(response.body);
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('✅ Password berhasil diubah!'),
+          content: Text(data['message'] ?? 'Password berhasil diubah'),
           backgroundColor: AppColors.accent,
           behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
+
       await Future.delayed(const Duration(seconds: 1));
+
       if (!mounted) return;
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const LoginScreen()),
         (route) => false,
       );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(data['message'] ?? 'Gagal mengubah password'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
-  }
+  } catch (e) {
+    if (!mounted) return;
+    setState(() => _isLoading = false);
 
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Error: $e'),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(

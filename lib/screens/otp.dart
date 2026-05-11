@@ -3,10 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../theme/tema_app.dart';
 import 'pass_baru.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../config/api_config.dart';
 
 class OtpScreen extends StatefulWidget {
   final String email;
-  const OtpScreen({super.key, required this.email});
+  final bool isForgotPassword;
+
+  const OtpScreen({
+    super.key,
+    required this.email,
+    this.isForgotPassword = false,
+  });
 
   @override
   State<OtpScreen> createState() => _OtpScreenState();
@@ -62,28 +71,69 @@ class _OtpScreenState extends State<OtpScreen>
 
   String get _otpCode => _controllers.map((c) => c.text).join();
 
-  void _verify() async {
-    if (_otpCode.length < 4) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Masukkan 4 digit kode verifikasi'),
-          backgroundColor: AppColors.primary,
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+Future<void> _verify() async {
+  if (_otpCode.length < 4) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Masukkan 4 digit kode verifikasi'),
+        backgroundColor: AppColors.primary,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+    return;
+  }
+
+  setState(() => _isLoading = true);
+
+  try {
+    final response = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}/forgot-password/verify-otp'),
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'email': widget.email,
+        'otp': _otpCode,
+      }),
+    );
+
+    final data = jsonDecode(response.body);
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    if (response.statusCode == 200) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => NewPasswordScreen(
+            email: widget.email,
+            otp: _otpCode,
+          ),
         ),
       );
-      return;
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(data['message'] ?? 'Verifikasi OTP gagal'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
-    setState(() => _isLoading = true);
-    await Future.delayed(const Duration(seconds: 1));
-    setState(() => _isLoading = false);
+  } catch (e) {
     if (!mounted) return;
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const NewPasswordScreen()),
+    setState(() => _isLoading = false);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Error: $e'),
+        backgroundColor: Colors.red,
+      ),
     );
   }
+}
 
   void _onChanged(int index, String value) {
     if (value.length == 1 && index < 3) {

@@ -1,9 +1,6 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import '../../theme/tema_app.dart';
 import '../../services/api_service.dart';
-import '../../config/api_config.dart';
 
 // ─── Model Item Barang dalam struk ───────────────────────────
 class TransactionItem {
@@ -120,25 +117,6 @@ class TransactionDetail {
   }
 }
 
-// ─── Fetch detail transaksi dari API ─────────────────────────
-Future<TransactionDetail> fetchTransactionDetail(int id) async {
-  final response = await http.get(
-    Uri.parse('${ApiConfig.baseUrl}/transactions/$id'),
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-    },
-  );
-
-  if (response.statusCode == 200) {
-    return TransactionDetail.fromJson(jsonDecode(response.body));
-  } else if (response.statusCode == 404) {
-    throw Exception('Transaksi tidak ditemukan.');
-  } else {
-    throw Exception('Gagal mengambil detail (${response.statusCode})');
-  }
-}
-
 // ─── Halaman Struk ───────────────────────────────────────────
 class TransactionDetailPage extends StatefulWidget {
   final int transactionId;
@@ -160,7 +138,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
   @override
   void initState() {
     super.initState();
-    _future = fetchTransactionDetail(widget.transactionId);
+    _future = ApiService.getTransactionDetail(widget.transactionId);
   }
 
   @override
@@ -225,7 +203,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
                     ElevatedButton.icon(
                       onPressed: () => setState(() {
                         _future =
-                            fetchTransactionDetail(widget.transactionId);
+                            ApiService.getTransactionDetail(widget.transactionId);
                       }),
                       icon: const Icon(Icons.refresh),
                       label: const Text('Coba Lagi'),
@@ -666,6 +644,13 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
     return buffer.toString().split('').reversed.join('');
   }
 
-  String _capitalize(String s) =>
-      s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
+  String _capitalize(String s) {
+  final value = s.trim();
+
+  if (value.isEmpty || value == '-') {
+    return '-';
+  }
+
+  return value[0].toUpperCase() + value.substring(1);
+}
 }

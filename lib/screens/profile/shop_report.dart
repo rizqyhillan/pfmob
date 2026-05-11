@@ -1,10 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import '../../theme/tema_app.dart';
 import '../../services/api_service.dart';
 import 'transaction_detail.dart';
-import '../../config/api_config.dart';
 
 // ─── Model Transaksi sesuai field Laravel ────────────────────
 class Transaction {
@@ -47,35 +44,6 @@ class Transaction {
   }
 }
 
-// ─── Fetch dari API ──────────────────────────────────────────
-Future<List<Transaction>> fetchTransactions() async {
-  final response = await http.get(
-    Uri.parse('${ApiConfig.baseUrl}/transactions'),
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-    },
-  );
-
-  if (response.statusCode == 200) {
-    final dynamic body = jsonDecode(response.body);
-
-    // Handle response berupa {data: [...]} atau langsung [...]
-    List<dynamic> list;
-    if (body is List) {
-      list = body;
-    } else if (body is Map && body['data'] != null) {
-      list = body['data'];
-    } else {
-      list = [];
-    }
-
-    return list.map((e) => Transaction.fromJson(e)).toList();
-  } else {
-    throw Exception('Gagal mengambil data transaksi: ${response.statusCode}');
-  }
-}
-
 // ─── Halaman utama ───────────────────────────────────────────
 class ShopReportPage extends StatefulWidget {
   const ShopReportPage({super.key});
@@ -91,13 +59,21 @@ class _ShopReportPageState extends State<ShopReportPage> {
   @override
   void initState() {
     super.initState();
-    _future = fetchTransactions();
+    _future = ApiService.getTransactions();
   }
 
   List<Transaction> _applyFilter(List<Transaction> all) {
     if (_filterStatus == 'semua') return all;
     return all.where((t) => t.status == _filterStatus).toList();
   }
+
+  String _capitalize(String value) {
+  if (value.trim().isEmpty || value == '-') {
+    return '-';
+  }
+
+  return value[0].toUpperCase() + value.substring(1);
+}
 
   @override
   Widget build(BuildContext context) {
@@ -132,7 +108,7 @@ class _ShopReportPageState extends State<ShopReportPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: AppColors.textDark),
-            onPressed: () => setState(() => _future = fetchTransactions()),
+            onPressed: () => setState(() => _future = ApiService.getTransactions()),
           ),
         ],
       ),
@@ -170,7 +146,7 @@ class _ShopReportPageState extends State<ShopReportPage> {
                           const SizedBox(height: 20),
                           ElevatedButton.icon(
                             onPressed: () => setState(
-                                () => _future = fetchTransactions()),
+                                () => _future = ApiService.getTransactions()),
                             icon: const Icon(Icons.refresh),
                             label: const Text('Coba Lagi'),
                           ),
@@ -334,12 +310,14 @@ class _ShopReportPageState extends State<ShopReportPage> {
               Expanded(
                 child: _buildInfo(
                   Icons.category_outlined, 'Jenis',
-                  trx.jenis[0].toUpperCase() + trx.jenis.substring(1)),
+                  _capitalize(trx.jenis)
+                ),
               ),
               Expanded(
                 child: _buildInfo(
                   Icons.payment_outlined, 'Pembayaran',
-                  trx.metodeBayar[0].toUpperCase() + trx.metodeBayar.substring(1)),
+                  _capitalize(trx.metodeBayar)
+                ), 
               ),
             ],
           ),

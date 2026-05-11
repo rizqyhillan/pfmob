@@ -4,6 +4,11 @@ import '../../services/servis_auth.dart';
 import '../login.dart';
 import 'medical_report_list.dart';
 import 'shop_report.dart';
+import 'edit_profil.dart';
+import 'ubah_password.dart';
+import 'bantuan_faq.dart';
+import 'kebijakan_privasi.dart';
+import 'tentang_aplikasi.dart';
 
 
 class ProfileScreen extends StatelessWidget {
@@ -105,10 +110,9 @@ class ProfileScreen extends StatelessWidget {
                             icon: const Icon(Icons.edit_outlined,
                                 color: Colors.white70, size: 22),
                             onPressed: () {
-                              // 📌 Uncomment saat edit_profil.dart sudah dibuat
-                              // Navigator.push(context, MaterialPageRoute(
-                              //   builder: (_) => const EditProfilPage(),
-                              // ));
+                              Navigator.push(context, MaterialPageRoute(
+                                builder: (_) => const EditProfilPage(),
+                              ));
                             },
                           ),
                         ],
@@ -207,10 +211,9 @@ class ProfileScreen extends StatelessWidget {
                       bgColor: AppColors.categoryBg1,
                       iconColor: AppColors.primary,
                       onTap: (ctx) {
-                        // 📌 Uncomment saat edit_profil.dart sudah dibuat
-                        // Navigator.push(ctx, MaterialPageRoute(
-                        //   builder: (_) => const EditProfilPage(),
-                        // ));
+                        Navigator.push(ctx, MaterialPageRoute(
+                          builder: (_) => const EditProfilPage(),
+                        ));
                       },
                     ),
 
@@ -248,24 +251,9 @@ class ProfileScreen extends StatelessWidget {
                       bgColor: AppColors.categoryBg2,
                       iconColor: const Color(0xFF2196F3),
                       onTap: (ctx) {
-                        // 📌 Uncomment saat ubah_password.dart sudah dibuat
-                        // Navigator.push(ctx, MaterialPageRoute(
-                        //   builder: (_) => const UbahPasswordPage(),
-                        // ));
-                      },
-                    ),
-
-                    _MenuItem(
-                      icon: Icons.notifications_outlined,
-                      title: 'Notifikasi',
-                      subtitle: 'Atur preferensi notifikasi',
-                      bgColor: AppColors.categoryBg3,
-                      iconColor: AppColors.accent,
-                      onTap: (ctx) {
-                        // 📌 Uncomment saat notifikasi.dart sudah dibuat
-                        // Navigator.push(ctx, MaterialPageRoute(
-                        //   builder: (_) => const NotifikasiPage(),
-                        // ));
+                        Navigator.push(ctx, MaterialPageRoute(
+                          builder: (_) => const UbahPasswordPage(),
+                        ));
                       },
                     ),
 
@@ -292,10 +280,9 @@ class ProfileScreen extends StatelessWidget {
                       bgColor: AppColors.categoryBg4,
                       iconColor: const Color(0xFF7C4DFF),
                       onTap: (ctx) {
-                        // 📌 Uncomment saat bantuan_faq.dart sudah dibuat
-                        // Navigator.push(ctx, MaterialPageRoute(
-                        //   builder: (_) => const BantuanFaqPage(),
-                        // ));
+                        Navigator.push(ctx, MaterialPageRoute(
+                          builder: (_) => const BantuanFaqPage(),
+                        ));
                       },
                     ),
 
@@ -306,10 +293,9 @@ class ProfileScreen extends StatelessWidget {
                       bgColor: AppColors.categoryBg1,
                       iconColor: AppColors.primary,
                       onTap: (ctx) {
-                        // 📌 Uncomment saat kebijakan_privasi.dart sudah dibuat
-                        // Navigator.push(ctx, MaterialPageRoute(
-                        //   builder: (_) => const KebijakanPrivasiPage(),
-                        // ));
+                        Navigator.push(ctx, MaterialPageRoute(
+                          builder: (_) => const KebijakanPrivasiPage(),
+                        ));
                       },
                     ),
 
@@ -320,10 +306,9 @@ class ProfileScreen extends StatelessWidget {
                       bgColor: AppColors.categoryBg3,
                       iconColor: AppColors.accent,
                       onTap: (ctx) {
-                        // 📌 Uncomment saat tentang_aplikasi.dart sudah dibuat
-                        // Navigator.push(ctx, MaterialPageRoute(
-                        //   builder: (_) => const TentangAplikasiPage(),
-                        // ));
+                        Navigator.push(ctx, MaterialPageRoute(
+                          builder: (_) => const TentangAplikasiPage(),
+                        ));
                       },
                     ),
 

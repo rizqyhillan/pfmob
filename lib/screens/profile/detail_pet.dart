@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../theme/tema_app.dart';
-import '../profile/edit_hewan.dart';
+import 'edit_hewan.dart';
+import '../../services/api_service.dart';
 
 class DetailPetScreen extends StatelessWidget {
+  final int id;
   final String nama;
   final String jenis;
   final String ras;
@@ -14,6 +16,7 @@ class DetailPetScreen extends StatelessWidget {
 
   const DetailPetScreen({
     super.key,
+    required this.id,
     required this.nama,
     required this.jenis,
     required this.ras,
@@ -23,6 +26,68 @@ class DetailPetScreen extends StatelessWidget {
     required this.warna,
     this.tentang = '',
   });
+
+  Future<void> _hapusHewan(BuildContext context) async {
+  final confirm = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      title: const Text(
+        'Hapus Hewan?',
+        style: TextStyle(fontWeight: FontWeight.w800),
+      ),
+      content: Text(
+        'Data $nama akan dihapus dari daftar hewan peliharaanmu.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('Batal'),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.pop(context, true),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+          ),
+          child: const Text(
+            'Hapus',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+      ],
+    ),
+  );
+
+  if (confirm != true) return;
+
+  try {
+    await ApiService.deletePet(id);
+
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$nama berhasil dihapus'),
+        backgroundColor: AppColors.accent,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+
+    Navigator.pop(context, true);
+  } catch (e) {
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(e.toString().replaceAll('Exception: ', '')),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -113,6 +178,7 @@ class DetailPetScreen extends StatelessWidget {
                 ),
               ),
             ),
+            
           ),
 
           // Indikator dot
@@ -241,12 +307,15 @@ class DetailPetScreen extends StatelessWidget {
               context,
               MaterialPageRoute(
                 builder: (_) => EditHewanScreen(
+                  id: id,
                   nama: nama,
                   jenis: jenis,
                   ras: ras,
+                  umur: umur,
                   kelamin: kelamin,
                   foto: foto,
                   warna: warna,
+                  tentang: tentang,
                 ),
               ),
             ),
@@ -275,6 +344,29 @@ class DetailPetScreen extends StatelessWidget {
               ),
             ),
           ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+  child: OutlinedButton.icon(
+    onPressed: () => _hapusHewan(context),
+    icon: const Icon(Icons.delete_outline_rounded),
+    label: const Text(
+      'Hapus Hewan',
+      style: TextStyle(
+        fontWeight: FontWeight.w800,
+        fontSize: 15,
+      ),
+    ),
+    style: OutlinedButton.styleFrom(
+      foregroundColor: Colors.red,
+      side: const BorderSide(color: Colors.red),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+      ),
+    ),
+  ),
+),
         ],
       ),
     );
