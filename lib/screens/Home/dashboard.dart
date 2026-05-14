@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../theme/tema_app.dart';
 import '../../services/servis_auth.dart';
+import '../../models/best_seller_product.dart';
+import '../../services/best_seller_service.dart';
+import '../../services/mock_best_seller_service.dart';
 import '../login.dart';
 import '../Shop/shop.dart';
 import '../Booking/booking.dart';
@@ -25,12 +28,14 @@ class _DashboardScreenState extends State<DashboardScreen>
   final PageController _bannerController = PageController();
   int _currentBanner = 0;
 
-  final List<_Product> _bestSellers = [
-    _Product(name: 'Royal Canin\nKitten', price: 125000, image: 'assets/images/product1.jpg', bgColor: const Color(0xFFFFF3E8)),
-    _Product(name: 'Me-O Creamy\nTreats', price: 35000, image: 'assets/images/product2.jpg', bgColor: const Color(0xFFE8F5F3)),
-    _Product(name: 'Cat\nShampoo', price: 45000, image: 'assets/images/product3.jpg', bgColor: const Color(0xFFFFE8F0)),
-    _Product(name: 'Salmon\nPowder', price: 89000, image: 'assets/images/product4.jpg', bgColor: const Color(0xFFE8F4FF)),
-  ];
+  // ─── Best Seller state ──────────────────────────────────────
+  /// Service abstraction — swap MockBestSellerService with a real
+  /// API implementation when the backend endpoint is ready.
+  final BestSellerService _bestSellerService = MockBestSellerService();
+
+  List<BestSellerProduct> _bestSellers = [];
+  bool _isBestSellersLoading = true;
+  String? _bestSellersError;
 
   @override
   void initState() {
@@ -39,6 +44,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     _animController = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
     _fadeAnim = CurvedAnimation(parent: _animController, curve: Curves.easeOut);
     _animController.forward();
+    _loadBestSellers();
   }
 
   @override
@@ -46,6 +52,31 @@ class _DashboardScreenState extends State<DashboardScreen>
     _animController.dispose();
     _bannerController.dispose();
     super.dispose();
+  }
+
+  // ─── Async data loading ─────────────────────────────────────
+  Future<void> _loadBestSellers() async {
+    setState(() {
+      _isBestSellersLoading = true;
+      _bestSellersError = null;
+    });
+
+    try {
+      final products = await _bestSellerService.getBestSellers();
+      if (mounted) {
+        setState(() {
+          _bestSellers = products;
+          _isBestSellersLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _bestSellersError = e.toString().replaceFirst('Exception: ', '');
+          _isBestSellersLoading = false;
+        });
+      }
+    }
   }
 
   Widget _buildBody() {
@@ -78,37 +109,240 @@ class _DashboardScreenState extends State<DashboardScreen>
           SliverToBoxAdapter(child: _buildBanner()),
           SliverToBoxAdapter(child: _buildCategories()),
           SliverToBoxAdapter(child: _buildBestSellersHeader()),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            sliver: SliverGrid(
-              delegate: SliverChildBuilderDelegate(
-                (ctx, i) => GestureDetector(
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => DetailProdukScreen(
-                        nama: _bestSellers[i].name,
-                        harga: _bestSellers[i].price,
-                        image: _bestSellers[i].image,
-                        bgColor: _bestSellers[i].bgColor,
-                        pilihanjenis: const [],
-                        deskripsi: '',
-                      ),
+          _buildBestSellersContent(),
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
+        ],
+      ),
+    );
+  }
+
+  // ─── Best Sellers content with loading/error/empty states ───
+  Widget _buildBestSellersContent() {
+    // Loading state
+    if (_isBestSellersLoading) {
+      return SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        sliver: SliverGrid(
+          delegate: SliverChildBuilderDelegate(
+            (ctx, i) => _buildShimmerCard(),
+            childCount: 4,
+          ),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            mainAxisSpacing: 14,
+            crossAxisSpacing: 14,
+            childAspectRatio: 0.70,
+          ),
+        ),
+      );
+    }
+
+    // Error state
+    if (_bestSellersError != null) {
+      return SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: AppColors.divider),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 3))],
+            ),
+            child: Column(
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFE8E8),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(Icons.wifi_off_rounded, color: Color(0xFFE57373), size: 28),
+                ),
+                const SizedBox(height: 14),
+                const Text(
+                  'Gagal Memuat Produk',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textDark),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  _bestSellersError!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 13, color: AppColors.textLight, height: 1.4),
+                ),
+                const SizedBox(height: 18),
+                GestureDetector(
+                  onTap: _loadBestSellers,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      'Coba Lagi',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13),
                     ),
                   ),
-                  child: _buildProductCard(_bestSellers[i]),
                 ),
-                childCount: _bestSellers.length,
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Empty state
+    if (_bestSellers.isEmpty) {
+      return SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: AppColors.divider),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 3))],
+            ),
+            child: Column(
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: AppColors.categoryBg1,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(Icons.inventory_2_outlined, color: AppColors.primary, size: 28),
+                ),
+                const SizedBox(height: 14),
+                const Text(
+                  'Belum Ada Produk',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textDark),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Produk best seller belum tersedia saat ini.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 13, color: AppColors.textLight, height: 1.4),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Data loaded — original grid layout preserved
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      sliver: SliverGrid(
+        delegate: SliverChildBuilderDelegate(
+          (ctx, i) => GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => DetailProdukScreen(
+                  nama: _bestSellers[i].name,
+                  harga: _bestSellers[i].price,
+                  image: _bestSellers[i].imageUrl,
+                  bgColor: _bestSellers[i].bgColor,
+                  pilihanjenis: const [],
+                  deskripsi: '',
+                ),
               ),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 14,
-                crossAxisSpacing: 14,
-                childAspectRatio: 0.70,
+            ),
+            child: _buildProductCard(_bestSellers[i]),
+          ),
+          childCount: _bestSellers.length,
+        ),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          mainAxisSpacing: 14,
+          crossAxisSpacing: 14,
+          childAspectRatio: 0.70,
+        ),
+      ),
+    );
+  }
+
+  // ─── Shimmer/loading skeleton card ──────────────────────────
+  Widget _buildShimmerCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.divider),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 3))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: AppColors.divider.withOpacity(0.5),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+              ),
+              child: Center(
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary.withOpacity(0.4)),
+                  ),
+                ),
               ),
             ),
           ),
-          const SliverToBoxAdapter(child: SizedBox(height: 24)),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 80,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: AppColors.divider,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  width: 50,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: AppColors.divider,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      width: 60,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: AppColors.divider,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    Container(
+                      width: 30, height: 30,
+                      decoration: BoxDecoration(color: AppColors.divider, shape: BoxShape.circle),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -300,7 +534,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
 
-  Widget _buildProductCard(_Product product) {
+  Widget _buildProductCard(BestSellerProduct product) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -318,16 +552,17 @@ class _DashboardScreenState extends State<DashboardScreen>
                 color: product.bgColor,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
               ),
-              child: product.image != null
-                  ? ClipRRect(
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-                      child: Image.asset(
-                        product.image!,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
-                    )
-                  : Center(child: Text(product.emoji ?? '', style: const TextStyle(fontSize: 56))),
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+                child: Image.asset(
+                  product.imageUrl,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (ctx, err, stack) => Center(
+                    child: Icon(Icons.image_not_supported_outlined, color: AppColors.textLight, size: 32),
+                  ),
+                ),
+              ),
             ),
           ),
           Padding(
@@ -429,15 +664,6 @@ class _DashboardScreenState extends State<DashboardScreen>
       ),
     );
   }
-}
-
-class _Product {
-  final String name;
-  final double price;
-  final String? emoji;
-  final String? image;
-  final Color bgColor;
-  const _Product({required this.name, required this.price, this.emoji, this.image, required this.bgColor});
 }
 
 class _Category {
