@@ -1,9 +1,44 @@
 import 'package:flutter/material.dart';
 import '../../theme/tema_app.dart';
 import 'konfirmasi_grooming.dart';
+import '../../services/api_service.dart';
+import 'package:intl/intl.dart';
 
-class PaketGroomingScreen extends StatelessWidget {
+class PaketGroomingScreen extends StatefulWidget {
   const PaketGroomingScreen({super.key});
+
+  @override
+  State<PaketGroomingScreen> createState() => _PaketGroomingScreenState();
+}
+
+class _PaketGroomingScreenState extends State<PaketGroomingScreen> {
+  List<PackageType> _packages = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPackages();
+  }
+
+  Future<void> _fetchPackages() async {
+    try {
+      final packages = await ApiService.getGroomingPackages();
+      setState(() {
+        _packages = packages;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      setState(() => _isLoading = false);
+    }
+  }
+
+  String _formatCurrency(String amountStr) {
+    double amount = double.tryParse(amountStr) ?? 0;
+    return NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(amount);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,43 +50,35 @@ class PaketGroomingScreen extends StatelessWidget {
           children: [
             _buildHeader(context),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-                child: Column(
-                  children: [
-                    _buildPaketCard(
-                      context,
-                      paket: 'Basic',
-                      harga: 'Rp 50.000',
-                      deskripsi: 'Mandi + pengeringan bulu',
-                      fasilitas: ['Mandi dengan shampoo', 'Pengeringan bulu', 'Penyisiran bulu'],
-                      warna: const Color(0xFF4A9B8E),
-                      bgColor: const Color(0xFFE0F5F2),
+              child: _isLoading 
+                ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                : SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                    child: Column(
+                      children: _packages.map((paket) {
+                        bool isReguler = paket.name.toLowerCase() == 'regular';
+                        bool isBasic = paket.name.toLowerCase() == 'basic';
+                        
+                        Color warna = isBasic ? const Color(0xFF4A9B8E) : (isReguler ? const Color(0xFF2196F3) : const Color(0xFFFF9800));
+                        Color bgColor = isBasic ? const Color(0xFFE0F5F2) : (isReguler ? const Color(0xFFE3F2FD) : const Color(0xFFFFF3E0));
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: _buildPaketCard(
+                            context,
+                            idPaket: paket.id,
+                            paket: paket.label,
+                            harga: _formatCurrency(paket.hargaPerMalam),
+                            deskripsi: paket.description,
+                            fasilitas: paket.fasilitas,
+                            warna: warna,
+                            bgColor: bgColor,
+                            isFavorit: isReguler,
+                          ),
+                        );
+                      }).toList(),
                     ),
-                    const SizedBox(height: 16),
-                    _buildPaketCard(
-                      context,
-                      paket: 'Reguler',
-                      harga: 'Rp 100.000',
-                      deskripsi: 'Basic + potong kuku & telinga',
-                      fasilitas: ['Semua layanan Basic', 'Potong kuku', 'Bersihkan telinga', 'Parfum hewan'],
-                      warna: const Color(0xFF2196F3),
-                      bgColor: const Color(0xFFE3F2FD),
-                      isFavorit: true,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildPaketCard(
-                      context,
-                      paket: 'Premium',
-                      harga: 'Rp 180.000',
-                      deskripsi: 'Reguler + styling & spa',
-                      fasilitas: ['Semua layanan Reguler', 'Styling rambut', 'Spa & pijat', 'Bandana/aksesoris'],
-                      warna: const Color(0xFFFF9800),
-                      bgColor: const Color(0xFFFFF3E0),
-                    ),
-                  ],
-                ),
-              ),
+                  ),
             ),
           ],
         ),
@@ -94,6 +121,7 @@ class PaketGroomingScreen extends StatelessWidget {
 
   Widget _buildPaketCard(
     BuildContext context, {
+    required int idPaket,
     required String paket,
     required String harga,
     required String deskripsi,
@@ -106,7 +134,7 @@ class PaketGroomingScreen extends StatelessWidget {
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => KonfirmasiGroomingScreen(namaPaket: paket, harga: harga),
+          builder: (_) => KonfirmasiGroomingScreen(idPaket: idPaket, namaPaket: paket, harga: harga),
         ),
       ),
       child: Container(

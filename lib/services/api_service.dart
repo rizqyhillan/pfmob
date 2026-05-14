@@ -72,6 +72,48 @@ class Pet {
   }
 }
 
+class PackageType {
+  final int id;
+  final String name;
+  final String label;
+  final String description;
+  final String hargaPerMalam;
+  final List<String> fasilitas;
+
+  PackageType({
+    required this.id,
+    required this.name,
+    required this.label,
+    required this.description,
+    required this.hargaPerMalam,
+    required this.fasilitas,
+  });
+
+  factory PackageType.fromJson(Map<String, dynamic> json) {
+    List<String> parseFasilitas = [];
+    if (json['fasilitas'] != null) {
+      if (json['fasilitas'] is List) {
+        parseFasilitas = List<String>.from(json['fasilitas']);
+      } else if (json['fasilitas'] is String) {
+        // Jika masih string JSON
+        try {
+          final decoded = jsonDecode(json['fasilitas']);
+          if (decoded is List) parseFasilitas = List<String>.from(decoded);
+        } catch (_) {}
+      }
+    }
+
+    return PackageType(
+      id: json['id'] ?? 0,
+      name: json['name'] ?? '',
+      label: json['label'] ?? '',
+      description: json['description'] ?? '',
+      hargaPerMalam: json['harga_per_malam']?.toString() ?? '0',
+      fasilitas: parseFasilitas,
+    );
+  }
+}
+
 class ApiService {
 static const String baseUrl = ApiConfig.baseUrl;
 
@@ -236,6 +278,63 @@ static Future<void> changePassword({
     );
     final list = _parseList(response, 'transaksi $status');
     return list.map((e) => Transaction.fromJson(e)).toList();
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // GROOMING
+  // ════════════════════════════════════════════════════════════
+
+  static Future<List<PackageType>> getGroomingPackages() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/grooming/packages'),
+      headers: _headers,
+    );
+    final list = _parseList(response, 'paket grooming');
+    return list.map((e) => PackageType.fromJson(e)).toList();
+  }
+
+  static Future<Map<String, dynamic>> getGroomingAvailability() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/grooming/availability'),
+      headers: _headers,
+    );
+    if (response.statusCode == 200) {
+      final body = jsonDecode(response.body);
+      return body['data'];
+    } else if (response.statusCode == 401) {
+      throw Exception('Sesi habis, silakan login kembali.');
+    } else {
+      throw Exception('Gagal mengambil jadwal grooming');
+    }
+  }
+
+  static Future<void> bookGrooming({
+    required int idHewan,
+    required int idPaket,
+    required String tanggalGrooming,
+    required String waktuGrooming,
+    String? catatanGrooming,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/grooming/book'),
+      headers: _headers,
+      body: jsonEncode({
+        'id_hewan': idHewan,
+        'id_paket': idPaket,
+        'tanggal_grooming': tanggalGrooming,
+        'waktu_grooming': waktuGrooming,
+        if (catatanGrooming != null) 'catatan_grooming': catatanGrooming,
+      }),
+    );
+
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      return;
+    } else if (response.statusCode == 401) {
+      throw Exception('Sesi habis, silakan login kembali.');
+    } else {
+      final body = jsonDecode(response.body);
+      throw Exception(body['message'] ?? 'Gagal membuat booking grooming');
+    }
   }
 
   static Future<List<Pet>> getMyPets() async {

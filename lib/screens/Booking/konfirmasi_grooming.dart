@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import '../../theme/tema_app.dart';
 import '../Home/dashboard.dart';
+import '../../services/api_service.dart';
+import '../../config/api_config.dart';
 
 class KonfirmasiGroomingScreen extends StatefulWidget {
+  final int idPaket;
   final String namaPaket;
   final String harga;
-  const KonfirmasiGroomingScreen({super.key, required this.namaPaket, required this.harga});
+  const KonfirmasiGroomingScreen({super.key, required this.idPaket, required this.namaPaket, required this.harga});
 
   @override
   State<KonfirmasiGroomingScreen> createState() => _KonfirmasiGroomingScreenState();
@@ -13,25 +16,44 @@ class KonfirmasiGroomingScreen extends StatefulWidget {
 
 class _KonfirmasiGroomingScreenState extends State<KonfirmasiGroomingScreen> {
   int _selectedDay = 0;
-  int _selectedTime = 1;
-  int _selectedHewan = 0;
+  int _selectedTime = 0;
+  int _selectedHewan = -1;
 
-  final List<Map<String, String>> _hewan = [
-    {'type': 'hewan', 'nama': 'Buddy', 'emoji': '🐶'},
-    {'type': 'hewan', 'nama': 'Mittens', 'emoji': '🐱'},
-    {'type': 'hewan', 'nama': 'Charlie', 'emoji': '🐰'},
-  ];
+  List<Pet> _myPets = [];
+  List<Map<String, dynamic>> _days = [];
+  List<String> _pagiTimes = [];
+  List<String> _siangTimes = [];
+  bool _isLoading = true;
+  bool _isSubmitting = false;
 
-  final List<Map<String, String>> _days = [
-    {'day': 'Sen', 'date': '12'},
-    {'day': 'Sel', 'date': '13'},
-    {'day': 'Rab', 'date': '14'},
-    {'day': 'Kam', 'date': '15'},
-    {'day': 'Jum', 'date': '16'},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
 
-  final List<String> _pagiTimes = ['09:00', '10:00', '11:00'];
-  final List<String> _siangTimes = ['13:00', '14:00', '15:00', '16:00'];
+  Future<void> _fetchData() async {
+    try {
+      final pets = await ApiService.getMyPets();
+      final avail = await ApiService.getGroomingAvailability();
+      
+      if (!mounted) return;
+      setState(() {
+        _myPets = pets;
+        if (_myPets.isNotEmpty) _selectedHewan = 0;
+        
+        _days = List<Map<String, dynamic>>.from(avail['days']);
+        _pagiTimes = List<String>.from(avail['times']['pagi']);
+        _siangTimes = List<String>.from(avail['times']['siang']);
+        
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,25 +64,27 @@ class _KonfirmasiGroomingScreenState extends State<KonfirmasiGroomingScreen> {
           children: [
             _buildHeader(context),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 20),
-                    _buildDetailPaket(),
-                    const SizedBox(height: 24),
-                    _buildPilihTanggal(),
-                    const SizedBox(height: 24),
-                    _buildWaktuKunjungan(),
-                    const SizedBox(height: 24),
-                    _buildEstimasiBiaya(),
-                    const SizedBox(height: 8),
-                  ],
-                ),
-              ),
+              child: _isLoading 
+                ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                : SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 20),
+                        _buildDetailPaket(),
+                        const SizedBox(height: 24),
+                        _buildPilihTanggal(),
+                        const SizedBox(height: 24),
+                        _buildWaktuKunjungan(),
+                        const SizedBox(height: 24),
+                        _buildEstimasiBiaya(),
+                        const SizedBox(height: 8),
+                      ],
+                    ),
+                  ),
             ),
-            _buildNextButton(context),
+            if (!_isLoading) _buildNextButton(context),
           ],
         ),
       ),
@@ -125,11 +149,13 @@ class _KonfirmasiGroomingScreenState extends State<KonfirmasiGroomingScreen> {
         const SizedBox(height: 14),
         SizedBox(
           height: 110,
-          child: ListView.builder(
+          child: _myPets.isEmpty 
+          ? const Center(child: Text('Belum ada hewan peliharaan', style: TextStyle(color: AppColors.textLight)))
+          : ListView.builder(
             scrollDirection: Axis.horizontal,
-            itemCount: _hewan.length,
+            itemCount: _myPets.length,
             itemBuilder: (context, i) {
-              final h = _hewan[i];
+              final h = _myPets[i];
               final selected = _selectedHewan == i;
               return GestureDetector(
                 onTap: () => setState(() => _selectedHewan = i),
@@ -147,13 +173,15 @@ class _KonfirmasiGroomingScreenState extends State<KonfirmasiGroomingScreen> {
                             width: selected ? 3 : 1.5,
                           ),
                         ),
-                        child: Center(
-                          child: Text(h['emoji']!, style: const TextStyle(fontSize: 36)),
+                        child: ClipOval(
+                          child: h.foto.isNotEmpty 
+                            ? Image.network('${ApiConfig.baseUrl.replaceAll('/api', '')}/storage/${h.foto}', width: 68, height: 68, fit: BoxFit.cover)
+                            : Center(child: Text(h.jenis.toLowerCase() == 'kucing' ? '🐱' : (h.jenis.toLowerCase() == 'anjing' ? '🐶' : '🐾'), style: const TextStyle(fontSize: 36))),
                         ),
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        h['nama']!,
+                        h.nama,
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
@@ -178,9 +206,9 @@ class _KonfirmasiGroomingScreenState extends State<KonfirmasiGroomingScreen> {
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
-            Text('Pilih Tanggal', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDark)),
-            Text('Oktober 2025', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.gold)),
+          children: [
+            const Text('Pilih Tanggal', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+            Text(_days.isNotEmpty ? _days[_selectedDay]['month_year'] : '', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.gold)),
           ],
         ),
         const SizedBox(height: 14),
@@ -201,9 +229,9 @@ class _KonfirmasiGroomingScreenState extends State<KonfirmasiGroomingScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(_days[i]['day']!, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: selected ? Colors.white70 : AppColors.textLight)),
+                    Text(_days[i]['day'].toString(), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: selected ? Colors.white70 : AppColors.textLight)),
                     const SizedBox(height: 4),
-                    Text(_days[i]['date']!, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: selected ? Colors.white : AppColors.textDark)),
+                    Text(_days[i]['date'].toString(), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: selected ? Colors.white : AppColors.textDark)),
                   ],
                 ),
               ),
@@ -332,7 +360,11 @@ class _KonfirmasiGroomingScreenState extends State<KonfirmasiGroomingScreen> {
   }
 
   void _showRingkasanPopup(BuildContext context) {
-    final hewan = _hewan[_selectedHewan];
+    if (_myPets.isEmpty || _selectedHewan < 0) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pilih hewan peliharaan terlebih dahulu')));
+      return;
+    }
+    final hewan = _myPets[_selectedHewan];
     final hari = _days[_selectedDay];
     final waktu = _selectedTime < _pagiTimes.length
         ? _pagiTimes[_selectedTime]
@@ -369,9 +401,9 @@ class _KonfirmasiGroomingScreenState extends State<KonfirmasiGroomingScreen> {
                 children: [
                   _buildPopupRow(Icons.content_cut_outlined, 'Paket', 'Grooming ${widget.namaPaket}', AppColors.primary),
                   const Padding(padding: EdgeInsets.symmetric(vertical: 10), child: Divider(height: 1)),
-                  _buildPopupRow(Icons.pets_outlined, 'Peliharaan', hewan['nama']!, AppColors.accent),
+                  _buildPopupRow(Icons.pets_outlined, 'Peliharaan', hewan.nama, AppColors.accent),
                   const Padding(padding: EdgeInsets.symmetric(vertical: 10), child: Divider(height: 1)),
-                  _buildPopupRow(Icons.calendar_today_outlined, 'Tanggal', '${hari['day']}, ${hari['date']} Oktober 2025', const Color(0xFF7C4DFF)),
+                  _buildPopupRow(Icons.calendar_today_outlined, 'Tanggal', '${hari['day']}, ${hari['date']} ${hari['month_year']}', const Color(0xFF7C4DFF)),
                   const Padding(padding: EdgeInsets.symmetric(vertical: 10), child: Divider(height: 1)),
                   _buildPopupRow(Icons.access_time_outlined, 'Waktu', '$waktu WIB', const Color(0xFFFF9800)),
                   const Padding(padding: EdgeInsets.symmetric(vertical: 10), child: Divider(height: 1)),
@@ -398,7 +430,7 @@ class _KonfirmasiGroomingScreenState extends State<KonfirmasiGroomingScreen> {
                   child: GestureDetector(
                     onTap: () {
                       Navigator.pop(context);
-                      _showSuksesPopup(context);
+                      _submitBooking(hewan.id, hari['full_date'], waktu);
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 14),
@@ -413,6 +445,33 @@ class _KonfirmasiGroomingScreenState extends State<KonfirmasiGroomingScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _submitBooking(int idHewan, String tanggal, String waktu) async {
+    setState(() => _isSubmitting = true);
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+    );
+    
+    try {
+      await ApiService.bookGrooming(
+        idHewan: idHewan,
+        idPaket: widget.idPaket,
+        tanggalGrooming: tanggal,
+        waktuGrooming: waktu,
+      );
+      if (!mounted) return;
+      Navigator.of(context, rootNavigator: true).pop(); // Tutup loading dialog
+      _showSuksesPopup(context);
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.of(context, rootNavigator: true).pop(); // Tutup loading dialog
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
   void _showSuksesPopup(BuildContext context) {
