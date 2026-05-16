@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../services/api_service.dart';
 import '../../theme/tema_app.dart';
-import 'keranjang.dart';
 import 'detail_produk.dart';
+import 'keranjang.dart';
 
 class ShopContent extends StatefulWidget {
   const ShopContent({super.key});
@@ -11,17 +12,61 @@ class ShopContent extends StatefulWidget {
 }
 
 class _ShopContentState extends State<ShopContent> {
-  int _selectedCategory = 0;
-  final List<String> _categories = ['All Products', 'Food', 'Grooming', 'Vitamins', 'Fashion', 'Accessories'];
+  final TextEditingController _searchController = TextEditingController();
+  List<String> _categories = ['All'];
+  List<ShopProduct> _products = [];
+  String _selectedCategory = 'All';
+  bool _loading = true;
+  String? _error;
 
-  final List<_ShopProduct> _products = [
-    _ShopProduct(name: 'Collapsible Bowl', price: 185000, image: 'assets/images/product5.jpg', bgColor: Color(0xFFFFF3E8), kategori: 'Accessories'),
-    _ShopProduct(name: 'Pet Carrier Bag', price: 95000, image: 'assets/images/product6.jpg', bgColor: Color(0xFFE8F4FF), kategori: 'Accessories'),
-    _ShopProduct(name: 'Paw Balm', price: 45000, image: 'assets/images/product7.jpg', bgColor: Color(0xFFE8F5F3), kategori: 'Grooming'),
-    _ShopProduct(name: 'Ear Finger Wipes', price: 55000, image: 'assets/images/product8.jpg', bgColor: Color(0xFFFFE8F0), kategori: 'Grooming'),
-    _ShopProduct(name: 'Pet Hoodie Costume', price: 250000, image: 'assets/images/product9.jpg', bgColor: Color(0xFFE8F5F3), kategori: 'Fashion'),
-    _ShopProduct(name: 'Steam Grooming Brush', price: 35000, image: 'assets/images/product10.jpg', bgColor: Color(0xFFE8F4FF), kategori: 'Grooming'),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  String _formatHarga(num harga) {
+    return harga.round().toString().replaceAllMapped(
+          RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+          (m) => '${m[1]}.',
+        );
+  }
+
+  Future<void> _loadData() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      final results = await Future.wait([
+        ApiService.getShopCategories(),
+        ApiService.getShopProducts(
+          search: _searchController.text,
+          kategori: _selectedCategory == 'All' ? null : _selectedCategory,
+        ),
+      ]);
+
+      if (!mounted) return;
+      setState(() {
+        _categories = ['All', ...(results[0] as List<String>)];
+        _products = results[1] as List<ShopProduct>;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString().replaceFirst('Exception: ', '');
+        _loading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,8 +75,8 @@ class _ShopContentState extends State<ShopContent> {
         _buildHeader(),
         _buildSearchBar(),
         _buildCategories(),
-        _buildCuratedPicksHeader(),
-        Expanded(child: _buildProductGrid()),
+        _buildTitle(),
+        Expanded(child: _buildBody()),
       ],
     );
   }
@@ -42,28 +87,26 @@ class _ShopContentState extends State<ShopContent> {
       child: Row(
         children: [
           Container(
-            width: 44, height: 44,
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(color: AppColors.primary, width: 2),
               color: AppColors.primaryLight,
             ),
-            child: const ClipOval(child: Center(child: Text('🐱', style: TextStyle(fontSize: 22)))),
+            child: const Center(child: Text('🐾', style: TextStyle(fontSize: 22))),
           ),
           const SizedBox(width: 12),
-          Column(
+          const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Text('OWNER', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.textLight, letterSpacing: 1.2)),
-              Text('Kayla Nadine', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+            children: [
+              Text('SHOP', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.textLight, letterSpacing: 1.2)),
+              Text('PawPet Store', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDark)),
             ],
           ),
           const Spacer(),
           GestureDetector(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const KeranjangScreen()),
-            ),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const KeranjangScreen())),
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
@@ -83,21 +126,16 @@ class _ShopContentState extends State<ShopContent> {
   Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.divider),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
-        ),
-        child: const TextField(
-          decoration: InputDecoration(
-            hintText: 'Search',
-            prefixIcon: Icon(Icons.search, color: AppColors.textLight, size: 22),
-            border: InputBorder.none,
-            enabledBorder: InputBorder.none,
-            focusedBorder: InputBorder.none,
-            contentPadding: EdgeInsets.symmetric(vertical: 14),
+      child: TextField(
+        controller: _searchController,
+        textInputAction: TextInputAction.search,
+        onSubmitted: (_) => _loadData(),
+        decoration: InputDecoration(
+          hintText: 'Cari produk',
+          prefixIcon: const Icon(Icons.search, color: AppColors.textLight, size: 22),
+          suffixIcon: IconButton(
+            icon: const Icon(Icons.refresh_rounded),
+            onPressed: _loadData,
           ),
         ),
       ),
@@ -114,9 +152,13 @@ class _ShopContentState extends State<ShopContent> {
           itemCount: _categories.length,
           separatorBuilder: (_, __) => const SizedBox(width: 8),
           itemBuilder: (context, i) {
-            final selected = _selectedCategory == i;
+            final cat = _categories[i];
+            final selected = _selectedCategory == cat;
             return GestureDetector(
-              onTap: () => setState(() => _selectedCategory = i),
+              onTap: () {
+                setState(() => _selectedCategory = cat);
+                _loadData();
+              },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
@@ -126,12 +168,8 @@ class _ShopContentState extends State<ShopContent> {
                   border: Border.all(color: selected ? AppColors.primary : AppColors.divider),
                 ),
                 child: Text(
-                  _categories[i],
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: selected ? Colors.white : AppColors.textMedium,
-                  ),
+                  cat,
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: selected ? Colors.white : AppColors.textMedium),
                 ),
               ),
             );
@@ -141,151 +179,108 @@ class _ShopContentState extends State<ShopContent> {
     );
   }
 
-  Widget _buildCuratedPicksHeader() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 4),
+  Widget _buildTitle() {
+    return const Padding(
+      padding: EdgeInsets.fromLTRB(20, 20, 20, 4),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Text('Curated Picks', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: AppColors.textDark)),
-              Text("Based on your pet's needs", style: TextStyle(fontSize: 12, color: AppColors.textLight, fontWeight: FontWeight.w500)),
-            ],
-          ),
+          Text('Produk Tersedia', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: AppColors.textDark)),
         ],
       ),
     );
   }
 
-  Widget _buildProductGrid() {
-    final filtered = _selectedCategory == 0
-        ? _products
-        : _products.where((p) => p.kategori == _categories[_selectedCategory]).toList();
+  Widget _buildBody() {
+    if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_error != null) {
+      return _MessageState(icon: '⚠️', title: _error!, actionText: 'Coba Lagi', onAction: _loadData);
+    }
+    if (_products.isEmpty) return _MessageState(icon: '🛒', title: 'Produk belum tersedia', actionText: 'Muat ulang', onAction: _loadData);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: filtered.isEmpty
-          ? const Center(
-              child: Padding(
-                padding: EdgeInsets.only(top: 60),
-                child: Column(
-                  children: [
-                    Text('🛒', style: TextStyle(fontSize: 48)),
-                    SizedBox(height: 12),
-                    Text('Belum ada produk di kategori ini',
-                        style: TextStyle(fontSize: 14, color: AppColors.textLight)),
-                  ],
-                ),
-              ),
-            )
-          : GridView.builder(
-              itemCount: filtered.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 14,
-                crossAxisSpacing: 14,
-                childAspectRatio: 0.70,
-              ),
-              itemBuilder: (context, i) => GestureDetector(
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => DetailProdukScreen(
-                      nama: filtered[i].name,
-                      harga: filtered[i].price,
-                      image: filtered[i].image,
-                      bgColor: filtered[i].bgColor,
-                      pilihanjenis: filtered[i].pilihanJenis,
-                      deskripsi: filtered[i].deskripsi,
-                    ),
-                  ),
-                ),
-                child: _buildProductCard(filtered[i]),
-              ),
-            ),
-    );
-  }
-
-  Widget _buildProductCard(_ShopProduct product) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.divider),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 3))],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-              child: product.image != null
-                  ? Image.asset(
-                      product.image!,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    )
-                  : Container(
-                      color: product.bgColor,
-                      child: Center(
-                        child: Text(product.emoji ?? '', style: const TextStyle(fontSize: 56)),
-                      ),
-                    ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 4),
-                Text(
-                  product.name,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textDark, height: 1.3),
-                  maxLines: 2,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Rp ${_formatHarga(product.price.toInt())}',
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.primary),
-                ),
-              ],
-            ),
-          ),
-        ],
+    return RefreshIndicator(
+      onRefresh: _loadData,
+      child: GridView.builder(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+        itemCount: _products.length,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          mainAxisSpacing: 14,
+          crossAxisSpacing: 14,
+          childAspectRatio: 0.70,
+        ),
+        itemBuilder: (context, i) => _buildProductCard(_products[i]),
       ),
     );
   }
 
-  String _formatHarga(int harga) {
-    return harga.toString().replaceAllMapped(
-      RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
-      (m) => '${m[1]}.',
+  Widget _buildProductCard(ShopProduct product) {
+    return GestureDetector(
+      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailProdukScreen(productId: product.id))),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppColors.divider),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 3))],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                margin: const EdgeInsets.all(10),
+                decoration: BoxDecoration(color: AppColors.categoryBg1, borderRadius: BorderRadius.circular(14)),
+                child: product.imageUrl != null
+                    ? ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.network(product.imageUrl!, fit: BoxFit.cover))
+                    : const Center(child: Text('🐾', style: TextStyle(fontSize: 46))),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(product.namaBarang, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+                  const SizedBox(height: 4),
+                  Text(product.kategori, style: const TextStyle(fontSize: 11, color: AppColors.textLight)),
+                  const SizedBox(height: 6),
+                  Text('Rp ${_formatHarga(product.harga)}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.primary)),
+                  Text('Stok ${product.stok}', style: const TextStyle(fontSize: 11, color: AppColors.textLight)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
 
-class _ShopProduct {
-  final String name;
-  final double price;
-  final String? emoji;
-  final String? image;
-  final Color bgColor;
-  final String kategori;
-  final List<String> pilihanJenis;
-  final String deskripsi;
+class _MessageState extends StatelessWidget {
+  final String icon;
+  final String title;
+  final String actionText;
+  final VoidCallback onAction;
 
-  const _ShopProduct({
-    required this.name,
-    required this.price,
-    this.emoji,
-    this.image,
-    required this.bgColor,
-    required this.kategori,
-    this.pilihanJenis = const [],
-    this.deskripsi = '',
-  });
+  const _MessageState({required this.icon, required this.title, required this.actionText, required this.onAction});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(icon, style: const TextStyle(fontSize: 48)),
+            const SizedBox(height: 10),
+            Text(title, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMedium, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 12),
+            ElevatedButton(onPressed: onAction, child: Text(actionText)),
+          ],
+        ),
+      ),
+    );
+  }
 }

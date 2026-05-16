@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../services/api_service.dart';
 import '../../theme/tema_app.dart';
-import 'checkout.dart';
-import 'shop.dart';
 
 class KeranjangScreen extends StatefulWidget {
   const KeranjangScreen({super.key});
@@ -11,247 +10,198 @@ class KeranjangScreen extends StatefulWidget {
 }
 
 class _KeranjangScreenState extends State<KeranjangScreen> {
-  final List<_CartItem> _items = [
-    _CartItem(name: 'Steam Grooming Brush', category: 'Grooming', price: 185000, qty: 2, image: 'assets/images/product5.jpg', selected: true),
-    _CartItem(name: 'Paw Balm', category: 'Skincare', price: 55000, qty: 1, image: 'assets/images/product8.jpg', selected: true),
-    _CartItem(name: 'Ear Finger Wipes', category: 'Grooming', price: 45000, qty: 1, image: 'assets/images/product7.jpg', selected: false),
-  ];
+  ShopCart? _cart;
+  bool _loading = true;
+  bool _checkoutLoading = false;
+  String? _error;
 
-  bool get _allSelected => _items.every((i) => i.selected);
-  int get _totalHarga => _items.where((i) => i.selected).fold(0, (sum, i) => sum + i.price * i.qty);
-  int get _totalItem => _items.where((i) => i.selected).length;
-
-  void _toggleAll(bool? val) {
-    setState(() {
-      for (var item in _items) item.selected = val ?? false;
-    });
+  @override
+  void initState() {
+    super.initState();
+    _loadCart();
   }
 
-  void _hapusSemua() {
-    setState(() => _items.removeWhere((i) => i.selected));
+  String _formatHarga(num harga) => harga.round().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.');
+
+  Future<void> _loadCart() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final cart = await ApiService.getCart();
+      if (!mounted) return;
+      setState(() {
+        _cart = cart;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString().replaceFirst('Exception: ', '');
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _updateQty(ShopCartItem item, int qty) async {
+    if (qty < 1) return;
+    try {
+      final cart = await ApiService.updateCartItem(itemId: item.id, jumlah: qty);
+      if (mounted) setState(() => _cart = cart);
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))));
+    }
+  }
+
+  Future<void> _removeItem(ShopCartItem item) async {
+    try {
+      final cart = await ApiService.removeCartItem(item.id);
+      if (mounted) setState(() => _cart = cart);
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))));
+    }
+  }
+
+  Future<void> _checkout() async {
+    if (_checkoutLoading || (_cart?.items.isEmpty ?? true)) return;
+    setState(() => _checkoutLoading = true);
+    try {
+      final trx = await ApiService.checkoutCart(metodeBayar: 'ewallet');
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (_) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          title: const Text('Checkout berhasil'),
+          content: Text('Kode: ${trx['kode_transaksi'] ?? '-'}\nStatus: ${trx['status'] ?? 'pending'}\nPayment gateway belum diaktifkan.'),
+          actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK'))],
+        ),
+      );
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))));
+    } finally {
+      if (mounted) setState(() => _checkoutLoading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final cart = _cart;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           children: [
-            _buildHeader(context),
+            _buildHeader(),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-                child: Column(
-                  children: [
-                    _buildPilihSemua(),
-                    const SizedBox(height: 12),
-                    ..._items.map((item) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: _buildCartCard(item),
-                    )),
-                  ],
-                ),
-              ),
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _error != null
+                      ? _buildMessage('⚠️', _error!, 'Coba Lagi', _loadCart)
+                      : cart == null || cart.items.isEmpty
+                          ? _buildMessage('🛒', 'Keranjang masih kosong', 'Muat ulang', _loadCart)
+                          : RefreshIndicator(
+                              onRefresh: _loadCart,
+                              child: ListView.separated(
+                                padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+                                itemCount: cart.items.length,
+                                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                                itemBuilder: (_, i) => _buildItem(cart.items[i]),
+                              ),
+                            ),
             ),
-            _buildCheckoutBar(context),
+            if (cart != null && cart.items.isNotEmpty) _buildSummary(cart),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              width: 38, height: 38,
-              decoration: BoxDecoration(color: AppColors.categoryBg1, borderRadius: BorderRadius.circular(12)),
-              child: const Icon(Icons.arrow_back_ios_new_rounded, size: 16, color: AppColors.primary),
-            ),
-          ),
-          const SizedBox(width: 16),
-          const Text('Keranjang', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textDark)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPilihSemua() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider)),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => _toggleAll(!_allSelected),
-            child: Container(
-              width: 24, height: 24,
-              decoration: BoxDecoration(
-                color: _allSelected ? AppColors.primary : Colors.white,
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: _allSelected ? AppColors.primary : AppColors.divider, width: 2),
+  Widget _buildHeader() => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+        child: Row(
+          children: [
+            GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(color: AppColors.categoryBg1, borderRadius: BorderRadius.circular(12)),
+                child: const Icon(Icons.arrow_back_ios_new_rounded, size: 16, color: AppColors.primary),
               ),
-              child: _allSelected ? const Icon(Icons.check, color: Colors.white, size: 16) : null,
             ),
-          ),
-          const SizedBox(width: 12),
-          const Text('Pilih Semua', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textDark)),
-          const Spacer(),
-          GestureDetector(
-            onTap: _hapusSemua,
-            child: Row(
-              children: const [
-                Icon(Icons.delete_outline_rounded, size: 16, color: AppColors.primary),
-                SizedBox(width: 4),
-                Text('Hapus Semua', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.primary)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+            const SizedBox(width: 16),
+            const Text('Keranjang', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+          ],
+        ),
+      );
 
-  Widget _buildCartCard(_CartItem item) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white, borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.divider),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 3))],
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => setState(() => item.selected = !item.selected),
-            child: Container(
-              width: 24, height: 24,
-              decoration: BoxDecoration(
-                color: item.selected ? AppColors.primary : Colors.white,
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: item.selected ? AppColors.primary : AppColors.divider, width: 2),
-              ),
-              child: item.selected ? const Icon(Icons.check, color: Colors.white, size: 16) : null,
-            ),
-          ),
-          const SizedBox(width: 12),
-          // Gambar produk
-          ClipRRect(
-            borderRadius: BorderRadius.circular(14),
-            child: Image.asset(
-              item.image,
-              width: 70, height: 70,
-              fit: BoxFit.cover,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(item.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textDark)),
-                const SizedBox(height: 2),
-                Text(item.category, style: const TextStyle(fontSize: 12, color: AppColors.textLight)),
-                const SizedBox(height: 6),
-                Text('Rp ${_formatHarga(item.price)}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.primary)),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    GestureDetector(
-                      onTap: () => setState(() { if (item.qty > 1) item.qty--; }),
-                      child: Container(
-                        width: 30, height: 30,
-                        decoration: BoxDecoration(color: AppColors.categoryBg1, borderRadius: BorderRadius.circular(8)),
-                        child: const Icon(Icons.remove, size: 16, color: AppColors.textDark),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Text('${item.qty}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textDark)),
-                    ),
-                    GestureDetector(
-                      onTap: () => setState(() => item.qty++),
-                      child: Container(
-                        width: 30, height: 30,
-                        decoration: BoxDecoration(
-                          color: item.selected ? AppColors.primary : AppColors.divider,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(Icons.add, size: 16, color: Colors.white),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _buildMessage(String icon, String title, String action, VoidCallback onAction) => Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(icon, style: const TextStyle(fontSize: 48)),
+            const SizedBox(height: 12),
+            Text(title, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMedium, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 12),
+            ElevatedButton(onPressed: onAction, child: Text(action)),
+          ],
+        ),
+      );
 
-  Widget _buildCheckoutBar(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 20, offset: const Offset(0, -4))],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('TOTAL PEMBAYARAN', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textLight, letterSpacing: 1)),
-              Text('($_totalItem Item terpilih)', style: const TextStyle(fontSize: 12, color: AppColors.textLight)),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text('Rp ${_formatHarga(_totalHarga)}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.textDark)),
-          const SizedBox(height: 14),
-          GestureDetector(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const CheckoutScreen()),
+  Widget _buildItem(ShopCartItem item) => Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18), border: Border.all(color: AppColors.divider)),
+        child: Row(
+          children: [
+            Container(
+              width: 74,
+              height: 74,
+              decoration: BoxDecoration(color: AppColors.categoryBg1, borderRadius: BorderRadius.circular(14)),
+              child: item.imageUrl != null ? ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.network(item.imageUrl!, fit: BoxFit.cover)) : const Center(child: Text('🐾', style: TextStyle(fontSize: 30))),
             ),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(16)),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Checkout Sekarang', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16)),
-                  SizedBox(width: 8),
-                  Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
+                  Text(item.namaBarang, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+                  const SizedBox(height: 4),
+                  Text('Rp ${_formatHarga(item.hargaSatuan)}', style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.primary)),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      InkWell(onTap: item.jumlah > 1 ? () => _updateQty(item, item.jumlah - 1) : null, child: const Icon(Icons.remove_circle_outline, size: 22)),
+                      Padding(padding: const EdgeInsets.symmetric(horizontal: 10), child: Text('${item.jumlah}', style: const TextStyle(fontWeight: FontWeight.w800))),
+                      InkWell(onTap: item.jumlah < item.stok ? () => _updateQty(item, item.jumlah + 1) : null, child: const Icon(Icons.add_circle_outline, size: 22)),
+                      const Spacer(),
+                      IconButton(onPressed: () => _removeItem(item), icon: const Icon(Icons.delete_outline, color: Colors.redAccent)),
+                    ],
+                  ),
                 ],
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
+          ],
+        ),
+      );
 
-  String _formatHarga(int harga) {
-    return harga.toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.');
-  }
-}
-
-class _CartItem {
-  final String name;
-  final String category;
-  final int price;
-  int qty;
-  final String image;
-  bool selected;
-  _CartItem({required this.name, required this.category, required this.price, required this.qty, required this.image, required this.selected});
+  Widget _buildSummary(ShopCart cart) => Container(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+        decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 16, offset: const Offset(0, -4))]),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                const Text('Total', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textMedium)),
+                const Spacer(),
+                Text('Rp ${_formatHarga(cart.totalHarga)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.primary)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SizedBox(width: double.infinity, child: ElevatedButton(onPressed: _checkoutLoading ? null : _checkout, child: Text(_checkoutLoading ? 'Memproses...' : 'Checkout'))),
+          ],
+        ),
+      );
 }

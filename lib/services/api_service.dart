@@ -114,6 +114,223 @@ class PackageType {
   }
 }
 
+
+class ShopProduct {
+  final int id;
+  final String namaBarang;
+  final String kategori;
+  final double harga;
+  final int stok;
+  final String? imageUrl;
+  final bool tersedia;
+
+  ShopProduct({
+    required this.id,
+    required this.namaBarang,
+    required this.kategori,
+    required this.harga,
+    required this.stok,
+    this.imageUrl,
+    required this.tersedia,
+  });
+
+  factory ShopProduct.fromJson(Map<String, dynamic> json) => ShopProduct(
+        id: json['id'] ?? 0,
+        namaBarang: json['nama_barang'] ?? '-',
+        kategori: json['kategori'] ?? '-',
+        harga: double.tryParse(json['harga'].toString()) ?? 0,
+        stok: int.tryParse(json['stok'].toString()) ?? 0,
+        imageUrl: json['image_url'],
+        tersedia: json['tersedia'] == true,
+      );
+}
+
+class ShopCartItem {
+  final int id;
+  final int idBarang;
+  final String namaBarang;
+  final String kategori;
+  final String? imageUrl;
+  final int jumlah;
+  final double hargaSatuan;
+  final double subtotal;
+  final int stok;
+  final bool tersedia;
+
+  ShopCartItem({
+    required this.id,
+    required this.idBarang,
+    required this.namaBarang,
+    required this.kategori,
+    this.imageUrl,
+    required this.jumlah,
+    required this.hargaSatuan,
+    required this.subtotal,
+    required this.stok,
+    required this.tersedia,
+  });
+
+  factory ShopCartItem.fromJson(Map<String, dynamic> json) => ShopCartItem(
+        id: json['id'] ?? 0,
+        idBarang: json['id_barang'] ?? 0,
+        namaBarang: json['nama_barang'] ?? '-',
+        kategori: json['kategori'] ?? '-',
+        imageUrl: json['image_url'],
+        jumlah: int.tryParse(json['jumlah'].toString()) ?? 0,
+        hargaSatuan: double.tryParse(json['harga_satuan'].toString()) ?? 0,
+        subtotal: double.tryParse(json['subtotal'].toString()) ?? 0,
+        stok: int.tryParse(json['stok'].toString()) ?? 0,
+        tersedia: json['tersedia'] == true,
+      );
+}
+
+class ShopCart {
+  final int id;
+  final String status;
+  final List<ShopCartItem> items;
+  final int totalItem;
+  final double totalHarga;
+
+  ShopCart({
+    required this.id,
+    required this.status,
+    required this.items,
+    required this.totalItem,
+    required this.totalHarga,
+  });
+
+  factory ShopCart.fromJson(Map<String, dynamic> json) => ShopCart(
+        id: json['id'] ?? 0,
+        status: json['status'] ?? '-',
+        items: ((json['items'] ?? []) as List)
+            .map((e) => ShopCartItem.fromJson(Map<String, dynamic>.from(e)))
+            .toList(),
+        totalItem: int.tryParse(json['total_item'].toString()) ?? 0,
+        totalHarga: double.tryParse(json['total_harga'].toString()) ?? 0,
+      );
+}
+
+class Doctor {
+  final int id;
+  final String nama;
+  final String spesialis;
+  final String pengalaman;
+  final double rating;
+  final bool tersedia;
+
+  Doctor({
+    required this.id,
+    required this.nama,
+    required this.spesialis,
+    required this.pengalaman,
+    required this.rating,
+    required this.tersedia,
+  });
+
+  factory Doctor.fromJson(Map<String, dynamic> json) => Doctor(
+        id: json['id'] ?? 0,
+        nama: json['nama'] ?? '-',
+        spesialis: json['spesialis'] ?? 'Dokter Hewan',
+        pengalaman: json['pengalaman'] ?? '-',
+        rating: double.tryParse(json['rating'].toString()) ?? 0,
+        tersedia: json['tersedia'] == true,
+      );
+}
+
+class DoctorServiceItem {
+  final int id;
+  final String namaLayanan;
+  final String deskripsi;
+  final double harga;
+
+  DoctorServiceItem({
+    required this.id,
+    required this.namaLayanan,
+    required this.deskripsi,
+    required this.harga,
+  });
+
+  factory DoctorServiceItem.fromJson(Map<String, dynamic> json) => DoctorServiceItem(
+        id: json['id'] ?? 0,
+        namaLayanan: json['nama_layanan'] ?? '-',
+        deskripsi: json['deskripsi'] ?? '',
+        harga: double.tryParse((json['estimasi_biaya'] ?? json['harga'] ?? 0).toString()) ?? 0,
+      );
+}
+
+class DoctorScheduleItem {
+  final int id;
+  final int idDokter;
+  final String hari;
+  final String jamMulai;
+  final String jamSelesai;
+
+  DoctorScheduleItem({
+    required this.id,
+    required this.idDokter,
+    required this.hari,
+    required this.jamMulai,
+    required this.jamSelesai,
+  });
+
+  factory DoctorScheduleItem.fromJson(Map<String, dynamic> json) => DoctorScheduleItem(
+        id: json['id'] ?? 0,
+        idDokter: json['id_dokter'] ?? 0,
+        hari: json['hari'] ?? '-',
+        jamMulai: json['jam_mulai'] ?? '',
+        jamSelesai: json['jam_selesai'] ?? '',
+      );
+}
+
+class BoardingRoom {
+  final int id;
+  final String namaKamar;
+  final String paket;
+  final int kapasitas;
+  final int terisi;
+  final int sisaKapasitas;
+  final double hargaPerHari;
+  final List<String> fasilitas;
+  final bool tersedia;
+
+  BoardingRoom({
+    required this.id,
+    required this.namaKamar,
+    required this.paket,
+    required this.kapasitas,
+    required this.terisi,
+    required this.sisaKapasitas,
+    required this.hargaPerHari,
+    required this.fasilitas,
+    required this.tersedia,
+  });
+
+  factory BoardingRoom.fromJson(Map<String, dynamic> json) {
+    final raw = json['fasilitas'];
+    List<String> fasilitas = [];
+    if (raw is List) fasilitas = raw.map((e) => e.toString()).toList();
+    if (raw is String && raw.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(raw);
+        if (decoded is List) fasilitas = decoded.map((e) => e.toString()).toList();
+      } catch (_) {
+        fasilitas = raw.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+      }
+    }
+    return BoardingRoom(
+      id: json['id'] ?? 0,
+      namaKamar: json['nama_kamar'] ?? '-',
+      paket: json['paket'] ?? '-',
+      kapasitas: int.tryParse(json['kapasitas'].toString()) ?? 0,
+      terisi: int.tryParse(json['terisi'].toString()) ?? 0,
+      sisaKapasitas: int.tryParse(json['sisa_kapasitas'].toString()) ?? 0,
+      hargaPerHari: double.tryParse(json['harga_per_hari'].toString()) ?? 0,
+      fasilitas: fasilitas,
+      tersedia: json['tersedia'] == true,
+    );
+  }
+}
+
 class ApiService {
 static const String baseUrl = ApiConfig.baseUrl;
 
@@ -435,4 +652,232 @@ static Future<void> deletePet(int id) async {
     throw Exception(body['message'] ?? 'Gagal menghapus hewan');
   }
 }
+
+  static Map<String, dynamic> _decodeMap(http.Response response) {
+    final decoded = jsonDecode(response.body);
+    if (decoded is Map<String, dynamic>) return decoded;
+    return {'data': decoded};
+  }
+
+  static void _throwApiError(http.Response response, String fallback) {
+    if (response.statusCode == 401) {
+      throw Exception('Sesi habis, silakan login kembali.');
+    }
+    try {
+      final body = _decodeMap(response);
+      throw Exception(body['message'] ?? fallback);
+    } catch (e) {
+      if (e is Exception && !e.toString().contains('FormatException')) rethrow;
+      throw Exception(fallback);
+    }
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // SHOP / PRODUK / KERANJANG
+  // ════════════════════════════════════════════════════════════
+
+  static Future<List<ShopProduct>> getShopProducts({String? search, String? kategori}) async {
+    final uri = Uri.parse('$baseUrl/shop/products').replace(queryParameters: {
+      if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
+      if (kategori != null && kategori.trim().isNotEmpty && kategori != 'All') 'kategori': kategori.trim(),
+    });
+    final response = await http.get(uri, headers: _headers);
+    final list = _parseList(response, 'produk');
+    return list.map((e) => ShopProduct.fromJson(Map<String, dynamic>.from(e))).toList();
+  }
+
+  static Future<List<String>> getShopCategories() async {
+    final response = await http.get(Uri.parse('$baseUrl/shop/categories'), headers: _headers);
+    final list = _parseList(response, 'kategori produk');
+    return list.map((e) => e.toString()).toList();
+  }
+
+  static Future<ShopProduct> getShopProductDetail(int id) async {
+    final response = await http.get(Uri.parse('$baseUrl/shop/products/$id'), headers: _headers);
+    if (response.statusCode == 200) {
+      final body = _decodeMap(response);
+      return ShopProduct.fromJson(Map<String, dynamic>.from(body['data']));
+    }
+    _throwApiError(response, 'Gagal mengambil detail produk');
+    throw Exception('Gagal mengambil detail produk');
+  }
+
+  static Future<ShopCart> getCart() async {
+    final response = await http.get(Uri.parse('$baseUrl/shop/cart'), headers: _headers);
+    if (response.statusCode == 200) {
+      final body = _decodeMap(response);
+      return ShopCart.fromJson(Map<String, dynamic>.from(body['data']));
+    }
+    _throwApiError(response, 'Gagal mengambil keranjang');
+    throw Exception('Gagal mengambil keranjang');
+  }
+
+  static Future<ShopCart> addCartItem({required int idBarang, required int jumlah}) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/shop/cart/items'),
+      headers: _headers,
+      body: jsonEncode({'id_barang': idBarang, 'jumlah': jumlah}),
+    );
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final body = _decodeMap(response);
+      return ShopCart.fromJson(Map<String, dynamic>.from(body['data']));
+    }
+    _throwApiError(response, 'Gagal menambahkan produk ke keranjang');
+    throw Exception('Gagal menambahkan produk ke keranjang');
+  }
+
+  static Future<ShopCart> updateCartItem({required int itemId, required int jumlah}) async {
+    final response = await http.patch(
+      Uri.parse('$baseUrl/shop/cart/items/$itemId'),
+      headers: _headers,
+      body: jsonEncode({'jumlah': jumlah}),
+    );
+    if (response.statusCode == 200) {
+      final body = _decodeMap(response);
+      return ShopCart.fromJson(Map<String, dynamic>.from(body['data']));
+    }
+    _throwApiError(response, 'Gagal memperbarui keranjang');
+    throw Exception('Gagal memperbarui keranjang');
+  }
+
+  static Future<ShopCart> removeCartItem(int itemId) async {
+    final response = await http.delete(Uri.parse('$baseUrl/shop/cart/items/$itemId'), headers: _headers);
+    if (response.statusCode == 200) {
+      final body = _decodeMap(response);
+      return ShopCart.fromJson(Map<String, dynamic>.from(body['data']));
+    }
+    _throwApiError(response, 'Gagal menghapus item keranjang');
+    throw Exception('Gagal menghapus item keranjang');
+  }
+
+  static Future<Map<String, dynamic>> checkoutCart({String? catatan, String metodeBayar = 'ewallet'}) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/shop/checkout'),
+      headers: _headers,
+      body: jsonEncode({'metode_bayar': metodeBayar, if (catatan != null) 'catatan': catatan}),
+    );
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final body = _decodeMap(response);
+      return Map<String, dynamic>.from(body['data']);
+    }
+    _throwApiError(response, 'Gagal checkout keranjang');
+    throw Exception('Gagal checkout keranjang');
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // DOCTOR BOOKING
+  // ════════════════════════════════════════════════════════════
+
+  static Future<List<Doctor>> getDoctors() async {
+    final response = await http.get(Uri.parse('$baseUrl/doctors'), headers: _headers);
+    final list = _parseList(response, 'dokter');
+    return list.map((e) => Doctor.fromJson(Map<String, dynamic>.from(e))).toList();
+  }
+
+  static Future<List<DoctorServiceItem>> getDoctorServices({int? doctorId}) async {
+    final uri = Uri.parse('$baseUrl/doctor-services').replace(queryParameters: {
+      if (doctorId != null) 'doctor_id': doctorId.toString(),
+    });
+    final response = await http.get(uri, headers: _headers);
+    final list = _parseList(response, 'layanan dokter');
+    return list.map((e) => DoctorServiceItem.fromJson(Map<String, dynamic>.from(e))).toList();
+  }
+
+  static Future<List<DoctorScheduleItem>> getDoctorSchedules({int? doctorId}) async {
+    final uri = Uri.parse('$baseUrl/doctor-schedules').replace(queryParameters: {
+      if (doctorId != null) 'doctor_id': doctorId.toString(),
+    });
+    final response = await http.get(uri, headers: _headers);
+    final list = _parseList(response, 'jadwal dokter');
+    return list.map((e) => DoctorScheduleItem.fromJson(Map<String, dynamic>.from(e))).toList();
+  }
+
+  static Future<Map<String, dynamic>> bookDoctor({
+    required int idHewan,
+    required int idDokter,
+    required int idLayanan,
+    int? idJadwal,
+    required String tanggalBooking,
+    required String jamBooking,
+    String? keluhan,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/doctor-bookings'),
+      headers: _headers,
+      body: jsonEncode({
+        'id_hewan': idHewan,
+        'id_dokter': idDokter,
+        'id_layanan': idLayanan,
+        if (idJadwal != null) 'id_jadwal': idJadwal,
+        'tanggal_booking': tanggalBooking,
+        'jam_booking': jamBooking,
+        if (keluhan != null) 'keluhan': keluhan,
+      }),
+    );
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final body = _decodeMap(response);
+      return Map<String, dynamic>.from(body['data']);
+    }
+    _throwApiError(response, 'Gagal membuat booking dokter');
+    throw Exception('Gagal membuat booking dokter');
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // BOARDING / PENITIPAN
+  // ════════════════════════════════════════════════════════════
+
+  static Future<List<BoardingRoom>> getBoardingRooms() async {
+    final response = await http.get(Uri.parse('$baseUrl/boarding/rooms'), headers: _headers);
+    final list = _parseList(response, 'kamar penitipan');
+    return list.map((e) => BoardingRoom.fromJson(Map<String, dynamic>.from(e))).toList();
+  }
+
+  static Future<Map<String, dynamic>> estimateBoarding({
+    required int idKamar,
+    required String tanggalMasuk,
+    required String tanggalRencanaKeluar,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/boarding/estimate'),
+      headers: _headers,
+      body: jsonEncode({
+        'id_kamar': idKamar,
+        'tanggal_masuk': tanggalMasuk,
+        'tanggal_rencana_keluar': tanggalRencanaKeluar,
+      }),
+    );
+    if (response.statusCode == 200) {
+      final body = _decodeMap(response);
+      return Map<String, dynamic>.from(body['data']);
+    }
+    _throwApiError(response, 'Gagal menghitung estimasi penitipan');
+    throw Exception('Gagal menghitung estimasi penitipan');
+  }
+
+  static Future<Map<String, dynamic>> bookBoarding({
+    required int idHewan,
+    required int idKamar,
+    required String tanggalMasuk,
+    required String tanggalRencanaKeluar,
+    String? catatan,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/boarding/book'),
+      headers: _headers,
+      body: jsonEncode({
+        'id_hewan': idHewan,
+        'id_kamar': idKamar,
+        'tanggal_masuk': tanggalMasuk,
+        'tanggal_rencana_keluar': tanggalRencanaKeluar,
+        if (catatan != null) 'catatan': catatan,
+      }),
+    );
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final body = _decodeMap(response);
+      return Map<String, dynamic>.from(body['data']);
+    }
+    _throwApiError(response, 'Gagal membuat booking penitipan');
+    throw Exception('Gagal membuat booking penitipan');
+  }
+
 }

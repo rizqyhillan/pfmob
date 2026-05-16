@@ -1,22 +1,28 @@
 import 'package:flutter/material.dart';
+import '../../services/api_service.dart';
 import '../../theme/tema_app.dart';
+import 'keranjang.dart';
 
 class DetailProdukScreen extends StatefulWidget {
-  final String nama;
-  final double harga;
+  final int? productId;
+
+  // Parameter lama tetap dibuat optional supaya caller lama seperti dashboard tidak error compile.
+  final String? nama;
+  final double? harga;
   final String? image;
-  final Color bgColor;
+  final Color? bgColor;
   final List<String> pilihanjenis;
-  final String deskripsi;
+  final String? deskripsi;
 
   const DetailProdukScreen({
     super.key,
-    required this.nama,
-    required this.harga,
+    this.productId,
+    this.nama,
+    this.harga,
     this.image,
-    required this.bgColor,
+    this.bgColor,
     this.pilihanjenis = const [],
-    required this.deskripsi,
+    this.deskripsi,
   });
 
   @override
@@ -24,71 +30,159 @@ class DetailProdukScreen extends StatefulWidget {
 }
 
 class _DetailProdukScreenState extends State<DetailProdukScreen> {
+  ShopProduct? _product;
   int _jumlah = 1;
-  int _selectedJenis = 0;
+  bool _loading = true;
+  bool _saving = false;
+  String? _error;
 
-  String _formatHarga(int harga) {
-    return harga.toString().replaceAllMapped(
-      RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.');
+  @override
+  void initState() {
+    super.initState();
+    _loadProduct();
+  }
+
+  String _formatHarga(num harga) => harga.round().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.');
+
+  Future<void> _loadProduct() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    if (widget.productId == null) {
+      setState(() {
+        _product = ShopProduct(
+          id: 0,
+          namaBarang: widget.nama ?? '-',
+          kategori: 'Best Seller',
+          harga: widget.harga ?? 0,
+          stok: 0,
+          imageUrl: widget.image,
+          tersedia: false,
+        );
+        _loading = false;
+      });
+      return;
+    }
+
+    try {
+      final product = await ApiService.getShopProductDetail(widget.productId!);
+      if (!mounted) return;
+      setState(() {
+        _product = product;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString().replaceFirst('Exception: ', '');
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _addToCart() async {
+    final product = _product;
+    if (product == null || product.id == 0 || _saving) return;
+    setState(() => _saving = true);
+    try {
+      await ApiService.addCartItem(idBarang: product.id, jumlah: _jumlah);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Produk berhasil ditambahkan ke keranjang')));
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const KeranjangScreen()));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final product = _product;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildGambarProduk(context),
-                    _buildInfoProduk(),
-                    if (widget.pilihanjenis.isNotEmpty) _buildPilihanJenis(),
-                    _buildDeskripsi(),
-                    const SizedBox(height: 24),
-                  ],
-                ),
-              ),
-            ),
-            _buildBottomBar(context),
-          ],
-        ),
+        child: _loading
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null
+                ? _buildError()
+                : Column(
+                    children: [
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildImage(product!),
+                              Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(product.namaBarang, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.textDark)),
+                                    const SizedBox(height: 8),
+                                    Text(product.kategori, style: const TextStyle(fontSize: 13, color: AppColors.textLight, fontWeight: FontWeight.w700)),
+                                    const SizedBox(height: 14),
+                                    Text('Rp ${_formatHarga(product.harga)}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.primary)),
+                                    const SizedBox(height: 8),
+                                    Text('Stok tersedia: ${product.stok}', style: const TextStyle(fontSize: 13, color: AppColors.textMedium)),
+                                    const SizedBox(height: 24),
+                                    _buildJumlah(product.stok),
+                                    const SizedBox(height: 18),
+                                    _infoBox(),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      _buildBottom(product),
+                    ],
+                  ),
       ),
     );
   }
 
-  Widget _buildGambarProduk(BuildContext context) {
+  Widget _buildError() => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('⚠️', style: TextStyle(fontSize: 48)),
+              const SizedBox(height: 12),
+              Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMedium, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 12),
+              ElevatedButton(onPressed: _loadProduct, child: const Text('Coba Lagi')),
+            ],
+          ),
+        ),
+      );
+
+  Widget _buildImage(ShopProduct product) {
     return Stack(
       children: [
-        // Gambar produk
         Container(
-          height: 300,
+          height: 310,
           width: double.infinity,
-          color: widget.bgColor,
-          child: widget.image != null
-              ? Image.asset(
-                  widget.image!,
-                  width: double.infinity,
-                  height: 300,
-                  fit: BoxFit.cover,
-                )
-              : const Center(child: Text('📦', style: TextStyle(fontSize: 80))),
+          decoration: const BoxDecoration(color: AppColors.categoryBg1, borderRadius: BorderRadius.vertical(bottom: Radius.circular(28))),
+          child: product.imageUrl != null
+              ? ClipRRect(borderRadius: const BorderRadius.vertical(bottom: Radius.circular(28)), child: Image.network(product.imageUrl!, fit: BoxFit.cover))
+              : const Center(child: Text('🐾', style: TextStyle(fontSize: 88))),
         ),
-        // Tombol back
         Positioned(
-          top: 16, left: 16,
+          top: 16,
+          left: 16,
           child: GestureDetector(
             onTap: () => Navigator.pop(context),
             child: Container(
-              width: 38, height: 38,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 8)],
-              ),
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
               child: const Icon(Icons.arrow_back_ios_new_rounded, size: 16, color: AppColors.primary),
             ),
           ),
@@ -97,217 +191,44 @@ class _DetailProdukScreenState extends State<DetailProdukScreen> {
     );
   }
 
-  Widget _buildInfoProduk() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Nama & Harga
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  widget.nama,
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.textDark),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Rp ${_formatHarga(widget.harga.toInt())}',
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.primary),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Jumlah
-          Row(
-            children: [
-              const Text('Jumlah', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textDark)),
-              const Spacer(),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.divider),
-                ),
-                child: Row(
-                  children: [
-                    // Tombol kurang
-                    GestureDetector(
-                      onTap: () {
-                        if (_jumlah > 1) setState(() => _jumlah--);
-                      },
-                      child: Container(
-                        width: 36, height: 36,
-                        decoration: BoxDecoration(
-                          color: _jumlah > 1 ? AppColors.categoryBg1 : AppColors.divider.withOpacity(0.3),
-                          borderRadius: const BorderRadius.horizontal(left: Radius.circular(11)),
-                        ),
-                        child: Icon(Icons.remove, size: 16, color: _jumlah > 1 ? AppColors.textDark : AppColors.textLight),
-                      ),
-                    ),
-                    // Angka
-                    SizedBox(
-                      width: 40,
-                      child: Text(
-                        '$_jumlah',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDark),
-                      ),
-                    ),
-                    // Tombol tambah
-                    GestureDetector(
-                      onTap: () => setState(() => _jumlah++),
-                      child: Container(
-                        width: 36, height: 36,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: const BorderRadius.horizontal(right: Radius.circular(11)),
-                        ),
-                        child: const Icon(Icons.add, size: 16, color: Colors.white),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+  Widget _buildJumlah(int stok) {
+    return Row(
+      children: [
+        const Text('Jumlah', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+        const Spacer(),
+        IconButton(
+          onPressed: _jumlah > 1 ? () => setState(() => _jumlah--) : null,
+          icon: const Icon(Icons.remove_circle_outline),
+        ),
+        Text('$_jumlah', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+        IconButton(
+          onPressed: _jumlah < stok ? () => setState(() => _jumlah++) : null,
+          icon: const Icon(Icons.add_circle_outline),
+        ),
+      ],
     );
   }
 
-  Widget _buildPilihanJenis() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('Pilihan Jenis', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textDark)),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: List.generate(widget.pilihanjenis.length, (i) {
-              final selected = _selectedJenis == i;
-              return GestureDetector(
-                onTap: () => setState(() => _selectedJenis = i),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: selected ? AppColors.primary : Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: selected ? AppColors.primary : AppColors.divider,
-                      width: selected ? 2 : 1,
-                    ),
-                  ),
-                  child: Text(
-                    widget.pilihanjenis[i],
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: selected ? Colors.white : AppColors.textDark,
-                    ),
-                  ),
-                ),
-              );
-            }),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _infoBox() => Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(color: AppColors.accentLight, borderRadius: BorderRadius.circular(16)),
+        child: const Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.info_outline, color: AppColors.accent),
+            SizedBox(width: 10),
+            Expanded(child: Text('Checkout akan membuat transaksi shopping berstatus pending. Integrasi payment gateway bisa dilanjutkan oleh tim payment nanti.', style: TextStyle(fontSize: 12, color: AppColors.textMedium, height: 1.45))),
+          ],
+        ),
+      );
 
-  Widget _buildDeskripsi() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('Deskripsi Produk', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textDark)),
-          const SizedBox(height: 10),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.divider),
-            ),
-            child: Text(
-              widget.deskripsi,
-              style: const TextStyle(fontSize: 13, color: AppColors.textMedium, height: 1.6),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBottomBar(BuildContext context) {
-    final totalHarga = widget.harga.toInt() * _jumlah;
-
+  Widget _buildBottom(ShopProduct product) {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 16, offset: const Offset(0, -4))],
-      ),
-      child: Row(
-        children: [
-          // Total harga
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('Total', style: TextStyle(fontSize: 12, color: AppColors.textLight)),
-              Text(
-                'Rp ${_formatHarga(totalHarga)}',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.primary),
-              ),
-            ],
-          ),
-          const SizedBox(width: 16),
-          // Tombol keranjang
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('${widget.nama} ditambahkan ke keranjang 🛒'),
-                    backgroundColor: AppColors.primary,
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                );
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 20),
-                    SizedBox(width: 8),
-                    Text(
-                      'Tambah ke Keranjang',
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
+      decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 16, offset: const Offset(0, -4))]),
+      child: ElevatedButton(
+        onPressed: product.id != 0 && product.stok > 0 && !_saving ? _addToCart : null,
+        child: Text(product.id == 0 ? 'Buka tab Shop untuk checkout' : (_saving ? 'Menambahkan...' : 'Tambah ke Keranjang')),
       ),
     );
   }

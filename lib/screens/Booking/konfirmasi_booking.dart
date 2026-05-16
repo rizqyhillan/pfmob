@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../theme/tema_app.dart';
-import 'data_pasien.dart';
 
 class KonfirmasiBookingScreen extends StatefulWidget {
   final String namaLayanan;
@@ -272,10 +271,7 @@ class _KonfirmasiBookingScreenState extends State<KonfirmasiBookingScreen> {
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 16, offset: const Offset(0, -4))],
       ),
       child: GestureDetector(
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const DataPasienScreen()),
-        ),
+        onTap: () => Navigator.pop(context),
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 16),
