@@ -12,6 +12,7 @@ class UserProfile {
   final String email;
   final String noHp;
   final String alamat;
+  final String foto;
 
   UserProfile({
     required this.id,
@@ -19,15 +20,17 @@ class UserProfile {
     required this.email,
     required this.noHp,
     required this.alamat,
+    required this.foto,
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(
-      id: json['id'] ?? 0,
-      nama: json['nama'] ?? '',
-      email: json['email'] ?? '',
-      noHp: json['no_hp'] ?? '',
-      alamat: json['alamat'] ?? '',
+      id: int.tryParse(json['id'].toString()) ?? 0,
+      nama: (json['nama'] ?? json['name'] ?? '').toString(),
+      email: (json['email'] ?? '').toString(),
+      noHp: (json['no_hp'] ?? '').toString(),
+      alamat: (json['alamat'] ?? '').toString(),
+      foto: (json['foto'] ?? '').toString(),
     );
   }
 }
@@ -468,32 +471,6 @@ static const String baseUrl = ApiConfig.baseUrl;
     throw Exception('Sesi habis, silakan login kembali.');
   } else {
     throw Exception('Gagal memuat profil');
-  }
-}
-
-static Future<UserProfile> updateProfile({
-  required String nama,
-  required String noHp,
-  required String alamat,
-}) async {
-  final response = await http.put(
-    Uri.parse('$baseUrl/profile'),
-    headers: _headers,
-    body: jsonEncode({
-      'nama': nama,
-      'no_hp': noHp,
-      'alamat': alamat,
-    }),
-  );
-
-  if (response.statusCode == 200) {
-    final body = jsonDecode(response.body);
-    return UserProfile.fromJson(body['data']);
-  } else if (response.statusCode == 401) {
-    throw Exception('Sesi habis, silakan login kembali.');
-  } else {
-    final body = jsonDecode(response.body);
-    throw Exception(body['message'] ?? 'Gagal memperbarui profil');
   }
 }
 
@@ -1024,44 +1001,47 @@ static Future<void> deletePet(int id) async {
     throw Exception('Gagal membuat booking penitipan');
   }
 
-  static Future<Map<String, dynamic>> updateProfile({
-  required String nama,
-  required String email,
-  String? noHp,
-  String? alamat,
-  File? fotoFile,
-    }) async {
-      final request = http.MultipartRequest(
-        'POST',
-        Uri.parse('$baseUrl/profile'),
+  static Future<UserProfile> updateProfile({
+    required String nama,
+    required String email,
+    String? noHp,
+    String? alamat,
+    File? fotoFile,
+  }) async {
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('$baseUrl/profile'),
+    );
+  
+    request.headers.addAll(_multipartHeaders);
+  
+    request.fields['nama'] = nama;
+    request.fields['email'] = email;
+  
+    _addMultipartField(request, 'no_hp', noHp);
+    _addMultipartField(request, 'alamat', alamat);
+  
+    if (fotoFile != null) {
+      request.files.add(
+        await http.MultipartFile.fromPath('foto', fotoFile.path),
       );
-
-      request.headers.addAll(_multipartHeaders);
-
-      request.fields['nama'] = nama;
-      request.fields['email'] = email;
-
-      _addMultipartField(request, 'no_hp', noHp);
-      _addMultipartField(request, 'alamat', alamat);
-
-      if (fotoFile != null) {
-        request.files.add(
-          await http.MultipartFile.fromPath('foto', fotoFile.path),
-        );
-      }
-
-      final streamed = await request.send();
-      final response = await http.Response.fromStream(streamed);
-
-      final body = response.body.isEmpty
-          ? <String, dynamic>{}
-          : Map<String, dynamic>.from(jsonDecode(response.body));
-
-      if (response.statusCode == 200) {
-        return Map<String, dynamic>.from(body['data'] ?? {});
-        }
-
-        throw Exception(body['message'] ?? 'Gagal memperbarui profil');
-      }
-
-}   
+    }
+  
+    final streamed = await request.send();
+    final response = await http.Response.fromStream(streamed);
+  
+    final body = response.body.isEmpty
+        ? <String, dynamic>{}
+        : Map<String, dynamic>.from(jsonDecode(response.body));
+  
+    if (response.statusCode == 200) {
+      return UserProfile.fromJson(Map<String, dynamic>.from(body['data'] ?? {}));
+    }
+  
+    if (response.statusCode == 401) {
+      throw Exception('Sesi habis, silakan login kembali.');
+    }
+  
+    throw Exception(body['message'] ?? 'Gagal memperbarui profil');
+  }
+  }   

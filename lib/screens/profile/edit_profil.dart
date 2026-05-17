@@ -17,7 +17,7 @@ class EditProfilPage extends StatefulWidget {
 class _EditProfilPageState extends State<EditProfilPage> {
   final _formKey = GlobalKey<FormState>();
 
-    File? _selectedImage;
+  File? _fotoFile;
   final _namaController = TextEditingController();
   final _emailController = TextEditingController();
   final _noHpController = TextEditingController();
@@ -34,6 +34,8 @@ class _EditProfilPageState extends State<EditProfilPage> {
     final auth = AuthService();
     _namaController.text = auth.userName;
     _emailController.text = auth.userEmail;
+
+    _loadProfile();
   }
 
   @override
@@ -82,18 +84,26 @@ class _EditProfilPageState extends State<EditProfilPage> {
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final nama = _namaController.text.trim();
+    final email = _emailController.text.trim();
+    final noHp = _noHpController.text.trim();
+    final alamat = _alamatController.text.trim();
+
     setState(() => _isSaving = true);
 
     try {
       final profile = await ApiService.updateProfile(
-        nama: _namaController.text.trim(),
-        noHp: _noHpController.text.trim(),
-        alamat: _alamatController.text.trim(),
+        nama: nama,
+        email: email,
+        noHp: noHp.isEmpty ? null : noHp,
+        alamat: alamat.isEmpty ? null : alamat,
+        fotoFile: _fotoFile,
       );
 
-      await AuthService().updateLocalUser(
+      await AuthService().updateLocalProfile(
         name: profile.nama,
         email: profile.email,
+        photo: profile.foto,
       );
 
       if (!mounted) return;
@@ -202,23 +212,67 @@ class _EditProfilPageState extends State<EditProfilPage> {
                 key: _formKey,
                 child: Column(
                   children: [
-                    Container(
-                      width: 96,
-                      height: 96,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.primaryLight,
-                        border: Border.all(color: Colors.white, width: 4),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withOpacity(0.20),
-                            blurRadius: 16,
-                            offset: const Offset(0, 6),
+                    GestureDetector(
+                      onTap: _isSaving ? null : _pilihFoto,
+                      child: Stack(
+                        children: [
+                          Container(
+                            width: 96,
+                            height: 96,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppColors.primaryLight,
+                              border: Border.all(color: Colors.white, width: 4),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primary.withOpacity(0.20),
+                                  blurRadius: 16,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ],
+                            ),
+                            child: ClipOval(
+                              child: _fotoFile != null
+                                  ? Image.file(
+                                      _fotoFile!,
+                                      fit: BoxFit.cover,
+                                    )
+                                  : AuthService().userPhoto.isNotEmpty
+                                      ? Image.network(
+                                          AuthService().userPhoto,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) => const Icon(
+                                            Icons.person_rounded,
+                                            color: AppColors.primary,
+                                            size: 44,
+                                          ),
+                                        )
+                                      : const Icon(
+                                          Icons.person_rounded,
+                                          color: AppColors.primary,
+                                          size: 44,
+                                        ),
+                            ),
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: Container(
+                              width: 30,
+                              height: 30,
+                              decoration: BoxDecoration(
+                                color: AppColors.primary,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 2),
+                              ),
+                              child: const Icon(
+                                Icons.camera_alt,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                            ),
                           ),
                         ],
-                      ),
-                      child: const Center(
-                        child: Text('🐱', style: TextStyle(fontSize: 44)),
                       ),
                     ),
                     const SizedBox(height: 24),

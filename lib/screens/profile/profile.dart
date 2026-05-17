@@ -157,7 +157,16 @@ class ProfileScreen extends StatelessWidget {
                                   MaterialPageRoute(
                                     builder: (_) => const EditProfilPage(),
                                   ),
-                                );
+                                ).then((updated) {
+                                  if (updated == true) {
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => ProfileScreen(showBackButton: showBackButton),
+                                      ),
+                                    );
+                                  }
+                                });
                               },
                             ),
                           ],
@@ -187,9 +196,23 @@ class ProfileScreen extends StatelessWidget {
                               ),
                             ],
                           ),
-                          child: const Center(
-                            child: Text('🐱', style: TextStyle(fontSize: 44)),
-                          ),
+                            child: ClipOval(
+                              child: AuthService().userPhoto.isNotEmpty
+                                  ? Image.network(
+                                      AuthService().userPhoto,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => const Icon(
+                                        Icons.person_rounded,
+                                        color: AppColors.primary,
+                                        size: 44,
+                                      ),
+                                    )
+                                  : const Icon(
+                                      Icons.person_rounded,
+                                      color: AppColors.primary,
+                                      size: 44,
+                                    ),
+                            ),
                         ),
                       ],
                     ),
@@ -256,9 +279,21 @@ class ProfileScreen extends StatelessWidget {
                       bgColor: AppColors.categoryBg1,
                       iconColor: AppColors.primary,
                       onTap: (ctx) {
-                        Navigator.push(ctx, MaterialPageRoute(
-                          builder: (_) => const EditProfilPage(),
-                        ));
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const EditProfilPage(),
+                          ),
+                        ).then((updated) {
+                          if (updated == true) {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ProfileScreen(showBackButton: showBackButton),
+                              ),
+                            );
+                          }
+                        });
                       },
                     ),
 

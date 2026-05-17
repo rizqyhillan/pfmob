@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/servis_auth.dart';
 import '../../theme/tema_app.dart';
 import 'daftar_dokter.dart';
 import 'paket_grooming.dart';
@@ -93,9 +94,30 @@ class BookingContent extends StatelessWidget {
         const SizedBox(width: 12),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text('OWNER', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.textLight, letterSpacing: 1.2)),
-            Text('Kayla Nadine', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+          children: [
+            Text(
+              AuthService().isLoggedIn ? 'PET OWNER' : 'WELCOME',
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textLight,
+                letterSpacing: 1.2,
+              ),
+            ),
+            Text(
+              AuthService().isLoggedIn
+                  ? (AuthService().userName.trim().isEmpty
+                      ? 'User PawPet'
+                      : AuthService().userName.trim())
+                  : 'PawPet',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textDark,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ],
         ),
       ],
