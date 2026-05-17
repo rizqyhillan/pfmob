@@ -60,11 +60,11 @@ class Pet {
   static String _resolveStorageUrl(dynamic raw) {
   final value = raw?.toString() ?? '';
     if (value.isEmpty) return '';
-  
+
     if (value.startsWith('http://') || value.startsWith('https://')) {
       return value;
     }
-  
+
     return '${ApiConfig.baseUrl.replaceFirst('/api', '')}/storage/$value';
   }
 
@@ -1024,4 +1024,44 @@ static Future<void> deletePet(int id) async {
     throw Exception('Gagal membuat booking penitipan');
   }
 
-}
+  static Future<Map<String, dynamic>> updateProfile({
+  required String nama,
+  required String email,
+  String? noHp,
+  String? alamat,
+  File? fotoFile,
+    }) async {
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$baseUrl/profile'),
+      );
+
+      request.headers.addAll(_multipartHeaders);
+
+      request.fields['nama'] = nama;
+      request.fields['email'] = email;
+
+      _addMultipartField(request, 'no_hp', noHp);
+      _addMultipartField(request, 'alamat', alamat);
+
+      if (fotoFile != null) {
+        request.files.add(
+          await http.MultipartFile.fromPath('foto', fotoFile.path),
+        );
+      }
+
+      final streamed = await request.send();
+      final response = await http.Response.fromStream(streamed);
+
+      final body = response.body.isEmpty
+          ? <String, dynamic>{}
+          : Map<String, dynamic>.from(jsonDecode(response.body));
+
+      if (response.statusCode == 200) {
+        return Map<String, dynamic>.from(body['data'] ?? {});
+        }
+
+        throw Exception(body['message'] ?? 'Gagal memperbarui profil');
+      }
+
+}   

@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../services/api_service.dart';
 import '../../services/servis_auth.dart';
@@ -14,10 +17,12 @@ class EditProfilPage extends StatefulWidget {
 class _EditProfilPageState extends State<EditProfilPage> {
   final _formKey = GlobalKey<FormState>();
 
+    File? _selectedImage;
   final _namaController = TextEditingController();
   final _emailController = TextEditingController();
   final _noHpController = TextEditingController();
   final _alamatController = TextEditingController();
+  final ImagePicker _picker = ImagePicker();
 
   bool _isLoading = true;
   bool _isSaving = false;
@@ -25,7 +30,10 @@ class _EditProfilPageState extends State<EditProfilPage> {
   @override
   void initState() {
     super.initState();
-    _loadProfile();
+
+    final auth = AuthService();
+    _namaController.text = auth.userName;
+    _emailController.text = auth.userEmail;
   }
 
   @override
@@ -55,6 +63,20 @@ class _EditProfilPageState extends State<EditProfilPage> {
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  Future<void> _pilihFoto() async {
+    final picked = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 75,
+      maxWidth: 1200,
+    );
+  
+    if (picked == null) return;
+  
+    setState(() {
+      _fotoFile = File(picked.path);
+    });
   }
 
   Future<void> _saveProfile() async {

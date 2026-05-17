@@ -18,11 +18,13 @@ class AuthService {
   bool _isLoggedIn = false;
   String _userName = '';
   String _userEmail = '';
+  String _userPhoto = '';
   String _token = '';
 
   bool get isLoggedIn => _isLoggedIn;
   String get userName => _userName;
   String get userEmail => _userEmail;
+  String get userPhoto => _userPhoto;
   String get token => _token;
 
   Future<bool> login({
@@ -70,6 +72,7 @@ class AuthService {
     final savedToken = await storage.read(key: 'token');
     final savedName = await storage.read(key: 'name');
     final savedEmail = await storage.read(key: 'email');
+    _userPhoto = await storage.read(key: 'photo') ?? '';
 
     if (savedToken != null && savedToken.isNotEmpty) {
       _token = savedToken;
@@ -102,6 +105,8 @@ class AuthService {
     ApiService.clearToken();
 
     await storage.deleteAll();
+    await storage.delete(key: 'photo');
+    _userPhoto = '';
   }
 
   Future<bool> register({
@@ -161,6 +166,7 @@ class AuthService {
     _token = data['token'] ?? '';
     _userName = data['user']?['nama'] ?? '';
     _userEmail = data['user']?['email'] ?? '';
+    _userPhoto = data['user']?['foto'] ?? '';
     _isLoggedIn = _token.isNotEmpty;
 
     if (_token.isNotEmpty) {
@@ -169,6 +175,7 @@ class AuthService {
       await storage.write(key: 'token', value: _token);
       await storage.write(key: 'name', value: _userName);
       await storage.write(key: 'email', value: _userEmail);
+      await storage.write(key: 'photo', value: _userPhoto);
     }
   }
 }
