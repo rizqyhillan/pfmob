@@ -3,6 +3,7 @@ import '../../services/api_service.dart';
 import '../../services/servis_auth.dart';
 import '../../theme/tema_app.dart';
 import '../login.dart';
+import 'reschedule.dart';
 
 class ScheduleContent extends StatefulWidget {
   const ScheduleContent({super.key});
@@ -120,6 +121,12 @@ class _ScheduleContentState extends State<ScheduleContent> {
         statusColor: _statusColor(item.status),
         statusLabel: _statusLabel(item.status),
         onCancel: item.canCancel ? () => _cancelBooking(item) : null,
+        onReschedule: item.canReschedule
+            ? () {
+                Navigator.of(context).maybePop();
+                _rescheduleBooking(item);
+              }
+            : null,
         cancelling: _cancellingId == item.id,
       ),
     );
@@ -166,6 +173,19 @@ class _ScheduleContentState extends State<ScheduleContent> {
       );
     } finally {
       if (mounted) setState(() => _cancellingId = null);
+    }
+  }
+
+  Future<void> _rescheduleBooking(AppScheduleItem item) async {
+    if (!item.canReschedule) return;
+
+    final changed = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => RescheduleScreen(item: item)),
+    );
+
+    if (changed == true) {
+      await _loadSchedules();
     }
   }
 
@@ -548,22 +568,41 @@ class _ScheduleContentState extends State<ScheduleContent> {
               const Icon(Icons.chevron_right_rounded, color: AppColors.textLight),
             ],
           ),
-          if (item.canCancel) ...[
+          if (item.canCancel || item.canReschedule) ...[
             const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: isCancelling ? null : () => _cancelBooking(item),
-                icon: isCancelling
-                    ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Icon(Icons.cancel_outlined, size: 18),
-                label: Text(isCancelling ? 'Membatalkan...' : 'Batalkan Booking'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFFE57373),
-                  side: const BorderSide(color: Color(0xFFE57373)),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                ),
-              ),
+            Row(
+              children: [
+                if (item.canReschedule) ...[
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _rescheduleBooking(item),
+                      icon: const Icon(Icons.edit_calendar_rounded, size: 18),
+                      label: const Text('Ubah Jadwal'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                    ),
+                  ),
+                  if (item.canCancel) const SizedBox(width: 10),
+                ],
+                if (item.canCancel)
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: isCancelling ? null : () => _cancelBooking(item),
+                      icon: isCancelling
+                          ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                          : const Icon(Icons.cancel_outlined, size: 18),
+                      label: Text(isCancelling ? 'Batal...' : 'Batalkan'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFFE57373),
+                        side: const BorderSide(color: Color(0xFFE57373)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ],
         ],
@@ -578,6 +617,7 @@ class _ScheduleDetailSheet extends StatelessWidget {
   final Color statusColor;
   final String statusLabel;
   final VoidCallback? onCancel;
+  final VoidCallback? onReschedule;
   final bool cancelling;
 
   const _ScheduleDetailSheet({
@@ -585,6 +625,7 @@ class _ScheduleDetailSheet extends StatelessWidget {
     required this.statusColor,
     required this.statusLabel,
     required this.onCancel,
+    required this.onReschedule,
     required this.cancelling,
   });
 
@@ -664,8 +705,24 @@ class _ScheduleDetailSheet extends StatelessWidget {
                 decoration: BoxDecoration(color: AppColors.accentLight, borderRadius: BorderRadius.circular(16)),
                 child: Text(item.paymentNote, style: const TextStyle(fontSize: 12, color: AppColors.textMedium, height: 1.5)),
               ),
-              if (onCancel != null) ...[
+              if (onReschedule != null) ...[
                 const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: onReschedule,
+                    icon: const Icon(Icons.edit_calendar_rounded, size: 18),
+                    label: const Text('Ubah Jadwal'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                  ),
+                ),
+              ],
+              if (onCancel != null) ...[
+                const SizedBox(height: 10),
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(

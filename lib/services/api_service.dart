@@ -381,6 +381,7 @@ class AppScheduleItem {
   }
 
   bool get canCancel => status.toLowerCase() == 'pending';
+  bool get canReschedule => status.toLowerCase() == 'pending';
 
   String get serviceTypeLabel {
     switch (type) {
@@ -1028,6 +1029,48 @@ static Future<void> deletePet(int id) async {
     throw Exception('Gagal membatalkan booking grooming');
   }
 
+  static Future<Map<String, dynamic>> rescheduleDoctorBooking({
+    required int id,
+    required String tanggalBooking,
+    required String jamBooking,
+    int? idJadwal,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/doctor-bookings/$id/reschedule'),
+      headers: _headers,
+      body: jsonEncode({
+        'tanggal_booking': tanggalBooking,
+        'jam_booking': jamBooking,
+        if (idJadwal != null) 'id_jadwal': idJadwal,
+      }),
+    );
+    if (response.statusCode == 200) {
+      return Map<String, dynamic>.from(_decodeMap(response)['data']);
+    }
+    _throwApiError(response, 'Gagal mengubah jadwal dokter');
+    throw Exception('Gagal mengubah jadwal dokter');
+  }
+
+  static Future<Map<String, dynamic>> rescheduleGroomingBooking({
+    required int id,
+    required String tanggalGrooming,
+    required String waktuGrooming,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/grooming-bookings/$id/reschedule'),
+      headers: _headers,
+      body: jsonEncode({
+        'tanggal_grooming': tanggalGrooming,
+        'waktu_grooming': waktuGrooming,
+      }),
+    );
+    if (response.statusCode == 200) {
+      return Map<String, dynamic>.from(_decodeMap(response)['data']);
+    }
+    _throwApiError(response, 'Gagal mengubah jadwal grooming');
+    throw Exception('Gagal mengubah jadwal grooming');
+  }
+
   // ════════════════════════════════════════════════════════════
   // BOARDING / PENITIPAN
   // ════════════════════════════════════════════════════════════
@@ -1108,6 +1151,26 @@ static Future<void> deletePet(int id) async {
     }
     _throwApiError(response, 'Gagal membatalkan booking penitipan');
     throw Exception('Gagal membatalkan booking penitipan');
+  }
+
+  static Future<Map<String, dynamic>> rescheduleBoarding({
+    required int id,
+    required String tanggalMasuk,
+    required String tanggalRencanaKeluar,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/boardings/$id/reschedule'),
+      headers: _headers,
+      body: jsonEncode({
+        'tanggal_masuk': tanggalMasuk,
+        'tanggal_rencana_keluar': tanggalRencanaKeluar,
+      }),
+    );
+    if (response.statusCode == 200) {
+      return Map<String, dynamic>.from(_decodeMap(response)['data']);
+    }
+    _throwApiError(response, 'Gagal mengubah jadwal penitipan');
+    throw Exception('Gagal mengubah jadwal penitipan');
   }
 
   static Future<UserProfile> updateProfile({
