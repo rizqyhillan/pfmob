@@ -68,12 +68,36 @@ class _ShopReportPageState extends State<ShopReportPage> {
   }
 
   String _capitalize(String value) {
-  if (value.trim().isEmpty || value == '-') {
-    return '-';
+    final cleaned = value.trim();
+
+    if (cleaned.isEmpty || cleaned == '-') {
+      return '-';
+    }
+
+    return cleaned[0].toUpperCase() + cleaned.substring(1);
   }
 
-  return value[0].toUpperCase() + value.substring(1);
-}
+  bool _isPending(Transaction trx) {
+    return trx.status.toLowerCase() == 'pending';
+  }
+
+  String _paymentLabel(Transaction trx) {
+    final metode = _capitalize(trx.metodeBayar);
+
+    if (_isPending(trx)) {
+      return '$metode • Belum dibayar';
+    }
+
+    return metode;
+  }
+
+  String _totalLabel(Transaction trx) {
+    if (_isPending(trx)) {
+      return 'Total Tagihan';
+    }
+
+    return 'Total Pembayaran';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -316,7 +340,7 @@ class _ShopReportPageState extends State<ShopReportPage> {
               Expanded(
                 child: _buildInfo(
                   Icons.payment_outlined, 'Pembayaran',
-                  _capitalize(trx.metodeBayar)
+                  _paymentLabel(trx)
                 ), 
               ),
             ],
@@ -338,8 +362,8 @@ class _ShopReportPageState extends State<ShopReportPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Total Pembayaran',
+                Text(
+                  _totalLabel(trx),
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -396,21 +420,31 @@ class _ShopReportPageState extends State<ShopReportPage> {
     Color text;
     String label;
 
-    switch (status) {
+    switch (status.toLowerCase()) {
       case 'lunas':
+      case 'paid':
+      case 'selesai':
         bg = const Color(0xFFE8F5E9);
         text = const Color(0xFF388E3C);
         label = 'Lunas';
         break;
       case 'pending':
+      case 'menunggu':
         bg = const Color(0xFFFFF8E1);
         text = const Color(0xFFF9A825);
         label = 'Pending';
         break;
-      default:
+      case 'batal':
+      case 'dibatalkan':
+      case 'cancelled':
         bg = const Color(0xFFFFEBEE);
         text = const Color(0xFFD32F2F);
         label = 'Batal';
+        break;
+      default:
+        bg = const Color(0xFFE3F2FD);
+        text = const Color(0xFF1976D2);
+        label = _capitalize(status);
     }
 
     return Container(

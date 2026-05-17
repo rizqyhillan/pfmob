@@ -220,6 +220,20 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
     );
   }
 
+  bool _isPending(TransactionDetail trx) {
+    return trx.status.toLowerCase() == 'pending';
+  }
+
+  String _paymentTitle(TransactionDetail trx) {
+    return _isPending(trx) ? 'Ringkasan Pesanan' : 'Struk Pembayaran';
+  }
+
+  String _paymentAmountLabel(TransactionDetail trx) {
+    return _isPending(trx)
+        ? 'Tagihan (${_capitalize(trx.metodeBayar)})'
+        : 'Bayar (${_capitalize(trx.metodeBayar)})';
+  }
+
   Widget _buildStruk(TransactionDetail trx) {
     final bulan = ['','Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
     final tanggalStr = trx.tanggal != null
@@ -275,8 +289,8 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
                         ),
                       ),
                       const SizedBox(height: 2),
-                      const Text(
-                        'Struk Pembayaran',
+                      Text(
+                        _paymentTitle(trx),
                         style: TextStyle(
                           color: Colors.white70,
                           fontSize: 13,
@@ -318,6 +332,41 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
                           _buildStatusBadge(trx.status),
                         ],
                       ),
+
+                      if (_isPending(trx)) ...[
+                        const SizedBox(height: 14),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFF8E1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFFFFE082)),
+                          ),
+                          child: const Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.info_outline_rounded,
+                                color: Color(0xFFF9A825),
+                                size: 18,
+                              ),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Pesanan ini masih menunggu pembayaran. Payment gateway belum aktif dan akan diproses oleh tim payment.',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textMedium,
+                                    height: 1.4,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
 
                       const SizedBox(height: 16),
                       _buildDashedDivider(),
@@ -453,11 +502,13 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
 
                       const SizedBox(height: 10),
                       _buildSummaryRow(
-                          'Bayar (${_capitalize(trx.metodeBayar)})',
-                          trx.jumlahBayar),
+                        _paymentAmountLabel(trx),
+                        _isPending(trx) ? trx.total : trx.jumlahBayar,
+                      ),
                       const SizedBox(height: 6),
 
                       // Kembalian box
+                      if (!_isPending(trx))
                       Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 14, vertical: 10),
@@ -513,10 +564,12 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
                       _buildDashedDivider(),
                       const SizedBox(height: 14),
 
-                      const Text(
-                        'Terima kasih telah berkunjung ke PawPet Clinic! 🐾',
+                      Text(
+                        _isPending(trx)
+                            ? 'Pesanan kamu sudah dibuat dan menunggu proses pembayaran. 🐾'
+                            : 'Terima kasih telah berkunjung ke PawPet Clinic! 🐾',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.textLight,
                           fontStyle: FontStyle.italic,
@@ -586,29 +639,48 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
     Color bg;
     Color text;
     String label;
-    switch (status) {
+
+    switch (status.toLowerCase()) {
       case 'lunas':
+      case 'paid':
+      case 'selesai':
         bg = const Color(0xFFE8F5E9);
         text = const Color(0xFF388E3C);
         label = 'Lunas';
         break;
       case 'pending':
+      case 'menunggu':
         bg = const Color(0xFFFFF8E1);
         text = const Color(0xFFF9A825);
         label = 'Pending';
         break;
-      default:
+      case 'batal':
+      case 'dibatalkan':
+      case 'cancelled':
         bg = const Color(0xFFFFEBEE);
         text = const Color(0xFFD32F2F);
         label = 'Batal';
+        break;
+      default:
+        bg = const Color(0xFFE3F2FD);
+        text = const Color(0xFF1976D2);
+        label = _capitalize(status);
     }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       decoration: BoxDecoration(
-          color: bg, borderRadius: BorderRadius.circular(20)),
-      child: Text(label,
-          style: TextStyle(
-              fontSize: 12, fontWeight: FontWeight.w700, color: text)),
+        color: bg,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: text,
+        ),
+      ),
     );
   }
 

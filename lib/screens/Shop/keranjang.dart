@@ -3,6 +3,7 @@ import '../../services/api_service.dart';
 import '../../services/servis_auth.dart';
 import '../../theme/tema_app.dart';
 import '../login.dart';
+import 'checkout.dart';
 
 class KeranjangScreen extends StatefulWidget {
   const KeranjangScreen({super.key});
@@ -14,7 +15,6 @@ class KeranjangScreen extends StatefulWidget {
 class _KeranjangScreenState extends State<KeranjangScreen> {
   ShopCart? _cart;
   bool _loading = true;
-  bool _checkoutLoading = false;
   String? _error;
 
   @override
@@ -79,25 +79,19 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
   }
 
   Future<void> _checkout() async {
-    if (_checkoutLoading || (_cart?.items.isEmpty ?? true)) return;
-    setState(() => _checkoutLoading = true);
-    try {
-      final trx = await ApiService.checkoutCart(metodeBayar: 'ewallet');
-      if (!mounted) return;
-      await showDialog<void>(
-        context: context,
-        builder: (_) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-          title: const Text('Checkout berhasil'),
-          content: Text('Kode: ${trx['kode_transaksi'] ?? '-'}\nStatus: ${trx['status'] ?? 'pending'}\nPayment gateway belum diaktifkan.'),
-          actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK'))],
-        ),
-      );
-      if (mounted) Navigator.pop(context);
-    } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))));
-    } finally {
-      if (mounted) setState(() => _checkoutLoading = false);
+    final cart = _cart;
+
+    if (cart == null || cart.items.isEmpty) return;
+
+    final success = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CheckoutScreen(cart: cart),
+      ),
+    );
+
+    if (success == true) {
+      await _loadCart();
     }
   }
 
@@ -215,7 +209,13 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            SizedBox(width: double.infinity, child: ElevatedButton(onPressed: _checkoutLoading ? null : _checkout, child: Text(_checkoutLoading ? 'Memproses...' : 'Checkout'))),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _checkout,
+                child: const Text('Lanjut Checkout'),
+              ),
+            ),
           ],
         ),
       );
