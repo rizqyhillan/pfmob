@@ -355,6 +355,10 @@ class AppScheduleItem {
   final String time;
   final String status;
   final String emoji;
+  final String detailDateLabel;
+  final String priceLabel;
+  final String paymentNote;
+  final Map<String, dynamic> raw;
 
   AppScheduleItem({
     required this.id,
@@ -365,11 +369,30 @@ class AppScheduleItem {
     required this.time,
     required this.status,
     required this.emoji,
+    required this.detailDateLabel,
+    required this.priceLabel,
+    required this.paymentNote,
+    required this.raw,
   });
 
   bool get isHistory {
     final s = status.toLowerCase();
     return s == 'selesai' || s == 'batal' || s == 'dibatalkan' || s == 'cancelled';
+  }
+
+  bool get canCancel => status.toLowerCase() == 'pending';
+
+  String get serviceTypeLabel {
+    switch (type) {
+      case 'doctor':
+        return 'Dokter';
+      case 'grooming':
+        return 'Grooming';
+      case 'boarding':
+        return 'Penitipan';
+      default:
+        return 'Booking';
+    }
   }
 
   factory AppScheduleItem.fromDoctorJson(Map<String, dynamic> json) {
@@ -386,6 +409,10 @@ class AppScheduleItem {
       time: _shortTime(json['jam_booking']?.toString()),
       status: json['status']?.toString() ?? 'pending',
       emoji: '🩺',
+      detailDateLabel: 'Tanggal booking',
+      priceLabel: _formatCurrency(json['estimasi_biaya'] ?? json['total_biaya']),
+      paymentNote: json['payment_note']?.toString() ?? 'Pembayaran dilakukan di lokasi setelah layanan selesai.',
+      raw: json,
     );
   }
 
@@ -403,6 +430,10 @@ class AppScheduleItem {
       time: 'Check-in',
       status: json['status']?.toString() ?? 'pending',
       emoji: '🏠',
+      detailDateLabel: 'Check-in',
+      priceLabel: _formatCurrency(json['estimasi_biaya'] ?? json['total_biaya']),
+      paymentNote: json['payment_note']?.toString() ?? 'Pembayaran dilakukan di lokasi saat check-in atau setelah penitipan selesai.',
+      raw: json,
     );
   }
 
@@ -420,6 +451,10 @@ class AppScheduleItem {
       time: _shortTime(json['waktu_grooming']?.toString()),
       status: json['status']?.toString() ?? 'pending',
       emoji: '✂️',
+      detailDateLabel: 'Tanggal grooming',
+      priceLabel: _formatCurrency(json['estimasi_biaya'] ?? json['total_biaya']),
+      paymentNote: json['payment_note']?.toString() ?? 'Pembayaran dilakukan di lokasi setelah layanan selesai.',
+      raw: json,
     );
   }
 
@@ -427,6 +462,16 @@ class AppScheduleItem {
     if (raw == null || raw.isEmpty) return '-';
     if (raw.length >= 5) return raw.substring(0, 5);
     return raw;
+  }
+
+  static String _formatCurrency(dynamic value) {
+    final amount = double.tryParse((value ?? 0).toString()) ?? 0;
+    final rounded = amount.round().toString();
+    final formatted = rounded.replaceAllMapped(
+      RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+      (m) => '${m[1]}.',
+    );
+    return 'Rp $formatted';
   }
 }
 
@@ -959,6 +1004,30 @@ static Future<void> deletePet(int id) async {
     throw Exception('Gagal membuat booking dokter');
   }
 
+  static Future<Map<String, dynamic>> cancelDoctorBooking(int id) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/doctor-bookings/$id/cancel'),
+      headers: _headers,
+    );
+    if (response.statusCode == 200) {
+      return Map<String, dynamic>.from(_decodeMap(response)['data']);
+    }
+    _throwApiError(response, 'Gagal membatalkan booking dokter');
+    throw Exception('Gagal membatalkan booking dokter');
+  }
+
+  static Future<Map<String, dynamic>> cancelGroomingBooking(int id) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/grooming-bookings/$id/cancel'),
+      headers: _headers,
+    );
+    if (response.statusCode == 200) {
+      return Map<String, dynamic>.from(_decodeMap(response)['data']);
+    }
+    _throwApiError(response, 'Gagal membatalkan booking grooming');
+    throw Exception('Gagal membatalkan booking grooming');
+  }
+
   // ════════════════════════════════════════════════════════════
   // BOARDING / PENITIPAN
   // ════════════════════════════════════════════════════════════
@@ -1018,7 +1087,7 @@ static Future<void> deletePet(int id) async {
         'id_kamar': idKamar,
         'tanggal_masuk': tanggalMasuk,
         'tanggal_rencana_keluar': tanggalRencanaKeluar,
-        if (catatan != null) 'catatan': catatan,
+        if (catatan != null && catatan.trim().isNotEmpty) 'catatan_titip': catatan.trim(),
       }),
     );
     if (response.statusCode == 200 || response.statusCode == 201) {
@@ -1027,6 +1096,18 @@ static Future<void> deletePet(int id) async {
     }
     _throwApiError(response, 'Gagal membuat booking penitipan');
     throw Exception('Gagal membuat booking penitipan');
+  }
+
+  static Future<Map<String, dynamic>> cancelBoarding(int id) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/boardings/$id/cancel'),
+      headers: _headers,
+    );
+    if (response.statusCode == 200) {
+      return Map<String, dynamic>.from(_decodeMap(response)['data']);
+    }
+    _throwApiError(response, 'Gagal membatalkan booking penitipan');
+    throw Exception('Gagal membatalkan booking penitipan');
   }
 
   static Future<UserProfile> updateProfile({

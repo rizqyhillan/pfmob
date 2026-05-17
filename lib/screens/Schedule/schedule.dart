@@ -14,6 +14,7 @@ class ScheduleContent extends StatefulWidget {
 class _ScheduleContentState extends State<ScheduleContent> {
   int _selectedTab = 0;
   bool _loading = false;
+  int? _cancellingId;
   String? _error;
   List<AppScheduleItem> _items = [];
 
@@ -41,7 +42,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
     try {
       final results = await Future.wait([
         ApiService.getMyDoctorBookings(),
-        ApiService.getMyBoardings(),
+        ApiService.getMyGroomingBookings(),
         ApiService.getMyBoardings(),
       ]);
 
@@ -107,6 +108,65 @@ class _ScheduleContentState extends State<ScheduleContent> {
   String _dateLabel(String date) {
     if (date == '-' || date.isEmpty) return 'JADWAL';
     return date;
+  }
+
+  Future<void> _showDetail(AppScheduleItem item) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _ScheduleDetailSheet(
+        item: item,
+        statusColor: _statusColor(item.status),
+        statusLabel: _statusLabel(item.status),
+        onCancel: item.canCancel ? () => _cancelBooking(item) : null,
+        cancelling: _cancellingId == item.id,
+      ),
+    );
+  }
+
+  Future<void> _cancelBooking(AppScheduleItem item) async {
+    if (!item.canCancel || _cancellingId != null) return;
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: const Text('Batalkan Booking?'),
+        content: Text('Booking ${item.serviceTypeLabel.toLowerCase()} ini akan dibatalkan. Aksi ini tidak bisa dibatalkan dari aplikasi.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Tidak')),
+          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Ya, Batalkan')),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    setState(() => _cancellingId = item.id);
+    try {
+      if (item.type == 'doctor') {
+        await ApiService.cancelDoctorBooking(item.id);
+      } else if (item.type == 'grooming') {
+        await ApiService.cancelGroomingBooking(item.id);
+      } else if (item.type == 'boarding') {
+        await ApiService.cancelBoarding(item.id);
+      }
+
+      if (!mounted) return;
+      Navigator.of(context).maybePop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Booking ${item.serviceTypeLabel.toLowerCase()} berhasil dibatalkan.')),
+      );
+      await _loadSchedules();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+      );
+    } finally {
+      if (mounted) setState(() => _cancellingId = null);
+    }
   }
 
   @override
@@ -380,8 +440,12 @@ class _ScheduleContentState extends State<ScheduleContent> {
 
   Widget _buildScheduleCard(AppScheduleItem item) {
     final statusColor = _statusColor(item.status);
+    final isCancelling = _cancellingId == item.id;
 
-    return Container(
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: () => _showDetail(item),
+      child: Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
@@ -471,18 +535,178 @@ class _ScheduleContentState extends State<ScheduleContent> {
               const SizedBox(width: 16),
               const Icon(Icons.access_time_outlined, size: 14, color: AppColors.textLight),
               const SizedBox(width: 6),
-              Text(
-                item.time,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: AppColors.textMedium,
-                  fontWeight: FontWeight.w600,
+              Expanded(
+                child: Text(
+                  item.time,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textMedium,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
+              const Icon(Icons.chevron_right_rounded, color: AppColors.textLight),
             ],
           ),
+          if (item.canCancel) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: isCancelling ? null : () => _cancelBooking(item),
+                icon: isCancelling
+                    ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Icon(Icons.cancel_outlined, size: 18),
+                label: Text(isCancelling ? 'Membatalkan...' : 'Batalkan Booking'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFFE57373),
+                  side: const BorderSide(color: Color(0xFFE57373)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    ),
+    );
+  }
+}
+
+class _ScheduleDetailSheet extends StatelessWidget {
+  final AppScheduleItem item;
+  final Color statusColor;
+  final String statusLabel;
+  final VoidCallback? onCancel;
+  final bool cancelling;
+
+  const _ScheduleDetailSheet({
+    required this.item,
+    required this.statusColor,
+    required this.statusLabel,
+    required this.onCancel,
+    required this.cancelling,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final raw = item.raw;
+    final extraRows = <_DetailRowData>[
+      _DetailRowData(item.detailDateLabel, item.date),
+      _DetailRowData('Waktu', item.time),
+      _DetailRowData('Estimasi biaya', item.priceLabel),
+      if (item.type == 'boarding') _DetailRowData('Rencana check-out', raw['tanggal_rencana_keluar']?.toString() ?? '-'),
+      if (item.type == 'boarding') _DetailRowData('Durasi', '${raw['jumlah_hari'] ?? '-'} hari'),
+      if (item.type == 'doctor') _DetailRowData('Dokter', raw['nama_dokter']?.toString() ?? '-'),
+      if (item.type == 'doctor') _DetailRowData('Keluhan', raw['keluhan']?.toString() ?? '-'),
+      if (item.type == 'grooming') _DetailRowData('Catatan', raw['catatan_grooming']?.toString() ?? '-'),
+      if (item.type == 'boarding') _DetailRowData('Catatan', raw['catatan_titip']?.toString() ?? raw['catatan']?.toString() ?? '-'),
+    ];
+
+    return Container(
+      margin: const EdgeInsets.only(top: 80),
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(
+                child: Container(
+                  width: 44,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: AppColors.divider,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.categoryBg1),
+                    child: Center(child: Text(item.emoji, style: const TextStyle(fontSize: 28))),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(item.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.textDark)),
+                        const SizedBox(height: 4),
+                        Text(item.subtitle, style: const TextStyle(fontSize: 13, color: AppColors.textLight)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(color: statusColor.withOpacity(0.15), borderRadius: BorderRadius.circular(999)),
+                child: Text(statusLabel, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: statusColor)),
+              ),
+              const SizedBox(height: 18),
+              ...extraRows.map((row) => _detailRow(row.label, row.value)),
+              const SizedBox(height: 14),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(color: AppColors.accentLight, borderRadius: BorderRadius.circular(16)),
+                child: Text(item.paymentNote, style: const TextStyle(fontSize: 12, color: AppColors.textMedium, height: 1.5)),
+              ),
+              if (onCancel != null) ...[
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: cancelling ? null : onCancel,
+                    icon: cancelling
+                        ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Icon(Icons.cancel_outlined, size: 18),
+                    label: Text(cancelling ? 'Membatalkan...' : 'Batalkan Booking'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFFE57373),
+                      side: const BorderSide(color: Color(0xFFE57373)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _detailRow(String label, String value) {
+    final safeValue = value.trim().isEmpty ? '-' : value;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(width: 130, child: Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textLight, fontWeight: FontWeight.w700))),
+          Expanded(child: Text(safeValue, style: const TextStyle(fontSize: 13, color: AppColors.textDark, fontWeight: FontWeight.w700))),
         ],
       ),
     );
   }
+}
+
+class _DetailRowData {
+  final String label;
+  final String value;
+
+  _DetailRowData(this.label, this.value);
 }

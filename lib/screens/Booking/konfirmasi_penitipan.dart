@@ -61,10 +61,11 @@ class _KonfirmasiPenitipanScreenState extends State<KonfirmasiPenitipanScreen> {
   }
 
   Future<void> _pickDate(bool isCheckIn) async {
+    final minimumCheckOut = _checkIn.add(const Duration(days: 1));
     final picked = await showDatePicker(
       context: context,
-      initialDate: isCheckIn ? _checkIn : _checkOut,
-      firstDate: DateTime.now(),
+      initialDate: isCheckIn ? _checkIn : (_checkOut.isAfter(_checkIn) ? _checkOut : minimumCheckOut),
+      firstDate: isCheckIn ? DateTime.now() : minimumCheckOut,
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
     if (picked == null) return;
