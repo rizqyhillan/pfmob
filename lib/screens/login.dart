@@ -117,21 +117,6 @@ class _LoginScreenState extends State<LoginScreen>
       ),
       body: Stack(
         children: [
-          // Gambar paw di bawah
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Opacity(
-              opacity: 0.5,
-              child: Image.asset(
-                'assets/images/paw3.png',
-                height: 150,
-                fit: BoxFit.fitWidth,
-              ),
-            ),
-          ),
-
           // Konten utama
           SafeArea(
             child: SingleChildScrollView(
