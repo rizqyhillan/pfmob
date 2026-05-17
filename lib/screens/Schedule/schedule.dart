@@ -42,11 +42,13 @@ class _ScheduleContentState extends State<ScheduleContent> {
       final results = await Future.wait([
         ApiService.getMyDoctorBookings(),
         ApiService.getMyBoardings(),
+        ApiService.getMyBoardings(),
       ]);
 
       final merged = <AppScheduleItem>[
         ...results[0],
         ...results[1],
+        ...results[2],
       ];
 
       merged.sort((a, b) => b.date.compareTo(a.date));
@@ -192,7 +194,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
     return _buildKosong(
       emoji: '🔐',
       judul: 'Login Dulu',
-      deskripsi: 'Jadwal booking dokter dan penitipan kamu akan muncul setelah login.',
+      deskripsi: 'Jadwal booking dokter, grooming, dan penitipan kamu akan muncul setelah login.',
       actionText: 'Login',
       onAction: () {
         Navigator.push(
@@ -223,7 +225,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
         emoji: _selectedTab == 0 ? '📅' : '🗂️',
         judul: _selectedTab == 0 ? 'Belum Ada Jadwal Mendatang' : 'Belum Ada Riwayat',
         deskripsi: _selectedTab == 0
-            ? 'Booking dokter dan penitipan yang masih aktif akan muncul di sini.'
+            ? 'Booking dokter, grooming, dan penitipan yang masih aktif akan muncul di sini.'
             : 'Booking yang selesai atau batal akan muncul di sini.',
       );
     }

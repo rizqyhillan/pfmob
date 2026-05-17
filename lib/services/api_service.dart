@@ -406,6 +406,23 @@ class AppScheduleItem {
     );
   }
 
+  factory AppScheduleItem.fromGroomingJson(Map<String, dynamic> json) {
+  final petName = json['nama_hewan']?.toString() ?? '-';
+  final petType = json['jenis_hewan']?.toString() ?? '-';
+  final packageName = json['nama_paket']?.toString() ?? 'Grooming';
+
+    return AppScheduleItem(
+      id: int.tryParse(json['id'].toString()) ?? 0,
+      type: 'grooming',
+      title: packageName,
+      subtitle: '$petName • $petType',
+      date: json['tanggal_grooming']?.toString() ?? '-',
+      time: _shortTime(json['waktu_grooming']?.toString()),
+      status: json['status']?.toString() ?? 'pending',
+      emoji: '✂️',
+    );
+  }
+
   static String _shortTime(String? raw) {
     if (raw == null || raw.isEmpty) return '-';
     if (raw.length >= 5) return raw.substring(0, 5);
@@ -899,6 +916,17 @@ static Future<void> deletePet(int id) async {
   return list
       .map((e) => AppScheduleItem.fromDoctorJson(Map<String, dynamic>.from(e)))
       .toList();
+  }
+
+  static Future<List<AppScheduleItem>> getMyGroomingBookings() async {
+  final response = await http.get(
+    Uri.parse('$baseUrl/my-grooming-bookings'),
+    headers: _headers,
+    );
+    final list = _parseList(response, 'booking grooming');
+    return list
+    .map((e) => AppScheduleItem.fromGroomingJson(Map<String, dynamic>.from(e)))
+    .toList();
   }
 
   static Future<Map<String, dynamic>> bookDoctor({
