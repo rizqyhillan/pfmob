@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../theme/tema_app.dart';
-import 'konfirmasi_grooming.dart';
-import '../../services/api_service.dart';
 import 'package:intl/intl.dart';
+import '../../services/api_service.dart';
+import '../../services/servis_auth.dart';
+import '../../theme/tema_app.dart';
+import '../login.dart';
+import 'konfirmasi_grooming.dart';
 
 class PaketGroomingScreen extends StatefulWidget {
   const PaketGroomingScreen({super.key});
@@ -38,6 +40,33 @@ class _PaketGroomingScreenState extends State<PaketGroomingScreen> {
   String _formatCurrency(String amountStr) {
     double amount = double.tryParse(amountStr) ?? 0;
     return NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(amount);
+  }
+
+  void _openGroomingConfirmation({
+  required int idPaket,
+  required String paket,
+  required String harga,
+  }) {
+    if (!AuthService().isLoggedIn) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const LoginScreen(redirectToProfile: false),
+        ),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => KonfirmasiGroomingScreen(
+          idPaket: idPaket,
+          namaPaket: paket,
+          harga: harga,
+        ),
+      ),
+    );
   }
 
   @override
@@ -131,11 +160,10 @@ class _PaketGroomingScreenState extends State<PaketGroomingScreen> {
     bool isFavorit = false,
   }) {
     return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => KonfirmasiGroomingScreen(idPaket: idPaket, namaPaket: paket, harga: harga),
-        ),
+      onTap: () => _openGroomingConfirmation(
+        idPaket: idPaket,
+        paket: paket,
+        harga: harga,
       ),
       child: Container(
         padding: const EdgeInsets.all(20),

@@ -150,11 +150,25 @@ class AuthService {
   Future<void> updateLocalUser({
   required String name,
   required String email,
-}) async {
-  _userName = name;
-  _userEmail = email;
+  }) async {
+    _userName = name;
+    _userEmail = email;
 
-  await storage.write(key: 'name', value: name);
-  await storage.write(key: 'email', value: email);
-}
+    await storage.write(key: 'name', value: name);
+    await storage.write(key: 'email', value: email);
+  }
+  Future<void> saveLoginDataFromResponse(Map<String, dynamic> data) async {
+    _token = data['token'] ?? '';
+    _userName = data['user']?['nama'] ?? '';
+    _userEmail = data['user']?['email'] ?? '';
+    _isLoggedIn = _token.isNotEmpty;
+
+    if (_token.isNotEmpty) {
+      ApiService.setToken(_token);
+
+      await storage.write(key: 'token', value: _token);
+      await storage.write(key: 'name', value: _userName);
+      await storage.write(key: 'email', value: _userEmail);
+    }
+  }
 }

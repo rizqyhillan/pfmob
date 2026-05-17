@@ -1,5 +1,7 @@
-import 'package:flutter/material.dart';
+import 'dart:io';
 
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../theme/tema_app.dart';
 import '../../services/api_service.dart';
 
@@ -15,6 +17,8 @@ class _TambahHewanScreenState extends State<TambahHewanScreen> {
   String _selectedKelamin = 'Jantan';
   DateTime? _tanggalLahir;
   bool _isLoading = false;
+  File? _fotoFile;
+  final ImagePicker _picker = ImagePicker();
 
   final List<Map<String, dynamic>> _jenisHewan = [
     {'label': 'Anjing', 'icon': Icons.pets},
@@ -31,6 +35,20 @@ class _TambahHewanScreenState extends State<TambahHewanScreen> {
     _namaController.dispose();
     _rasController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pilihFoto() async {
+    final picked = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 75,
+      maxWidth: 1200,
+    );
+
+    if (picked == null) return;
+
+    setState(() {
+      _fotoFile = File(picked.path);
+    });
   }
 
   Future<void> _pilihTanggal() async {
@@ -101,17 +119,18 @@ class _TambahHewanScreenState extends State<TambahHewanScreen> {
   setState(() => _isLoading = true);
 
   try {
-    await ApiService.addPet(
-  namaHewan: nama,
-  jenis: jenis,
-  jenisKelamin: _selectedKelamin,
-  tanggalLahir: _tanggalLahir == null
-      ? null
-      : '${_tanggalLahir!.year.toString().padLeft(4, '0')}-${_tanggalLahir!.month.toString().padLeft(2, '0')}-${_tanggalLahir!.day.toString().padLeft(2, '0')}',
-  ras: ras.isEmpty ? null : ras,
-  umur: _tanggalLahir == null ? null : _hitungUmur(_tanggalLahir!),
-  catatan: null,
-);
+  await ApiService.addPet(
+    namaHewan: nama,
+    jenis: jenis,
+    jenisKelamin: _selectedKelamin,
+    tanggalLahir: _tanggalLahir == null
+        ? null
+        : '${_tanggalLahir!.year.toString().padLeft(4, '0')}-${_tanggalLahir!.month.toString().padLeft(2, '0')}-${_tanggalLahir!.day.toString().padLeft(2, '0')}',
+    ras: ras.isEmpty ? null : ras,
+    umur: _tanggalLahir == null ? null : _hitungUmur(_tanggalLahir!),
+    catatan: null,
+    fotoFile: _fotoFile,
+  );
 
     if (!mounted) return;
 
@@ -233,63 +252,73 @@ class _TambahHewanScreenState extends State<TambahHewanScreen> {
   // ── Upload foto ────────────────────────────────────────────────────────────
   Widget _buildUnggahFoto() {
     return Center(
-      child: Column(
-        children: [
-          Stack(
-            children: [
-              Container(
-                width: 110,
-                height: 110,
-                decoration: BoxDecoration(
-                  color: AppColors.categoryBg1,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: AppColors.primary.withOpacity(0.3),
-                    width: 2,
-                  ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.pets_rounded,
-                      size: 40,
-                      color: AppColors.primary.withOpacity(0.4),
-                    ),
-                  ],
-                ),
-              ),
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: Container(
-                  width: 32,
-                  height: 32,
+      child: GestureDetector(
+        onTap: _isLoading ? null : _pilihFoto,
+        child: Column(
+          children: [
+            Stack(
+              children: [
+                Container(
+                  width: 110,
+                  height: 110,
                   decoration: BoxDecoration(
-                    color: AppColors.primary,
+                    color: AppColors.categoryBg1,
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
+                    border: Border.all(
+                      color: AppColors.primary.withOpacity(0.3),
+                      width: 2,
+                    ),
                   ),
-                  child: const Icon(Icons.add, color: Colors.white, size: 18),
+                  child: ClipOval(
+                    child: _fotoFile == null
+                        ? Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.pets_rounded,
+                                size: 40,
+                                color: AppColors.primary.withOpacity(0.4),
+                              ),
+                            ],
+                          )
+                        : Image.file(
+                            _fotoFile!,
+                            fit: BoxFit.cover,
+                          ),
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          const Text(
-            'Unggah foto hewan',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textMedium,
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                    child: const Icon(Icons.camera_alt, color: Colors.white, size: 18),
+                  ),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 2),
-          const Text(
-            'Foto terbaik untuk profilnya',
-            style: TextStyle(fontSize: 12, color: AppColors.textLight),
-          ),
-        ],
+            const SizedBox(height: 10),
+            Text(
+              _fotoFile == null ? 'Unggah foto hewan' : 'Ganti foto hewan',
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textMedium,
+              ),
+            ),
+            const SizedBox(height: 2),
+            const Text(
+              'Ambil dari galeri',
+              style: TextStyle(fontSize: 12, color: AppColors.textLight),
+            ),
+          ],
+        ),
       ),
     );
   }

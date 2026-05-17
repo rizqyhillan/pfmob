@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
+import '../../services/servis_auth.dart';
 import '../../theme/tema_app.dart';
+import '../login.dart';
 import 'konfirmasi_penitipan.dart';
 
 class PaketPenitipanScreen extends StatefulWidget {
@@ -42,6 +44,27 @@ class _PaketPenitipanScreenState extends State<PaketPenitipanScreen> {
         _loading = false;
       });
     }
+  }
+
+  void _openBoardingConfirmation(BoardingRoom room) {
+    if (!room.tersedia) return;
+
+    if (!AuthService().isLoggedIn) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const LoginScreen(redirectToProfile: false),
+        ),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => KonfirmasiPenitipanScreen(room: room),
+      ),
+    );
   }
 
   @override
@@ -90,7 +113,7 @@ class _PaketPenitipanScreenState extends State<PaketPenitipanScreen> {
   Widget _message(String icon, String title, String action, VoidCallback onAction) => Center(child: Column(mainAxisSize: MainAxisSize.min, children: [Text(icon, style: const TextStyle(fontSize: 48)), const SizedBox(height: 12), Text(title, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMedium, fontWeight: FontWeight.w700)), const SizedBox(height: 12), ElevatedButton(onPressed: onAction, child: Text(action))]));
 
   Widget _roomCard(BoardingRoom room) => GestureDetector(
-        onTap: room.tersedia ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => KonfirmasiPenitipanScreen(room: room))) : null,
+        onTap: room.tersedia ? () => _openBoardingConfirmation(room) : null,
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18), border: Border.all(color: AppColors.divider)),

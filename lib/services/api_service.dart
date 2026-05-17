@@ -4,6 +4,7 @@ import '../screens/profile/medical_report.dart';
 import '../screens/profile/shop_report.dart';
 import '../screens/profile/transaction_detail.dart';
 import '../config/api_config.dart';
+import 'dart:io';
 
 class UserProfile {
   final int id;
@@ -56,6 +57,17 @@ class Pet {
     required this.foto,
   });
 
+  static String _resolveStorageUrl(dynamic raw) {
+  final value = raw?.toString() ?? '';
+    if (value.isEmpty) return '';
+  
+    if (value.startsWith('http://') || value.startsWith('https://')) {
+      return value;
+    }
+  
+    return '${ApiConfig.baseUrl.replaceFirst('/api', '')}/storage/$value';
+  }
+
   factory Pet.fromJson(Map<String, dynamic> json) {
     return Pet(
       id: json['id'] ?? 0,
@@ -67,7 +79,7 @@ class Pet {
       umur: json['umur'] ?? '-',
       berat: json['berat']?.toString() ?? '',
       catatan: json['catatan'] ?? '',
-      foto: json['foto'] ?? '',
+      foto: _resolveStorageUrl(json['foto']),
     );
   }
 }
@@ -331,6 +343,73 @@ class BoardingRoom {
   }
 }
 
+class AppScheduleItem {
+  final int id;
+  final String type;
+  final String title;
+  final String subtitle;
+  final String date;
+  final String time;
+  final String status;
+  final String emoji;
+
+  AppScheduleItem({
+    required this.id,
+    required this.type,
+    required this.title,
+    required this.subtitle,
+    required this.date,
+    required this.time,
+    required this.status,
+    required this.emoji,
+  });
+
+  bool get isHistory {
+    final s = status.toLowerCase();
+    return s == 'selesai' || s == 'batal' || s == 'dibatalkan' || s == 'cancelled';
+  }
+
+  factory AppScheduleItem.fromDoctorJson(Map<String, dynamic> json) {
+    final petName = json['nama_hewan']?.toString() ?? '-';
+    final petType = json['jenis_hewan']?.toString() ?? '-';
+    final doctorName = json['nama_dokter']?.toString() ?? '-';
+
+    return AppScheduleItem(
+      id: int.tryParse(json['id'].toString()) ?? 0,
+      type: 'doctor',
+      title: json['nama_layanan']?.toString() ?? 'Konsultasi Dokter',
+      subtitle: '$petName • $petType • drh. $doctorName',
+      date: json['tanggal_booking']?.toString() ?? '-',
+      time: _shortTime(json['jam_booking']?.toString()),
+      status: json['status']?.toString() ?? 'pending',
+      emoji: '🩺',
+    );
+  }
+
+  factory AppScheduleItem.fromBoardingJson(Map<String, dynamic> json) {
+    final petName = json['nama_hewan']?.toString() ?? '-';
+    final petType = json['jenis_hewan']?.toString() ?? '-';
+    final roomName = json['nama_kamar']?.toString() ?? '-';
+
+    return AppScheduleItem(
+      id: int.tryParse(json['id'].toString()) ?? 0,
+      type: 'boarding',
+      title: 'Penitipan $roomName',
+      subtitle: '$petName • $petType',
+      date: json['tanggal_masuk']?.toString() ?? '-',
+      time: 'Check-in',
+      status: json['status']?.toString() ?? 'pending',
+      emoji: '🏠',
+    );
+  }
+
+  static String _shortTime(String? raw) {
+    if (raw == null || raw.isEmpty) return '-';
+    if (raw.length >= 5) return raw.substring(0, 5);
+    return raw;
+  }
+}
+
 class ApiService {
 static const String baseUrl = ApiConfig.baseUrl;
 
@@ -340,10 +419,17 @@ static const String baseUrl = ApiConfig.baseUrl;
   static void clearToken() => _token = null;
 
   static Map<String, String> get _headers => {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        if (_token != null) 'Authorization': 'Bearer $_token',
-      };
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+      if (_token != null) 'Authorization': 'Bearer $_token',
+  };
+  
+  static Map<String, String> get _multipartHeaders => {
+    'Accept': 'application/json',
+    if (_token != null) 'Authorization': 'Bearer $_token',
+  };
+
+      
 
   // ─── Helper parse list response ──────────────────────────────
   static List<dynamic> _parseList(http.Response response, String endpoint) {
@@ -356,6 +442,16 @@ static const String baseUrl = ApiConfig.baseUrl;
       throw Exception('Sesi habis, silakan login kembali.');
     } else {
       throw Exception('Gagal mengambil $endpoint (${response.statusCode})');
+    }
+  }
+
+  static void _addMultipartField(
+  http.MultipartRequest request,
+  String key,
+  String? value,
+  ) {
+    if (value != null && value.trim().isNotEmpty) {
+      request.fields[key] = value.trim();
     }
   }
 
@@ -573,23 +669,33 @@ static Future<void> addPet({
   String? umur,
   String? berat,
   String? catatan,
-  String? foto,
+  File? fotoFile,
 }) async {
-  final response = await http.post(
+  final request = http.MultipartRequest(
+    'POST',
     Uri.parse('$baseUrl/my-pets'),
-    headers: _headers,
-    body: jsonEncode({
-      'nama_hewan': namaHewan,
-      'jenis': jenis,
-      'jenis_kelamin': jenisKelamin,
-      'tanggal_lahir': tanggalLahir,
-      'ras': ras,
-      'umur': umur,
-      'berat': berat,
-      'catatan': catatan,
-      'foto': foto,
-    }),
   );
+
+  request.headers.addAll(_multipartHeaders);
+
+  request.fields['nama_hewan'] = namaHewan;
+  request.fields['jenis'] = jenis;
+
+  _addMultipartField(request, 'jenis_kelamin', jenisKelamin);
+  _addMultipartField(request, 'tanggal_lahir', tanggalLahir);
+  _addMultipartField(request, 'ras', ras);
+  _addMultipartField(request, 'umur', umur);
+  _addMultipartField(request, 'berat', berat);
+  _addMultipartField(request, 'catatan', catatan);
+
+  if (fotoFile != null) {
+    request.files.add(
+      await http.MultipartFile.fromPath('foto', fotoFile.path),
+    );
+  }
+
+  final streamed = await request.send();
+  final response = await http.Response.fromStream(streamed);
 
   if (response.statusCode == 201 || response.statusCode == 200) {
     return;
@@ -609,23 +715,37 @@ static Future<void> updatePet({
   String? umur,
   String? berat,
   String? catatan,
-  String? foto,
+  File? fotoFile,
 }) async {
-  final response = await http.put(
+  final request = http.MultipartRequest(
+    'POST',
     Uri.parse('$baseUrl/my-pets/$id'),
-    headers: _headers,
-    body: jsonEncode({
-      'nama_hewan': namaHewan,
-      'jenis': jenis,
-      'jenis_kelamin': jenisKelamin,
-      'tanggal_lahir': tanggalLahir,
-      'ras': ras,
-      'umur': umur,
-      'berat': berat,
-      'catatan': catatan,
-      'foto': foto,
-    }),
   );
+
+  request.headers.addAll(_multipartHeaders);
+
+  // Laravel route update normalnya PUT/PATCH.
+  // Multipart dari mobile lebih aman dikirim POST + _method=PUT.
+  request.fields['_method'] = 'PUT';
+
+  request.fields['nama_hewan'] = namaHewan;
+  request.fields['jenis'] = jenis;
+
+  _addMultipartField(request, 'jenis_kelamin', jenisKelamin);
+  _addMultipartField(request, 'tanggal_lahir', tanggalLahir);
+  _addMultipartField(request, 'ras', ras);
+  _addMultipartField(request, 'umur', umur);
+  _addMultipartField(request, 'berat', berat);
+  _addMultipartField(request, 'catatan', catatan);
+
+  if (fotoFile != null) {
+    request.files.add(
+      await http.MultipartFile.fromPath('foto', fotoFile.path),
+    );
+  }
+
+  final streamed = await request.send();
+  final response = await http.Response.fromStream(streamed);
 
   if (response.statusCode == 200) {
     return;
@@ -792,6 +912,18 @@ static Future<void> deletePet(int id) async {
     return list.map((e) => DoctorScheduleItem.fromJson(Map<String, dynamic>.from(e))).toList();
   }
 
+  static Future<List<AppScheduleItem>> getMyDoctorBookings() async {
+  final response = await http.get(
+    Uri.parse('$baseUrl/my-doctor-bookings'),
+    headers: _headers,
+  );
+
+  final list = _parseList(response, 'booking dokter');
+  return list
+      .map((e) => AppScheduleItem.fromDoctorJson(Map<String, dynamic>.from(e)))
+      .toList();
+  }
+
   static Future<Map<String, dynamic>> bookDoctor({
     required int idHewan,
     required int idDokter,
@@ -825,6 +957,18 @@ static Future<void> deletePet(int id) async {
   // ════════════════════════════════════════════════════════════
   // BOARDING / PENITIPAN
   // ════════════════════════════════════════════════════════════
+
+  static Future<List<AppScheduleItem>> getMyBoardings() async {
+  final response = await http.get(
+    Uri.parse('$baseUrl/my-boardings'),
+    headers: _headers,
+  );
+
+  final list = _parseList(response, 'booking penitipan');
+  return list
+      .map((e) => AppScheduleItem.fromBoardingJson(Map<String, dynamic>.from(e)))
+      .toList();
+  }
 
   static Future<List<BoardingRoom>> getBoardingRooms() async {
     final response = await http.get(Uri.parse('$baseUrl/boarding/rooms'), headers: _headers);

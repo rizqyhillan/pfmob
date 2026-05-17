@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
+import '../../services/servis_auth.dart';
 import '../../theme/tema_app.dart';
+import '../login.dart';
 
 class KeranjangScreen extends StatefulWidget {
   const KeranjangScreen({super.key});
@@ -18,9 +20,22 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
   @override
   void initState() {
     super.initState();
-    _loadCart();
+  
+    if (AuthService().isLoggedIn) {
+      _loadCart();
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+  
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const LoginScreen(redirectToProfile: false),
+          ),
+        );
+      });
+    }
   }
-
   String _formatHarga(num harga) => harga.round().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.');
 
   Future<void> _loadCart() async {

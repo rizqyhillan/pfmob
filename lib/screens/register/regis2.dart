@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import '../../services/servis_auth.dart';
 
 import '../../theme/tema_app.dart';
 import '../../config/api_config.dart';
@@ -119,10 +120,8 @@ Future<void> _verify() async {
     setState(() => _isLoading = false);
 
     if (response.statusCode == 200) {
-      final token = data['token'] ?? '';
-
-      ApiService.setToken(token);
-
+      await AuthService().saveLoginDataFromResponse(data);
+    
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(

@@ -1,5 +1,7 @@
-import 'package:flutter/material.dart';
+import 'dart:io';
 
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../services/api_service.dart';
 import '../../theme/tema_app.dart';
 
@@ -44,6 +46,8 @@ class _EditHewanScreenState extends State<EditHewanScreen> {
   String _selectedJenis = 'Kucing';
   String _selectedKelamin = 'Jantan';
   bool _isLoading = false;
+  File? _fotoFile;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -73,6 +77,20 @@ class _EditHewanScreenState extends State<EditHewanScreen> {
     super.dispose();
   }
 
+  Future<void> _pilihFoto() async {
+    final picked = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 75,
+      maxWidth: 1200,
+    );
+
+    if (picked == null) return;
+
+    setState(() {
+      _fotoFile = File(picked.path);
+    });
+  }
+
   Future<void> _simpanPerubahan() async {
     final nama = _namaController.text.trim();
     final ras = _rasController.text.trim();
@@ -97,6 +115,7 @@ class _EditHewanScreenState extends State<EditHewanScreen> {
         umur: umur.isEmpty ? null : umur,
         berat: berat.isEmpty ? null : berat,
         catatan: catatan.isEmpty ? null : catatan,
+        fotoFile: _fotoFile,
       );
 
       if (!mounted) return;
@@ -249,38 +268,68 @@ class _EditHewanScreenState extends State<EditHewanScreen> {
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
         child: Column(
           children: [
-            Container(
-              width: 96,
-              height: 96,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: widget.warna,
-                border: Border.all(color: Colors.white, width: 4),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
-                    blurRadius: 12,
-                  ),
-                ],
-              ),
-              child: ClipOval(
-                child: widget.foto.isEmpty
-                    ? const Icon(
-                        Icons.pets,
-                        color: AppColors.primary,
-                        size: 42,
-                      )
-                    : Image.asset(
-                        widget.foto,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const Icon(
-                          Icons.pets,
-                          color: AppColors.primary,
-                          size: 42,
-                        ),
+          GestureDetector(
+            onTap: _isLoading ? null : _pilihFoto,
+            child: Stack(
+              children: [
+                Container(
+                  width: 96,
+                  height: 96,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: widget.warna,
+                    border: Border.all(color: Colors.white, width: 4),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 12,
                       ),
-              ),
+                    ],
+                  ),
+                  child: ClipOval(
+                    child: _fotoFile != null
+                        ? Image.file(
+                            _fotoFile!,
+                            fit: BoxFit.cover,
+                          )
+                        : widget.foto.isEmpty
+                            ? const Icon(
+                                Icons.pets,
+                                color: AppColors.primary,
+                                size: 42,
+                              )
+                            : Image.network(
+                                widget.foto,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => const Icon(
+                                  Icons.pets,
+                                  color: AppColors.primary,
+                                  size: 42,
+                                ),
+                              ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: Container(
+                    width: 30,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                    child: const Icon(
+                      Icons.camera_alt,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                  ),
+                ),
+              ],
             ),
+          ),
             const SizedBox(height: 24),
             _input(
               label: 'Nama Hewan',

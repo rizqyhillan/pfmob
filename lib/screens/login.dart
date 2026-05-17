@@ -61,20 +61,17 @@ class _LoginScreenState extends State<LoginScreen>
 
     if (!mounted) return;
 
-    if (success) {
-      if (widget.redirectToProfile) {
-        Navigator.pop(context);
-
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const ProfileScreen(),
-          ),
-        );
-      } else {
-        Navigator.pop(context);
-      }
-    } else {
+  if (success) {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (_) => DashboardScreen(
+          initialIndex: widget.redirectToProfile ? 4 : 0,
+        ),
+      ),
+      (route) => false,
+    );
+  } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Email atau password salah'),

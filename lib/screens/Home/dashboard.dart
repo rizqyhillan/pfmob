@@ -11,6 +11,7 @@ import '../Schedule/schedule.dart';
 import '../profile/my_pets.dart';
 import '../Shop/keranjang.dart';
 import '../Shop/detail_produk.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class DashboardScreen extends StatefulWidget {
   final int initialIndex;
@@ -105,7 +106,6 @@ class _DashboardScreenState extends State<DashboardScreen>
       child: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(child: _buildHeader()),
-          SliverToBoxAdapter(child: _buildSearchBar()),
           SliverToBoxAdapter(child: _buildBanner()),
           SliverToBoxAdapter(child: _buildCategories()),
           SliverToBoxAdapter(child: _buildBestSellersHeader()),
@@ -349,44 +349,104 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   Widget _buildHeader() {
+    final auth = AuthService();
+    final isLoggedIn = auth.isLoggedIn;
+    final displayName = auth.userName.trim().isNotEmpty
+        ? auth.userName.trim()
+        : 'User PawPet';
+  
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
       child: Row(
         children: [
           Container(
-            width: 44, height: 44,
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(color: AppColors.primary, width: 2),
-              color: AppColors.primaryLight,
+              color: Colors.white,
             ),
-            child: const ClipOval(
-              child: Center(child: Text('🐱', style: TextStyle(fontSize: 22))),
+            child: ClipOval(
+              child: isLoggedIn
+                  ? const Center(
+                      child: Icon(
+                        Icons.person_rounded,
+                        color: AppColors.primary,
+                        size: 26,
+                      ),
+                    )
+                  : Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: SvgPicture.asset(
+                        'assets/images/PawPetlogo.svg',
+                        fit: BoxFit.contain,
+                      ),
+                    ),
             ),
           ),
           const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Text('OWNER', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.textLight, letterSpacing: 1.2)),
-              Text('Kayla Nadine', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDark)),
-            ],
-          ),
-          const Spacer(),
-          GestureDetector(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const KeranjangScreen()),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isLoggedIn ? 'OWNER' : 'WELCOME',
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textLight,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                Text(
+                  isLoggedIn ? displayName : 'PawPet',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textDark,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
+          ),
+          GestureDetector(
+            onTap: () {
+              if (AuthService().isLoggedIn) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const KeranjangScreen()),
+                );
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const LoginScreen(redirectToProfile: false),
+                  ),
+                );
+              }
+            },
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: AppColors.divider),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-              child: const Icon(Icons.shopping_cart_outlined, color: AppColors.textDark, size: 22),
+              child: const Icon(
+                Icons.shopping_cart_outlined,
+                color: AppColors.textDark,
+                size: 22,
+              ),
             ),
           ),
         ],

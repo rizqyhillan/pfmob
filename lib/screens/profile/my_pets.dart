@@ -174,7 +174,7 @@ class _MyPetsScreenState extends State<MyPetsScreen> {
           GestureDetector(
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const ProfileScreen()),
+              MaterialPageRoute(builder: (_) => const ProfileScreen(showBackButton: true)),
             ),
             child: Container(
               width: 44,

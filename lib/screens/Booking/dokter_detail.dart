@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
+import '../../services/servis_auth.dart';
 import '../../theme/tema_app.dart';
+import '../login.dart';
 import 'data_pasien.dart';
 
 class DokterDetailScreen extends StatefulWidget {
@@ -82,10 +84,24 @@ class _DokterDetailScreenState extends State<DokterDetailScreen> {
 
   void _continue() {
     final service = _selectedService;
+  
     if (service == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pilih layanan dulu')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Pilih layanan dulu')),
+      );
       return;
     }
+  
+    if (!AuthService().isLoggedIn) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const LoginScreen(redirectToProfile: false),
+        ),
+      );
+      return;
+    }
+  
     Navigator.push(
       context,
       MaterialPageRoute(

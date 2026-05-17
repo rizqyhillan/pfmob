@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
+import '../../services/servis_auth.dart';
 import '../../theme/tema_app.dart';
+import '../login.dart';
 import 'keranjang.dart';
 
 class DetailProdukScreen extends StatefulWidget {
@@ -84,16 +86,47 @@ class _DetailProdukScreenState extends State<DetailProdukScreen> {
 
   Future<void> _addToCart() async {
     final product = _product;
+  
     if (product == null || product.id == 0 || _saving) return;
+  
+    if (!AuthService().isLoggedIn) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const LoginScreen(redirectToProfile: false),
+        ),
+      );
+      return;
+    }
+  
     setState(() => _saving = true);
+  
     try {
-      await ApiService.addCartItem(idBarang: product.id, jumlah: _jumlah);
+      await ApiService.addCartItem(
+        idBarang: product.id,
+        jumlah: _jumlah,
+      );
+  
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Produk berhasil ditambahkan ke keranjang')));
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const KeranjangScreen()));
+  
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Produk berhasil ditambahkan ke keranjang'),
+        ),
+      );
+  
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const KeranjangScreen()),
+      );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))));
+  
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceFirst('Exception: ', '')),
+        ),
+      );
     } finally {
       if (mounted) setState(() => _saving = false);
     }

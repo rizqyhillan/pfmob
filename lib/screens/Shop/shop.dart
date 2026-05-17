@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
+import '../../services/servis_auth.dart';
 import '../../theme/tema_app.dart';
+import '../login.dart';
 import 'detail_produk.dart';
 import 'keranjang.dart';
 
@@ -68,6 +70,22 @@ class _ShopContentState extends State<ShopContent> {
     }
   }
 
+    void _openCart() {
+      if (AuthService().isLoggedIn) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const KeranjangScreen()),
+        );
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const LoginScreen(redirectToProfile: false),
+          ),
+        );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -106,7 +124,7 @@ class _ShopContentState extends State<ShopContent> {
           ),
           const Spacer(),
           GestureDetector(
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const KeranjangScreen())),
+            onTap: _openCart,
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(

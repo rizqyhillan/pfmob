@@ -9,10 +9,16 @@ import 'ubah_password.dart';
 import 'bantuan_faq.dart';
 import 'kebijakan_privasi.dart';
 import 'tentang_aplikasi.dart';
+import '../Home/dashboard.dart';
 
 
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+  final bool showBackButton;
+
+  const ProfileScreen({
+    super.key,
+    this.showBackButton = false,
+  });
 
   void _showLogoutDialog(BuildContext context) {
     showDialog(
@@ -53,7 +59,9 @@ class ProfileScreen extends StatelessWidget {
               AuthService().logout();
               Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                MaterialPageRoute(
+                  builder: (_) => const DashboardScreen(initialIndex: 0),
+                ),
                 (route) => false,
               );
             },
@@ -95,28 +103,65 @@ class ProfileScreen extends StatelessWidget {
                   child: SafeArea(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-                      child: Row(
-                        children: [
-                          const Text(
-                            'Profil Saya',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w800,
+                        child: Row(
+                          children: [
+                            if (showBackButton) ...[
+                              GestureDetector(
+                                onTap: () {
+                                  if (Navigator.canPop(context)) {
+                                    Navigator.pop(context);
+                                  } else {
+                                    Navigator.pushAndRemoveUntil(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const DashboardScreen(initialIndex: 0),
+                                      ),
+                                      (route) => false,
+                                    );
+                                  }
+                                },
+                                child: Container(
+                                  width: 38,
+                                  height: 38,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.18),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Icon(
+                                    Icons.arrow_back_ios_new_rounded,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                            ],
+                            const Text(
+                              'Profil Saya',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
-                          ),
-                          const Spacer(),
-                          IconButton(
-                            icon: const Icon(Icons.edit_outlined,
-                                color: Colors.white70, size: 22),
-                            onPressed: () {
-                              Navigator.push(context, MaterialPageRoute(
-                                builder: (_) => const EditProfilPage(),
-                              ));
-                            },
-                          ),
-                        ],
-                      ),
+                            const Spacer(),
+                            IconButton(
+                              icon: const Icon(
+                                Icons.edit_outlined,
+                                color: Colors.white70,
+                                size: 22,
+                              ),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const EditProfilPage(),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
                     ),
                   ),
                 ),
