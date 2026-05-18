@@ -3,6 +3,8 @@ import '../../services/api_service.dart';
 import '../../services/servis_auth.dart';
 import '../../theme/tema_app.dart';
 import '../login.dart';
+import '../profile/my_pets.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'detail_produk.dart';
 import 'keranjang.dart';
 
@@ -100,6 +102,11 @@ class _ShopContentState extends State<ShopContent> {
   }
 
   Widget _buildHeader() {
+    final auth = AuthService();
+    final isLoggedIn = auth.isLoggedIn;
+    final displayName = auth.userName.trim().isNotEmpty
+        ? auth.userName.trim()
+        : 'User PawPet';
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
       child: Row(
@@ -110,16 +117,49 @@ class _ShopContentState extends State<ShopContent> {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(color: AppColors.primary, width: 2),
-              color: AppColors.primaryLight,
+              color: Colors.white,
             ),
-            child: const Center(child: Text('🐾', style: TextStyle(fontSize: 22))),
+            child: ClipOval(
+              child: isLoggedIn
+                  ? const Center(
+                      child: Icon(
+                        Icons.person_rounded,
+                        color: AppColors.primary,
+                        size: 26,
+                      ),
+                    )
+                  : Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: SvgPicture.asset(
+                        'assets/images/PawPetlogo.svg',
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+            ),
           ),
           const SizedBox(width: 12),
-          const Column(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('SHOP', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.textLight, letterSpacing: 1.2)),
-              Text('PawPet Store', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+                Text(
+                  isLoggedIn ? 'OWNER' : 'WELCOME',
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textLight,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                Text(
+                  isLoggedIn ? displayName : 'PawPet',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textDark,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
             ],
           ),
           const Spacer(),

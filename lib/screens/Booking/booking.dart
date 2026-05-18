@@ -4,6 +4,7 @@ import '../../theme/tema_app.dart';
 import 'daftar_dokter.dart';
 import 'paket_grooming.dart';
 import 'paket_penitipan.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class BookingContent extends StatelessWidget {
   const BookingContent({super.key});
@@ -80,6 +81,11 @@ class BookingContent extends StatelessWidget {
   }
 
   Widget _buildHeader() {
+        final auth = AuthService();
+        final isLoggedIn = auth.isLoggedIn;
+        final displayName = auth.userName.trim().isNotEmpty
+        ? auth.userName.trim()
+        : 'User PawPet';
     return Row(
       children: [
         Container(
@@ -87,9 +93,25 @@ class BookingContent extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             border: Border.all(color: AppColors.primary, width: 2),
-            color: AppColors.primaryLight,
+              color: Colors.white,
           ),
-          child: const ClipOval(child: Center(child: Text('🐱', style: TextStyle(fontSize: 22)))),
+            child: ClipOval(
+              child: isLoggedIn
+                  ? const Center(
+                      child: Icon(
+                        Icons.person_rounded,
+                        color: AppColors.primary,
+                        size: 26,
+                      ),
+                    )
+                  : Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: SvgPicture.asset(
+                        'assets/images/PawPetlogo.svg',
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+            ),
         ),
         const SizedBox(width: 12),
         Column(
