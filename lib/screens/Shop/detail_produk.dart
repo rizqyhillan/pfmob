@@ -204,8 +204,16 @@ class _DetailProdukScreenState extends State<DetailProdukScreen> {
           width: double.infinity,
           decoration: const BoxDecoration(color: AppColors.categoryBg1, borderRadius: BorderRadius.vertical(bottom: Radius.circular(28))),
           child: product.imageUrl != null
-              ? ClipRRect(borderRadius: const BorderRadius.vertical(bottom: Radius.circular(28)), child: Image.network(product.imageUrl!, fit: BoxFit.cover))
-              : const Center(child: Text('🐾', style: TextStyle(fontSize: 88))),
+              ? ClipRRect(
+                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(28)),
+                  child: Image.asset(
+                    product.imageUrl!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (ctx, err, stack) =>
+                        const Center(child: Text('🐾', style: TextStyle(fontSize: 88))),
+        ),
+      )
+    : const Center(child: Text('🐾', style: TextStyle(fontSize: 88))),
         ),
         Positioned(
           top: 16,
@@ -257,11 +265,28 @@ class _DetailProdukScreenState extends State<DetailProdukScreen> {
 
   Widget _buildBottom(ShopProduct product) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-      decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 16, offset: const Offset(0, -4))]),
-      child: ElevatedButton(
-        onPressed: product.id != 0 && product.stok > 0 && !_saving ? _addToCart : null,
-        child: Text(product.id == 0 ? 'Buka tab Shop untuk checkout' : (_saving ? 'Menambahkan...' : 'Tambah ke Keranjang')),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 16, offset: const Offset(0, -4))],
+      ),
+      child: SizedBox(
+        width: double.infinity,
+        height: 52,
+        child: ElevatedButton(
+          onPressed: product.id != 0 && product.stok > 0 && !_saving ? _addToCart : null,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          ),
+          child: Text(
+            product.id == 0
+                ? 'Buka tab Shop untuk checkout'
+                : (_saving ? 'Menambahkan...' : 'Tambah ke Keranjang'),
+          ),
+        ),
       ),
     );
   }

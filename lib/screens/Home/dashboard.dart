@@ -246,12 +246,7 @@ class _DashboardScreenState extends State<DashboardScreen>
               context,
               MaterialPageRoute(
                 builder: (_) => DetailProdukScreen(
-                  nama: _bestSellers[i].name,
-                  harga: _bestSellers[i].price,
-                  image: _bestSellers[i].imageUrl,
-                  bgColor: _bestSellers[i].bgColor,
-                  pilihanjenis: const [],
-                  deskripsi: '',
+                  productId: _bestSellers[i].id,
                 ),
               ),
             ),
@@ -642,11 +637,6 @@ class _DashboardScreenState extends State<DashboardScreen>
                     Text(
                       'Rp ${_formatHarga(product.price.toInt())}',
                       style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textDark),
-                    ),
-                    Container(
-                      width: 30, height: 30,
-                      decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-                      child: const Icon(Icons.add, color: Colors.white, size: 18),
                     ),
                   ],
                 ),

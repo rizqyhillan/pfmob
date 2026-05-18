@@ -1,3 +1,3 @@
 class ApiConfig {
-  static const String baseUrl = 'http://10.10.181.55:8000/api';
+  static const String baseUrl = 'https://pawpet.my.id/api';
 }

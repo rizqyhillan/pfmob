@@ -120,10 +120,16 @@ class _KonfirmasiGroomingScreenState extends State<KonfirmasiGroomingScreen> {
           decoration: BoxDecoration(color: AppColors.categoryBg1, borderRadius: BorderRadius.circular(16)),
           child: Row(
             children: [
-              Container(
-                width: 56, height: 56,
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
-                child: const Center(child: Text('✂️', style: TextStyle(fontSize: 28))),
+             Image.asset(
+                'assets/images/grooming.png',
+                width: 56,
+                height: 56,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) => const Icon(
+                  Icons.content_cut,
+                  color: AppColors.primary,
+                  size: 28,
+                ),
               ),
               const SizedBox(width: 14),
               Column(
@@ -361,7 +367,9 @@ class _KonfirmasiGroomingScreenState extends State<KonfirmasiGroomingScreen> {
 
   void _showRingkasanPopup(BuildContext context) {
     if (_myPets.isEmpty || _selectedHewan < 0) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pilih hewan peliharaan terlebih dahulu')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Pilih hewan peliharaan terlebih dahulu')),
+      );
       return;
     }
     final hewan = _myPets[_selectedHewan];
@@ -384,34 +392,103 @@ class _KonfirmasiGroomingScreenState extends State<KonfirmasiGroomingScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Handle bar
             Center(
               child: Container(
                 width: 40, height: 4,
-                decoration: BoxDecoration(color: AppColors.divider, borderRadius: BorderRadius.circular(2)),
+                decoration: BoxDecoration(
+                  color: AppColors.divider,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
             ),
             const SizedBox(height: 20),
-            const Text('Konfirmasi Booking', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textDark)),
-            const Text('Pastikan detail booking kamu sudah benar', style: TextStyle(fontSize: 13, color: AppColors.textLight)),
+
+            // Header paket
+            Row(
+              children: [
+                Image.asset(
+                  'assets/images/grooming.png',
+                  width: 52,
+                  height: 52,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) => const Icon(
+                    Icons.content_cut,
+                    color: AppColors.primary,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.namaPaket,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textDark,
+                      ),
+                    ),
+                    Text(
+                      '${hewan.nama} • ${hewan.jenis}',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textLight,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
             const SizedBox(height: 20),
+
+            // Info rows
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: AppColors.categoryBg1, borderRadius: BorderRadius.circular(16)),
+              decoration: BoxDecoration(
+                color: AppColors.background,
+                borderRadius: BorderRadius.circular(16),
+              ),
               child: Column(
                 children: [
-                  _buildPopupRow(Icons.content_cut_outlined, 'Paket', 'Grooming ${widget.namaPaket}', AppColors.primary),
-                  const Padding(padding: EdgeInsets.symmetric(vertical: 10), child: Divider(height: 1)),
-                  _buildPopupRow(Icons.pets_outlined, 'Peliharaan', hewan.nama, AppColors.accent),
-                  const Padding(padding: EdgeInsets.symmetric(vertical: 10), child: Divider(height: 1)),
-                  _buildPopupRow(Icons.calendar_today_outlined, 'Tanggal', '${hari['day']}, ${hari['date']} ${hari['month_year']}', const Color(0xFF7C4DFF)),
-                  const Padding(padding: EdgeInsets.symmetric(vertical: 10), child: Divider(height: 1)),
-                  _buildPopupRow(Icons.access_time_outlined, 'Waktu', '$waktu WIB', const Color(0xFFFF9800)),
-                  const Padding(padding: EdgeInsets.symmetric(vertical: 10), child: Divider(height: 1)),
-                  _buildPopupRow(Icons.payments_outlined, 'Total', widget.harga, const Color(0xFF4CAF50)),
+                  _buildInfoRow('Paket', 'Grooming ${widget.namaPaket}'),
+                  const SizedBox(height: 14),
+                  _buildInfoRow('Peliharaan', hewan.nama),
+                  const SizedBox(height: 14),
+                  _buildInfoRow(
+                    'Tanggal grooming',
+                    '${hari['day']}, ${hari['date']} ${hari['month_year']}',
+                  ),
+                  const SizedBox(height: 14),
+                  _buildInfoRow('Waktu', '$waktu WIB'),
+                  const SizedBox(height: 14),
+                  _buildInfoRow('Estimasi biaya', widget.harga),
                 ],
               ),
             ),
+            const SizedBox(height: 16),
+
+            // Info pembayaran
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE0F5F2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text(
+                'Pembayaran dilakukan di lokasi setelah layanan selesai.',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: AppColors.accent,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
             const SizedBox(height: 20),
+
+            // Tombol aksi
             Row(
               children: [
                 Expanded(
@@ -419,8 +496,19 @@ class _KonfirmasiGroomingScreenState extends State<KonfirmasiGroomingScreen> {
                     onTap: () => Navigator.pop(context),
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      decoration: BoxDecoration(color: AppColors.categoryBg1, borderRadius: BorderRadius.circular(14)),
-                      child: const Text('Ubah', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+                      decoration: BoxDecoration(
+                        color: AppColors.categoryBg1,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Text(
+                        'Ubah',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textDark,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -434,8 +522,19 @@ class _KonfirmasiGroomingScreenState extends State<KonfirmasiGroomingScreen> {
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(14)),
-                      child: const Text('Ya, Konfirmasi!', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white)),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Text(
+                        'Ya, Konfirmasi!',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -444,6 +543,31 @@ class _KonfirmasiGroomingScreenState extends State<KonfirmasiGroomingScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  // Helper baru — ganti _buildPopupRow yang lama
+  Widget _buildInfoRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 13,
+            color: AppColors.textLight,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textDark,
+          ),
+        ),
+      ],
     );
   }
 

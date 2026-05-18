@@ -72,7 +72,7 @@ class _DataPasienScreenState extends State<DataPasienScreen> {
     if (pet == null || _saving) return;
     setState(() => _saving = true);
     try {
-      final result = await ApiService.bookDoctor(
+      await ApiService.bookDoctor(
         idHewan: pet.id,
         idDokter: widget.doctor.id,
         idLayanan: widget.service.id,
@@ -82,24 +82,96 @@ class _DataPasienScreenState extends State<DataPasienScreen> {
         keluhan: _keluhanController.text.trim(),
       );
       if (!mounted) return;
-      await showDialog<void>(
-        context: context,
-        builder: (_) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-          title: const Text('Booking berhasil'),
-          content: Text('Dokter: ${result['nama_dokter'] ?? widget.doctor.nama}\nHewan: ${result['nama_hewan'] ?? pet.nama}\nStatus: ${result['status'] ?? 'pending'}\nPembayaran dilakukan di lokasi.'),
-          actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK'))],
-        ),
-      );
-      if (!mounted) return;
-      Navigator.popUntil(context, (route) => route.isFirst);
+      _showSuksesPopup(context);
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+      );
     } finally {
       if (mounted) setState(() => _saving = false);
     }
   }
 
+  void _showSuksesPopup(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withOpacity(0.5),
+      isDismissible: false,
+      enableDrag: false,
+      builder: (_) => Container(
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40, height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.divider,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 28),
+            Container(
+              width: 80, height: 80,
+              decoration: const BoxDecoration(
+                color: Color(0xFFE8F5E9),
+                shape: BoxShape.circle,
+              ),
+              child: const Center(
+                child: Text('🎉', style: TextStyle(fontSize: 40)),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Booking Berhasil!',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textDark,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Booking dokter kamu sudah dikonfirmasi.\nSampai jumpa di hari H ya!',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                color: AppColors.textLight,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 32),
+            GestureDetector(
+              onTap: () => Navigator.popUntil(context, (route) => route.isFirst),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Text(
+                  'Kembali ke Beranda',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(

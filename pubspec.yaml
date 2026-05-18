@@ -49,6 +49,9 @@ flutter:
     - assets/images/buddy.jpg
     - assets/images/charlie.jpg
     - assets/images/mittens.jpg
+    - assets/images/grooming.png
+    - assets/images/pet-boarding.png
+    - assets/images/pet-dokter.png
 
 flutter_launcher_icons:
   android: true
