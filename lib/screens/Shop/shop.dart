@@ -17,9 +17,9 @@ class ShopContent extends StatefulWidget {
 
 class _ShopContentState extends State<ShopContent> {
   final TextEditingController _searchController = TextEditingController();
-  List<String> _categories = ['All'];
+  List<String> _categories = ['Semua'];
   List<ShopProduct> _products = [];
-  String _selectedCategory = 'All';
+  String _selectedCategory = 'Semua';
   bool _loading = true;
   String? _error;
 
@@ -53,13 +53,13 @@ class _ShopContentState extends State<ShopContent> {
         ApiService.getShopCategories(),
         ApiService.getShopProducts(
           search: _searchController.text,
-          kategori: _selectedCategory == 'All' ? null : _selectedCategory,
+          kategori: _selectedCategory == 'Semua' ? null : _selectedCategory,
         ),
       ]);
 
       if (!mounted) return;
       setState(() {
-        _categories = ['All', ...(results[0] as List<String>)];
+        _categories = ['Semua', ...(results[0] as List<String>)];
         _products = results[1] as List<ShopProduct>;
         _loading = false;
       });
@@ -291,7 +291,7 @@ class _ShopContentState extends State<ShopContent> {
                 decoration: BoxDecoration(color: AppColors.categoryBg1, borderRadius: BorderRadius.circular(14)),
                 child: product.imageUrl != null
                     ? ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.network(product.imageUrl!, fit: BoxFit.cover))
-                    : const Center(child: Text('🐾', style: TextStyle(fontSize: 46))),
+                    : const Center(child: Image(image: AssetImage('assets/images/logo-paw.png')))
               ),
             ),
             Padding(

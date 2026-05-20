@@ -73,7 +73,6 @@ class _ScheduleContentState extends State<ScheduleContent> {
     if (_selectedTab == 0) {
       return _items.where((item) => !item.isHistory).toList();
     }
-
     return _items.where((item) => item.isHistory).toList();
   }
 
@@ -228,10 +227,9 @@ class _ScheduleContentState extends State<ScheduleContent> {
               color: AppColors.primaryLight,
             ),
             child: Center(
-              child: Text(
-                isLoggedIn ? '🐾' : '📅',
-                style: const TextStyle(fontSize: 22),
-              ),
+              child: isLoggedIn
+                  ? Image.asset('assets/images/logo-paw.png', width: 26, height: 26)
+                  : Image.asset('assets/images/calendar.png', width: 26, height: 26),
             ),
           ),
           const SizedBox(width: 12),
@@ -272,7 +270,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
 
   Widget _buildNeedLogin() {
     return _buildKosong(
-      emoji: '🔐',
+      emojiWidget: Image.asset('assets/images/lock.png', width: 42, height: 42),
       judul: 'Login Dulu',
       deskripsi: 'Jadwal booking dokter, grooming, dan penitipan kamu akan muncul setelah login.',
       actionText: 'Login',
@@ -289,7 +287,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
 
   Widget _buildError() {
     return _buildKosong(
-      emoji: '⚠️',
+      emojiWidget: Image.asset('assets/images/warning.png', width: 42, height: 42),
       judul: 'Gagal Memuat Jadwal',
       deskripsi: _error ?? 'Terjadi kesalahan saat memuat jadwal.',
       actionText: 'Coba Lagi',
@@ -302,7 +300,11 @@ class _ScheduleContentState extends State<ScheduleContent> {
 
     if (items.isEmpty) {
       return _buildKosong(
-        emoji: _selectedTab == 0 ? '📅' : '🗂️',
+        emojiWidget: Image.asset(
+          _selectedTab == 0 ? 'assets/images/calendar.png' : 'assets/images/history.png',
+          width: 42,
+          height: 42,
+        ),
         judul: _selectedTab == 0 ? 'Belum Ada Jadwal Mendatang' : 'Belum Ada Riwayat',
         deskripsi: _selectedTab == 0
             ? 'Booking dokter, grooming, dan penitipan yang masih aktif akan muncul di sini.'
@@ -390,7 +392,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
   }
 
   Widget _buildKosong({
-    required String emoji,
+    required Widget emojiWidget,
     required String judul,
     required String deskripsi,
     String? actionText,
@@ -409,9 +411,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
                 color: AppColors.categoryBg1,
                 shape: BoxShape.circle,
               ),
-              child: Center(
-                child: Text(emoji, style: const TextStyle(fontSize: 42)),
-              ),
+              child: Center(child: emojiWidget),
             ),
             const SizedBox(height: 20),
             Text(
@@ -466,148 +466,148 @@ class _ScheduleContentState extends State<ScheduleContent> {
       borderRadius: BorderRadius.circular(18),
       onTap: () => _showDetail(item),
       child: Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.divider),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.categoryBg1,
-                ),
-                child: Center(
-                  child: Text(item.emoji, style: const TextStyle(fontSize: 26)),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.title,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.textDark,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      item.subtitle,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textLight,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  _statusLabel(item.status),
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: statusColor,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppColors.divider),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.categoryBg1,
+                  ),
+                  child: Center(
+                    child: Text(item.emoji, style: const TextStyle(fontSize: 26)),
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          const Divider(height: 1),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textLight),
-              const SizedBox(width: 6),
-              Text(
-                item.date,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: AppColors.textMedium,
-                  fontWeight: FontWeight.w600,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.title,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textDark,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        item.subtitle,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textLight,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              const Icon(Icons.access_time_outlined, size: 14, color: AppColors.textLight),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  item.time,
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    _statusLabel(item.status),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: statusColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            const Divider(height: 1),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textLight),
+                const SizedBox(width: 6),
+                Text(
+                  item.date,
                   style: const TextStyle(
                     fontSize: 13,
                     color: AppColors.textMedium,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-              ),
-              const Icon(Icons.chevron_right_rounded, color: AppColors.textLight),
-            ],
-          ),
-          if (item.canCancel || item.canReschedule) ...[
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                if (item.canReschedule) ...[
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => _rescheduleBooking(item),
-                      icon: const Icon(Icons.edit_calendar_rounded, size: 18),
-                      label: const Text('Ubah Jadwal'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      ),
+                const SizedBox(width: 16),
+                const Icon(Icons.access_time_outlined, size: 14, color: AppColors.textLight),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    item.time,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textMedium,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  if (item.canCancel) const SizedBox(width: 10),
-                ],
-                if (item.canCancel)
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: isCancelling ? null : () => _cancelBooking(item),
-                      icon: isCancelling
-                          ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
-                          : const Icon(Icons.cancel_outlined, size: 18),
-                      label: Text(isCancelling ? 'Batal...' : 'Batalkan'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFFE57373),
-                        side: const BorderSide(color: Color(0xFFE57373)),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      ),
-                    ),
-                  ),
+                ),
+                const Icon(Icons.chevron_right_rounded, color: AppColors.textLight),
               ],
             ),
+            if (item.canCancel || item.canReschedule) ...[
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  if (item.canReschedule) ...[
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => _rescheduleBooking(item),
+                        icon: const Icon(Icons.edit_calendar_rounded, size: 18),
+                        label: const Text('Ubah Jadwal'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                      ),
+                    ),
+                    if (item.canCancel) const SizedBox(width: 10),
+                  ],
+                  if (item.canCancel)
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: isCancelling ? null : () => _cancelBooking(item),
+                        icon: isCancelling
+                            ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                            : const Icon(Icons.cancel_outlined, size: 18),
+                        label: Text(isCancelling ? 'Batal...' : 'Batalkan'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFFE57373),
+                          side: const BorderSide(color: Color(0xFFE57373)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
           ],
-        ],
+        ),
       ),
-    ),
     );
   }
 }

@@ -382,7 +382,11 @@ class _MyPetsScreenState extends State<MyPetsScreen> {
                 shape: BoxShape.circle,
               ),
               child: const Center(
-                child: Text('🐾', style: TextStyle(fontSize: 42)),
+                child: Image(
+                  image: AssetImage('assets/images/logo-paw.png'),
+                  width: 42,
+                  height: 42,
+                ),
               ),
             ),
             const SizedBox(height: 20),

@@ -52,6 +52,11 @@ flutter:
     - assets/images/grooming.png
     - assets/images/pet-boarding.png
     - assets/images/pet-dokter.png
+    - assets/images/logo-paw.png
+    - assets/images/history.png
+    - assets/images/calendar.png
+    - assets/images/lock.png
+    - assets/images/warning.png
 
 flutter_launcher_icons:
   android: true

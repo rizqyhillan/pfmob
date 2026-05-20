@@ -210,10 +210,10 @@ class _DetailProdukScreenState extends State<DetailProdukScreen> {
                     product.imageUrl!,
                     fit: BoxFit.cover,
                     errorBuilder: (ctx, err, stack) =>
-                        const Center(child: Text('🐾', style: TextStyle(fontSize: 88))),
+                        const Center(child: Image(image: AssetImage('assets/images/logo-paw.png'), width: 88, height: 88)),
         ),
       )
-    : const Center(child: Text('🐾', style: TextStyle(fontSize: 88))),
+    : const Center(child: Image(image: AssetImage('assets/images/logo-paw.png'), width: 88, height: 88)),
         ),
         Positioned(
           top: 16,
