@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../theme/tema_app.dart';
 import '../Home/dashboard.dart';
 import '../../services/api_service.dart';
-import '../../config/api_config.dart';
 
 class KonfirmasiGroomingScreen extends StatefulWidget {
   final int idPaket;
@@ -181,7 +180,7 @@ class _KonfirmasiGroomingScreenState extends State<KonfirmasiGroomingScreen> {
                         ),
                         child: ClipOval(
                           child: h.foto.isNotEmpty 
-                            ? Image.network('${ApiConfig.baseUrl.replaceAll('/api', '')}/storage/${h.foto}', width: 68, height: 68, fit: BoxFit.cover)
+                            ? Image.network(h.foto, width: 68, height: 68, fit: BoxFit.cover)
                             : Center(child: Text(h.jenis.toLowerCase() == 'kucing' ? '🐱' : (h.jenis.toLowerCase() == 'anjing' ? '🐶' : '🐾'), style: const TextStyle(fontSize: 36))),
                         ),
                       ),

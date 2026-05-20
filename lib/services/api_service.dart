@@ -952,6 +952,28 @@ static Future<void> deletePet(int id) async {
     return list.map((e) => DoctorScheduleItem.fromJson(Map<String, dynamic>.from(e))).toList();
   }
 
+  static Future<Map<String, dynamic>> getDoctorAvailability({
+    required int doctorId,
+    int days = 6,
+  }) async {
+    final uri = Uri.parse('$baseUrl/doctor-availability').replace(
+      queryParameters: {
+        'doctor_id': doctorId.toString(),
+        'days': days.toString(),
+      },
+    );
+
+    final response = await http.get(uri, headers: _headers);
+
+    if (response.statusCode == 200) {
+      final body = _decodeMap(response);
+      return Map<String, dynamic>.from(body['data']);
+    }
+
+    _throwApiError(response, 'Gagal mengambil jadwal dokter');
+    throw Exception('Gagal mengambil jadwal dokter');
+  }
+
   static Future<List<AppScheduleItem>> getMyDoctorBookings() async {
   final response = await http.get(
     Uri.parse('$baseUrl/my-doctor-bookings'),

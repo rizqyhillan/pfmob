@@ -107,7 +107,7 @@ class _MyPetsScreenState extends State<MyPetsScreen> {
                       itemBuilder: (context, i) {
                         final pet = pets[i];
                         final warna = _getPetColor(pet.jenis);
-                        final foto = _getPetImage(pet.jenis);
+                        final foto = pet.foto.isNotEmpty ? pet.foto : _getPetImage(pet.jenis);
 
                         return GestureDetector(
                           onTap: () => Navigator.push(
@@ -276,20 +276,35 @@ class _MyPetsScreenState extends State<MyPetsScreen> {
                         size: 36,
                       ),
                     )
-                  : Image.asset(
-                      foto,
-                      width: 72,
-                      height: 72,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        color: Colors.white,
-                        child: const Icon(
-                          Icons.pets,
-                          color: AppColors.primary,
-                          size: 36,
+                  : foto.startsWith('http')
+                      ? Image.network(
+                          foto,
+                          width: 72,
+                          height: 72,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            color: Colors.white,
+                            child: const Icon(
+                              Icons.pets,
+                              color: AppColors.primary,
+                              size: 36,
+                            ),
+                          ),
+                        )
+                      : Image.asset(
+                          foto,
+                          width: 72,
+                          height: 72,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            color: Colors.white,
+                            child: const Icon(
+                              Icons.pets,
+                              color: AppColors.primary,
+                              size: 36,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
             ),
           ),
           const SizedBox(width: 16),

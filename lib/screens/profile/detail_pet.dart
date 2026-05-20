@@ -139,20 +139,35 @@ class DetailPetScreen extends StatelessWidget {
                 height: 220,
                 decoration: const BoxDecoration(shape: BoxShape.circle),
                 child: ClipOval(
-                  child: Image.asset(
-                    foto,
-                    width: 220,
-                    height: 220,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      color: Colors.white.withOpacity(0.5),
-                      child: const Icon(
-                        Icons.pets,
-                        color: AppColors.primary,
-                        size: 80,
-                      ),
-                    ),
-                  ),
+                  child: foto.startsWith('http')
+                      ? Image.network(
+                          foto,
+                          width: 220,
+                          height: 220,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            color: Colors.white.withOpacity(0.5),
+                            child: const Icon(
+                              Icons.pets,
+                              color: AppColors.primary,
+                              size: 80,
+                            ),
+                          ),
+                        )
+                      : Image.asset(
+                          foto,
+                          width: 220,
+                          height: 220,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            color: Colors.white.withOpacity(0.5),
+                            child: const Icon(
+                              Icons.pets,
+                              color: AppColors.primary,
+                              size: 80,
+                            ),
+                          ),
+                        ),
                 ),
               ),
             ),
