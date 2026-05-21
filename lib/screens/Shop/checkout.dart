@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../../theme/tema_app.dart';
+import 'snap_webview.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final ShopCart cart;
@@ -48,30 +49,74 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
       if (!mounted) return;
 
-      await showDialog<void>(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-          ),
-          title: const Text('Pesanan berhasil dibuat'),
-          content: Text(
-            'Kode: ${trx['kode_transaksi'] ?? '-'}\n'
-            'Status: ${trx['status'] ?? 'pending'}\n\n'
-            'Payment gateway belum diaktifkan. Pesanan shopping sudah tersimpan dan menunggu proses pembayaran dari tim payment.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.pop(context, true);
-              },
-              child: const Text('OK'),
+      final redirectUrl = trx['redirect_url']?.toString();
+      final kodeTransaksi = trx['kode_transaksi']?.toString() ?? '-';
+
+      if (redirectUrl != null && (_metodeBayar == 'transfer' || _metodeBayar == 'ewallet')) {
+        // Pindah ke WebView Midtrans
+        await Navigator.push<bool>(
+          context,
+          MaterialPageRoute(
+            builder: (_) => SnapWebViewScreen(
+              url: redirectUrl,
+              orderId: kodeTransaksi,
             ),
-          ],
-        ),
-      );
+          ),
+        );
+
+        if (!mounted) return;
+
+        // Tampilkan dialog penyelesaian
+        await showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+            ),
+            title: const Text('Pembayaran Diproses'),
+            content: Text(
+              'Kode Pesanan: $kodeTransaksi\n\n'
+              'Terima kasih! Pesanan Anda sedang diproses. Silakan periksa status pembayaran terbaru Anda di halaman Riwayat Belanja.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pop(context, true);
+                },
+                child: const Text('Tutup'),
+              ),
+            ],
+          ),
+        );
+      } else {
+        // Cash payment flow
+        await showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+            ),
+            title: const Text('Pesanan berhasil dibuat'),
+            content: Text(
+              'Kode: $kodeTransaksi\n'
+              'Status: ${trx['status'] ?? 'pending'}\n\n'
+              'Pesanan dengan metode Cash berhasil dibuat. Silakan lakukan pembayaran secara langsung di kasir sesuai instruksi admin.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pop(context, true);
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
     } catch (e) {
       if (!mounted) return;
 

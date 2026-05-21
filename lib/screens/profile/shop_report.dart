@@ -31,8 +31,8 @@ class Transaction {
     return Transaction(
       id: json['id'] ?? 0,
       kodeTransaksi: json['kode_transaksi'] ?? '-',
-      namaPelanggan: json['pelanggan']?['nama'] ?? '-',
-      namaKasir: json['kasir']?['nama'] ?? '-',
+      namaPelanggan: json['nama_pelanggan'] ?? json['pelanggan']?['nama'] ?? '-',
+      namaKasir: json['nama_kasir'] ?? json['kasir']?['nama'] ?? '-',
       jenis: json['jenis'] ?? '-',
       total: double.tryParse(json['total'].toString()) ?? 0,
       metodeBayar: json['metode_bayar'] ?? '-',

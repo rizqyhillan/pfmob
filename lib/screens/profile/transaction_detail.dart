@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../theme/tema_app.dart';
 import '../../services/api_service.dart';
+import '../Shop/snap_webview.dart';
+
 
 // ─── Model Item Barang dalam struk ───────────────────────────
 class TransactionItem {
@@ -55,6 +57,9 @@ class TransactionDetail {
   final double jumlahBayar;
   final double kembalian;
   final String? catatan;
+  final String? snapToken;
+  final String? redirectUrl;
+  final String? paymentStatus;
   final List<TransactionItem> items;
 
   const TransactionDetail({
@@ -72,10 +77,14 @@ class TransactionDetail {
     required this.jumlahBayar,
     required this.kembalian,
     this.catatan,
+    this.snapToken,
+    this.redirectUrl,
+    this.paymentStatus,
     required this.items,
   });
 
-  factory TransactionDetail.fromJson(Map<String, dynamic> json) {
+  factory TransactionDetail.fromJson(Map<String, dynamic> rawJson) {
+    final json = rawJson.containsKey('data') ? rawJson['data'] as Map<String, dynamic> : rawJson;
     final List<TransactionItem> items = [];
 
     // Barang
@@ -98,8 +107,8 @@ class TransactionDetail {
     return TransactionDetail(
       id: json['id'] ?? 0,
       kodeTransaksi: json['kode_transaksi'] ?? '-',
-      namaPelanggan: json['pelanggan']?['nama'] ?? '-',
-      namaKasir: json['kasir']?['nama'] ?? '-',
+      namaPelanggan: json['nama_pelanggan'] ?? json['pelanggan']?['nama'] ?? '-',
+      namaKasir: json['nama_kasir'] ?? json['kasir']?['nama'] ?? '-',
       jenis: json['jenis'] ?? '-',
       metodeBayar: json['metode_bayar'] ?? '-',
       status: json['status'] ?? '-',
@@ -112,6 +121,9 @@ class TransactionDetail {
       jumlahBayar: jumlahBayar,
       kembalian: double.tryParse(json['kembalian'].toString()) ?? 0, // dari DB
       catatan: json['catatan'],
+      snapToken: json['snap_token']?.toString(),
+      redirectUrl: json['redirect_url']?.toString(),
+      paymentStatus: json['payment_status']?.toString(),
       items: items,
     );
   }
@@ -214,8 +226,124 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
             );
           }
 
-          return _buildStruk(snapshot.data!);
+          final trx = snapshot.data!;
+          return Column(
+            children: [
+              Expanded(child: _buildStruk(trx)),
+              if (_canPayNow(trx)) _buildPayNowButton(trx),
+            ],
+          );
         },
+      ),
+    );
+  }
+
+  bool _canPayNow(TransactionDetail trx) {
+    final isPending = trx.status.toLowerCase() == 'pending';
+    final isMidtransMethod = trx.metodeBayar.toLowerCase() == 'transfer' ||
+        trx.metodeBayar.toLowerCase() == 'ewallet';
+    return isPending && isMidtransMethod && trx.redirectUrl != null && trx.redirectUrl!.isNotEmpty;
+  }
+
+  void _refreshDetail() {
+    setState(() {
+      _future = ApiService.getTransactionDetail(widget.transactionId);
+    });
+  }
+
+  Future<void> _handlePayment(TransactionDetail trx) async {
+    final redirectUrl = trx.redirectUrl;
+    if (redirectUrl == null || redirectUrl.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Tautan pembayaran tidak valid')),
+      );
+      return;
+    }
+
+    await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SnapWebViewScreen(
+          url: redirectUrl,
+          orderId: trx.kodeTransaksi,
+        ),
+      ),
+    );
+
+    _refreshDetail();
+  }
+
+  Widget _buildPayNowButton(TransactionDetail trx) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -4),
+          ),
+        ],
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Total Tagihan',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textMedium,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  'Rp ${_formatRp(trx.total)}',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () => _handlePayment(trx),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                shadowColor: AppColors.primary.withOpacity(0.4),
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(Icons.payment, size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    'Bayar Sekarang',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -343,19 +471,21 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(color: const Color(0xFFFFE082)),
                           ),
-                          child: const Row(
+                          child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.info_outline_rounded,
                                 color: Color(0xFFF9A825),
                                 size: 18,
                               ),
-                              SizedBox(width: 8),
+                              const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  'Pesanan ini masih menunggu pembayaran. Payment gateway belum aktif dan akan diproses oleh tim payment.',
-                                  style: TextStyle(
+                                  _canPayNow(trx)
+                                      ? 'Pesanan ini masih menunggu pembayaran. Silakan ketuk tombol "Bayar Sekarang" di bawah untuk melunasi tagihan.'
+                                      : 'Pesanan ini masih menunggu pembayaran secara langsung di kasir.',
+                                  style: const TextStyle(
                                     fontSize: 12,
                                     color: AppColors.textMedium,
                                     height: 1.4,
