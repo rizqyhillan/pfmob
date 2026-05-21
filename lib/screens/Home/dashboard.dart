@@ -11,7 +11,7 @@ import '../Schedule/schedule.dart';
 import '../profile/my_pets.dart';
 import '../Shop/keranjang.dart';
 import '../Shop/detail_produk.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import '../../widgets/user_avatar.dart';
 
 class DashboardScreen extends StatefulWidget {
   final int initialIndex;
@@ -354,32 +354,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
       child: Row(
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.primary, width: 2),
-              color: Colors.white,
-            ),
-            child: ClipOval(
-              child: isLoggedIn
-                  ? const Center(
-                      child: Icon(
-                        Icons.person_rounded,
-                        color: AppColors.primary,
-                        size: 26,
-                      ),
-                    )
-                  : Padding(
-                      padding: const EdgeInsets.all(6),
-                      child: SvgPicture.asset(
-                        'assets/images/PawPetlogo.svg',
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-            ),
-          ),
+          const UserAvatar(),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -653,67 +628,137 @@ class _DashboardScreenState extends State<DashboardScreen>
         RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.');
   }
 
-  Widget _buildBottomNav() {
-    final items = [
-      _NavItem(Icons.home_rounded, 'HOME'),
-      _NavItem(Icons.storefront_outlined, 'SHOP'),
-      _NavItem(Icons.calendar_month_outlined, 'BOOKING'),
-      _NavItem(Icons.schedule_outlined, 'SCHEDULE'),
-      _NavItem(Icons.pets_outlined, 'PROFILE'),
-    ];
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 20, offset: const Offset(0, -4))],
-      ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: List.generate(
-              items.length,
-              (i) => GestureDetector(
-                onTap: () {
-                  if (i == 4) {
-                    if (AuthService().isLoggedIn) {
-                      setState(() => _currentIndex = 4);
-                    } else {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const LoginScreen(redirectToProfile: false),
-                        ),
-                      );
-                    }
-                  } else {
-                    setState(() => _currentIndex = i);
-                  }
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: _currentIndex == i ? AppColors.primary : Colors.transparent,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(items[i].icon, color: _currentIndex == i ? Colors.white : AppColors.textLight, size: 22),
-                      const SizedBox(height: 2),
-                      Text(items[i].label, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: _currentIndex == i ? Colors.white : AppColors.textLight, letterSpacing: 0.3)),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+Widget _buildBottomNav() {
+  final items = [
+    _NavItem(Icons.home_rounded, 'HOME'),
+    _NavItem(Icons.storefront_outlined, 'SHOP'),
+    _NavItem(Icons.calendar_month_outlined, 'BOOKING'),
+    _NavItem(Icons.schedule_outlined, 'SCHEDULE'),
+    _NavItem(Icons.pets_outlined, 'PROFILE'),
+  ];
+
+  void changeTab(int index) {
+    if (index == 4) {
+      if (AuthService().isLoggedIn) {
+        setState(() => _currentIndex = 4);
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const LoginScreen(redirectToProfile: false),
           ),
+        );
+      }
+    } else {
+      setState(() => _currentIndex = index);
+    }
+  }
+
+  return Container(
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.08),
+          blurRadius: 20,
+          offset: const Offset(0, -4),
+        ),
+      ],
+    ),
+    child: SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final itemWidth = constraints.maxWidth / items.length;
+            const indicatorWidth = 66.0;
+            const indicatorHeight = 52.0;
+
+            return SizedBox(
+              height: 58,
+              child: Stack(
+                children: [
+                  AnimatedPositioned(
+                    duration: const Duration(milliseconds: 763),
+                    curve: Curves.easeOutCubic,
+                    left: (_currentIndex * itemWidth) +
+                        ((itemWidth - indicatorWidth) / 2),
+                    top: 3,
+                    width: indicatorWidth,
+                    height: indicatorHeight,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withOpacity(0.28),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  Row(
+                    children: List.generate(
+                      items.length,
+                      (i) {
+                        final selected = _currentIndex == i;
+
+                        return SizedBox(
+                          width: itemWidth,
+                          height: 58,
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () => changeTab(i),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                AnimatedScale(
+                                  scale: selected ? 1.08 : 1.0,
+                                  duration: const Duration(milliseconds: 220),
+                                  curve: Curves.easeOut,
+                                  child: Icon(
+                                    items[i].icon,
+                                    color: selected
+                                        ? Colors.white
+                                        : AppColors.textLight,
+                                    size: 22,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                AnimatedDefaultTextStyle(
+                                  duration: const Duration(milliseconds: 220),
+                                  curve: Curves.easeOut,
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w700,
+                                    color: selected
+                                        ? Colors.white
+                                        : AppColors.textLight,
+                                    letterSpacing: 0.3,
+                                  ),
+                                  child: Text(items[i].label),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class _Category {

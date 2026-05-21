@@ -76,7 +76,7 @@ class _DaftarDokterScreenState extends State<DaftarDokterScreen> {
             const SizedBox(height: 16),
             const Text('Pilih Dokter Hewan', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.textDark)),
             const SizedBox(height: 4),
-            const Text('Data dokter langsung dari backend', style: TextStyle(fontSize: 13, color: AppColors.textLight)),
+            const Text('Pilih Dokter yang tersedia', style: TextStyle(fontSize: 13, color: AppColors.textLight)),
           ],
         ),
       );

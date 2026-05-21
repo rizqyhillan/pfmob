@@ -4,7 +4,7 @@ import '../../services/servis_auth.dart';
 import '../../theme/tema_app.dart';
 import '../login.dart';
 import '../profile/my_pets.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import '../../widgets/user_avatar.dart';
 import 'detail_produk.dart';
 import 'keranjang.dart';
 
@@ -111,32 +111,7 @@ class _ShopContentState extends State<ShopContent> {
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
       child: Row(
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.primary, width: 2),
-              color: Colors.white,
-            ),
-            child: ClipOval(
-              child: isLoggedIn
-                  ? const Center(
-                      child: Icon(
-                        Icons.person_rounded,
-                        color: AppColors.primary,
-                        size: 26,
-                      ),
-                    )
-                  : Padding(
-                      padding: const EdgeInsets.all(6),
-                      child: SvgPicture.asset(
-                        'assets/images/PawPetlogo.svg',
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-            ),
-          ),
+          const UserAvatar(),
           const SizedBox(width: 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,

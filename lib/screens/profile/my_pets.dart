@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../services/api_service.dart';
 import '../../theme/tema_app.dart';
+import '../../widgets/user_avatar.dart';
 import 'detail_pet.dart';
 import 'profile.dart';
 import 'tambah_hewan.dart';
@@ -171,21 +172,11 @@ class _MyPetsScreenState extends State<MyPetsScreen> {
             ],
           ),
           const Spacer(),
-          GestureDetector(
+          UserAvatar(
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const ProfileScreen(showBackButton: true)),
-            ),
-            child: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.primary, width: 2),
-                color: AppColors.primaryLight,
-              ),
-              child: const Center(
-                child: Text('🐱', style: TextStyle(fontSize: 22)),
+              MaterialPageRoute(
+                builder: (_) => const ProfileScreen(showBackButton: true),
               ),
             ),
           ),

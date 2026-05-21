@@ -4,7 +4,7 @@ import '../../theme/tema_app.dart';
 import 'daftar_dokter.dart';
 import 'paket_grooming.dart';
 import 'paket_penitipan.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import '../../widgets/user_avatar.dart';
 
 class BookingContent extends StatelessWidget {
   const BookingContent({super.key});
@@ -81,44 +81,21 @@ class BookingContent extends StatelessWidget {
   }
 
   Widget _buildHeader() {
-        final auth = AuthService();
-        final isLoggedIn = auth.isLoggedIn;
-        final displayName = auth.userName.trim().isNotEmpty
+    final auth = AuthService();
+    final isLoggedIn = auth.isLoggedIn;
+    final displayName = auth.userName.trim().isNotEmpty
         ? auth.userName.trim()
         : 'User PawPet';
+
     return Row(
       children: [
-        Container(
-          width: 44, height: 44,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.primary, width: 2),
-              color: Colors.white,
-          ),
-            child: ClipOval(
-              child: isLoggedIn
-                  ? const Center(
-                      child: Icon(
-                        Icons.person_rounded,
-                        color: AppColors.primary,
-                        size: 26,
-                      ),
-                    )
-                  : Padding(
-                      padding: const EdgeInsets.all(6),
-                      child: SvgPicture.asset(
-                        'assets/images/PawPetlogo.svg',
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-            ),
-        ),
+        const UserAvatar(),
         const SizedBox(width: 12),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              AuthService().isLoggedIn ? 'PET OWNER' : 'WELCOME',
+              isLoggedIn ? 'PET OWNER' : 'WELCOME',
               style: const TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w700,
@@ -127,11 +104,7 @@ class BookingContent extends StatelessWidget {
               ),
             ),
             Text(
-              AuthService().isLoggedIn
-                  ? (AuthService().userName.trim().isEmpty
-                      ? 'User PawPet'
-                      : AuthService().userName.trim())
-                  : 'PawPet',
+              isLoggedIn ? displayName : 'PawPet',
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w800,

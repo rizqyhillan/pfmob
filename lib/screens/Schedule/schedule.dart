@@ -3,6 +3,7 @@ import '../../services/api_service.dart';
 import '../../services/servis_auth.dart';
 import '../../theme/tema_app.dart';
 import '../login.dart';
+import '../../widgets/user_avatar.dart';
 import 'reschedule.dart';
 
 class ScheduleContent extends StatefulWidget {
@@ -212,26 +213,11 @@ class _ScheduleContentState extends State<ScheduleContent> {
   }
 
   Widget _buildHeader() {
-    final isLoggedIn = AuthService().isLoggedIn;
-
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
       child: Row(
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.primary, width: 2),
-              color: AppColors.primaryLight,
-            ),
-            child: Center(
-              child: isLoggedIn
-                  ? Image.asset('assets/images/logo-paw.png', width: 26, height: 26)
-                  : Image.asset('assets/images/calendar.png', width: 26, height: 26),
-            ),
-          ),
+          const UserAvatar(),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -247,7 +233,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
                   ),
                 ),
                 Text(
-                  isLoggedIn ? _displayName : 'Masuk untuk lihat jadwal',
+                    AuthService().isLoggedIn ? _displayName : 'Masuk untuk lihat jadwal',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,

@@ -24,7 +24,34 @@ class AuthService {
   bool get isLoggedIn => _isLoggedIn;
   String get userName => _userName;
   String get userEmail => _userEmail;
-  String get userPhoto => _userPhoto;
+  String get userPhoto => _resolvePhotoUrl(_userPhoto);
+
+  String _resolvePhotoUrl(String value) {
+    final photo = value.trim();
+
+    if (photo.isEmpty) return '';
+
+    if (photo.startsWith('http://') || photo.startsWith('https://')) {
+      return photo;
+    }
+
+    final serverBaseUrl = ApiConfig.baseUrl.replaceFirst('/api', '');
+    final normalizedPhoto = photo.startsWith('storage/')
+        ? photo.replaceFirst('storage/', '')
+        : photo;
+
+    return '$serverBaseUrl/storage/$normalizedPhoto';
+  }
+
+  String _readPhotoFromUser(dynamic user) {
+    if (user is! Map) return '';
+
+    final photo = user['foto'] ?? user['photo'] ?? user['avatar'];
+    if (photo == null) return '';
+
+    return photo.toString();
+  }
+
   String get token => _token;
 
   Future<bool> login({
@@ -50,7 +77,7 @@ class AuthService {
         _token = data['token'] ?? '';
         _userName = data['user']['nama'] ?? '';
         _userEmail = data['user']['email'] ?? '';
-        _userPhoto = data['user']['foto'] ?? '';
+        _userPhoto = _readPhotoFromUser(data['user']);
         _isLoggedIn = true;
 
         ApiService.setToken(_token);
@@ -175,7 +202,7 @@ class AuthService {
     _token = data['token'] ?? '';
     _userName = data['user']?['nama'] ?? '';
     _userEmail = data['user']?['email'] ?? '';
-    _userPhoto = data['user']?['foto'] ?? '';
+    _userPhoto = _readPhotoFromUser(data['user']);
     _isLoggedIn = _token.isNotEmpty;
 
     if (_token.isNotEmpty) {
