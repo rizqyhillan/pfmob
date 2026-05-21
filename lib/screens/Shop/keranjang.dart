@@ -233,9 +233,9 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
           child: _loading
               ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
               : _error != null
-                  ? _buildMessage('⚠️', _error!, 'Coba Lagi', _loadCart)
+                  ? _buildMessage(Image.asset('assets/images/warning.png', width: 42, height: 42,), _error!, 'Coba Lagi', _loadCart)
                   : cart == null || cart.items.isEmpty
-                      ? _buildMessage('🛒', 'Keranjang masih kosong', 'Muat ulang', _loadCart)
+                      ? _buildMessage(Image.asset('assets/images/shopping-cart.png', width: 42, height: 42,), 'Keranjang masih kosong', 'Muat ulang', _loadCart)
                       : RefreshIndicator(
                           onRefresh: _loadCart,
                           child: ListView.separated(
@@ -421,7 +421,7 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
           border: Border.all(color: AppColors.divider),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 10,
               offset: const Offset(0, 3),
             ),
@@ -434,29 +434,35 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: AppColors.categoryBg1,
-                        borderRadius: BorderRadius.circular(10),
+                Expanded(                    
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.categoryBg1,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.receipt_long_outlined,
+                            color: AppColors.primary, size: 18),
                       ),
-                      child: const Icon(Icons.receipt_long_outlined,
-                          color: AppColors.primary, size: 18),
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      trx.kodeTransaksi,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.textDark,
+                      const SizedBox(width: 10),
+                      Expanded(              
+                        child: Text(
+                          trx.kodeTransaksi,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textDark,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-                _buildStatusBadge(trx.status),
+                const SizedBox(width: 8),
+                _buildStatusBadge(trx.status),  
               ],
             ),
             const SizedBox(height: 12),
@@ -500,7 +506,7 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
               decoration: BoxDecoration(
                 color: AppColors.categoryBg1,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+                border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -629,11 +635,11 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
     );
   }
 
-  Widget _buildMessage(String icon, String title, String action, VoidCallback onAction) => Center(
+  Widget _buildMessage(Widget icon, String title, String action, VoidCallback onAction) => Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(icon, style: const TextStyle(fontSize: 48)),
+            icon,
             const SizedBox(height: 12),
             Text(title, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMedium, fontWeight: FontWeight.w700)),
             const SizedBox(height: 12),
@@ -680,7 +686,7 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
 
   Widget _buildSummary(ShopCart cart) => Container(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-        decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 16, offset: const Offset(0, -4))]),
+        decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 16, offset: const Offset(0, -4))]),
         child: Column(
           children: [
             Row(

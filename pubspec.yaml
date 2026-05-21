@@ -59,6 +59,7 @@ flutter:
     - assets/images/calendar.png
     - assets/images/lock.png
     - assets/images/warning.png
+    - assets/images/shopping-cart.png
 
 flutter_launcher_icons:
   android: true
