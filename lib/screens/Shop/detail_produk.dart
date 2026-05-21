@@ -206,12 +206,12 @@ class _DetailProdukScreenState extends State<DetailProdukScreen> {
           child: product.imageUrl != null
               ? ClipRRect(
                   borderRadius: const BorderRadius.vertical(bottom: Radius.circular(28)),
-                  child: Image.asset(
-                    product.imageUrl!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (ctx, err, stack) =>
-                        const Center(child: Image(image: AssetImage('assets/images/logo-paw.png'), width: 88, height: 88)),
-        ),
+                  child: Image.network(
+              product.imageUrl!,
+              fit: BoxFit.cover,
+              errorBuilder: (ctx, err, stack) =>
+                  const Center(child: Image(image: AssetImage('assets/images/logo-paw.png'), width: 88, height: 88)),
+            ),
       )
     : const Center(child: Image(image: AssetImage('assets/images/logo-paw.png'), width: 88, height: 88)),
         ),
