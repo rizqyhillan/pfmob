@@ -4,6 +4,8 @@ import '../../services/servis_auth.dart';
 import '../../theme/tema_app.dart';
 import '../login.dart';
 import 'keranjang.dart';
+import '../../models/product.dart';
+import '../../services/product_repository.dart';
 
 class DetailProdukScreen extends StatefulWidget {
   final int? productId;
@@ -32,7 +34,7 @@ class DetailProdukScreen extends StatefulWidget {
 }
 
 class _DetailProdukScreenState extends State<DetailProdukScreen> {
-  ShopProduct? _product;
+  Product? _product;
   int _jumlah = 1;
   bool _loading = true;
   bool _saving = false;
@@ -54,14 +56,17 @@ class _DetailProdukScreenState extends State<DetailProdukScreen> {
 
     if (widget.productId == null) {
       setState(() {
-        _product = ShopProduct(
+        _product = Product(
           id: 0,
-          namaBarang: widget.nama ?? '-',
-          kategori: 'Best Seller',
-          harga: widget.harga ?? 0,
-          stok: 0,
-          imageUrl: widget.image,
+          name: widget.nama ?? '-',
+          category: 'Best Seller',
+          price: widget.harga ?? 0,
+          stock: 0,
+          imageUrl: widget.image ?? '',
           tersedia: false,
+          isFeatured: false,
+          totalSold: 0,
+          bgColor: Colors.white,
         );
         _loading = false;
       });
@@ -69,7 +74,7 @@ class _DetailProdukScreenState extends State<DetailProdukScreen> {
     }
 
     try {
-      final product = await ApiService.getShopProductDetail(widget.productId!);
+      final product = await ProductRepository().getProductDetail(widget.productId!);
       if (!mounted) return;
       setState(() {
         _product = product;
@@ -155,15 +160,15 @@ class _DetailProdukScreenState extends State<DetailProdukScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(product.namaBarang, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.textDark)),
+                                    Text(product.name, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.textDark)),
                                     const SizedBox(height: 8),
-                                    Text(product.kategori, style: const TextStyle(fontSize: 13, color: AppColors.textLight, fontWeight: FontWeight.w700)),
+                                    Text(product.category, style: const TextStyle(fontSize: 13, color: AppColors.textLight, fontWeight: FontWeight.w700)),
                                     const SizedBox(height: 14),
-                                    Text('Rp ${_formatHarga(product.harga)}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.primary)),
+                                    Text('Rp ${_formatHarga(product.price)}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.primary)),
                                     const SizedBox(height: 8),
-                                    Text('Stok tersedia: ${product.stok}', style: const TextStyle(fontSize: 13, color: AppColors.textMedium)),
+                                    Text('Stok tersedia: ${product.stock}', style: const TextStyle(fontSize: 13, color: AppColors.textMedium)),
                                     const SizedBox(height: 24),
-                                    _buildJumlah(product.stok),
+                                    _buildJumlah(product.stock),
                                     const SizedBox(height: 18),
                                     _infoBox(),
                                   ],
@@ -196,24 +201,34 @@ class _DetailProdukScreenState extends State<DetailProdukScreen> {
         ),
       );
 
-  Widget _buildImage(ShopProduct product) {
+  Widget _buildImage(Product product) {
+    final hasImage = product.imageUrl.isNotEmpty;
     return Stack(
       children: [
         Container(
           height: 310,
           width: double.infinity,
           decoration: const BoxDecoration(color: AppColors.categoryBg1, borderRadius: BorderRadius.vertical(bottom: Radius.circular(28))),
-          child: product.imageUrl != null
+          child: hasImage
               ? ClipRRect(
                   borderRadius: const BorderRadius.vertical(bottom: Radius.circular(28)),
                   child: Image.network(
-              product.imageUrl!,
-              fit: BoxFit.cover,
-              errorBuilder: (ctx, err, stack) =>
-                  const Center(child: Image(image: AssetImage('assets/images/logo-paw.png'), width: 88, height: 88)),
-            ),
-      )
-    : const Center(child: Image(image: AssetImage('assets/images/logo-paw.png'), width: 88, height: 88)),
+                    product.imageUrl,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (ctx, child, progress) {
+                      if (progress == null) return child;
+                      return Center(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary.withOpacity(0.4)),
+                        ),
+                      );
+                    },
+                    errorBuilder: (ctx, err, stack) =>
+                        const Center(child: Image(image: AssetImage('assets/images/logo-paw.png'), width: 88, height: 88)),
+                  ),
+                )
+              : const Center(child: Image(image: AssetImage('assets/images/logo-paw.png'), width: 88, height: 88)),
         ),
         Positioned(
           top: 16,

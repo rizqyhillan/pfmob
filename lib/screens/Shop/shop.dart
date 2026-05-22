@@ -7,6 +7,8 @@ import '../profile/my_pets.dart';
 import '../../widgets/user_avatar.dart';
 import 'detail_produk.dart';
 import 'keranjang.dart';
+import '../../models/product.dart';
+import '../../services/product_repository.dart';
 
 class ShopContent extends StatefulWidget {
   const ShopContent({super.key});
@@ -18,7 +20,7 @@ class ShopContent extends StatefulWidget {
 class _ShopContentState extends State<ShopContent> {
   final TextEditingController _searchController = TextEditingController();
   List<String> _categories = ['Semua'];
-  List<ShopProduct> _products = [];
+  List<Product> _products = [];
   String _selectedCategory = 'Semua';
   bool _loading = true;
   String? _error;
@@ -51,7 +53,7 @@ class _ShopContentState extends State<ShopContent> {
     try {
       final results = await Future.wait([
         ApiService.getShopCategories(),
-        ApiService.getShopProducts(
+        ProductRepository().getProducts(
           search: _searchController.text,
           kategori: _selectedCategory == 'Semua' ? null : _selectedCategory,
         ),
@@ -60,7 +62,7 @@ class _ShopContentState extends State<ShopContent> {
       if (!mounted) return;
       setState(() {
         _categories = ['Semua', ...(results[0] as List<String>)];
-        _products = results[1] as List<ShopProduct>;
+        _products = results[1] as List<Product>;
         _loading = false;
       });
     } catch (e) {
@@ -246,7 +248,8 @@ class _ShopContentState extends State<ShopContent> {
     );
   }
 
-  Widget _buildProductCard(ShopProduct product) {
+  Widget _buildProductCard(Product product) {
+    final hasImage = product.imageUrl.isNotEmpty;
     return GestureDetector(
       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailProdukScreen(productId: product.id))),
       child: Container(
@@ -264,9 +267,31 @@ class _ShopContentState extends State<ShopContent> {
                 width: double.infinity,
                 margin: const EdgeInsets.all(10),
                 decoration: BoxDecoration(color: AppColors.categoryBg1, borderRadius: BorderRadius.circular(14)),
-                child: product.imageUrl != null
-                    ? ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.network(product.imageUrl!, fit: BoxFit.cover))
-                    : const Center(child: Image(image: AssetImage('assets/images/logo-paw.png')))
+                child: hasImage
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(14), 
+                        child: Image.network(
+                          product.imageUrl, 
+                          fit: BoxFit.cover,
+                          loadingBuilder: (ctx, child, progress) {
+                            if (progress == null) return child;
+                            return Center(
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary.withOpacity(0.3)),
+                              ),
+                            );
+                          },
+                          errorBuilder: (ctx, err, stack) => const Center(
+                            child: Image(
+                              image: AssetImage('assets/images/logo-paw.png'),
+                              width: 48,
+                              height: 48,
+                            ),
+                          ),
+                        ),
+                      )
+                    : const Center(child: Image(image: AssetImage('assets/images/logo-paw.png'), width: 48, height: 48))
               ),
             ),
             Padding(
@@ -274,12 +299,12 @@ class _ShopContentState extends State<ShopContent> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(product.namaBarang, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+                  Text(product.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textDark)),
                   const SizedBox(height: 4),
-                  Text(product.kategori, style: const TextStyle(fontSize: 11, color: AppColors.textLight)),
+                  Text(product.category, style: const TextStyle(fontSize: 11, color: AppColors.textLight)),
                   const SizedBox(height: 6),
-                  Text('Rp ${_formatHarga(product.harga)}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.primary)),
-                  Text('Stok ${product.stok}', style: const TextStyle(fontSize: 11, color: AppColors.textLight)),
+                  Text('Rp ${_formatHarga(product.price)}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.primary)),
+                  Text('Stok ${product.stock}', style: const TextStyle(fontSize: 11, color: AppColors.textLight)),
                 ],
               ),
             ),

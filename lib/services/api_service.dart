@@ -5,6 +5,7 @@ import '../screens/profile/shop_report.dart';
 import '../screens/profile/transaction_detail.dart';
 import '../config/api_config.dart';
 import 'dart:io';
+import '../models/product.dart';
 
 class UserProfile {
   final int id;
@@ -130,35 +131,7 @@ class PackageType {
 }
 
 
-class ShopProduct {
-  final int id;
-  final String namaBarang;
-  final String kategori;
-  final double harga;
-  final int stok;
-  final String? imageUrl;
-  final bool tersedia;
-
-  ShopProduct({
-    required this.id,
-    required this.namaBarang,
-    required this.kategori,
-    required this.harga,
-    required this.stok,
-    this.imageUrl,
-    required this.tersedia,
-  });
-
-  factory ShopProduct.fromJson(Map<String, dynamic> json) => ShopProduct(
-        id: json['id'] ?? 0,
-        namaBarang: json['nama_barang'] ?? '-',
-        kategori: json['kategori'] ?? '-',
-        harga: double.tryParse(json['harga'].toString()) ?? 0,
-        stok: int.tryParse(json['stok'].toString()) ?? 0,
-        imageUrl: json['image_url'],
-        tersedia: json['tersedia'] == true,
-      );
-}
+typedef ShopProduct = Product;
 
 class ShopCartItem {
   final int id;

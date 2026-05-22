@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../theme/tema_app.dart';
 import '../../services/servis_auth.dart';
-import '../../models/best_seller_product.dart';
-import '../../services/best_seller_service.dart';
-import '../../services/mock_best_seller_service.dart';
+import '../../models/product.dart';
+import '../../services/product_repository.dart';
 import '../login.dart';
 import '../Shop/shop.dart';
 import '../Booking/booking.dart';
@@ -30,11 +29,9 @@ class _DashboardScreenState extends State<DashboardScreen>
   int _currentBanner = 0;
 
   // ─── Best Seller state ──────────────────────────────────────
-  /// Service abstraction — swap MockBestSellerService with a real
-  /// API implementation when the backend endpoint is ready.
-  final BestSellerService _bestSellerService = MockBestSellerService();
+  final ProductRepository _productRepository = ProductRepository();
 
-  List<BestSellerProduct> _bestSellers = [];
+  List<Product> _bestSellers = [];
   bool _isBestSellersLoading = true;
   String? _bestSellersError;
 
@@ -57,13 +54,14 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   // ─── Async data loading ─────────────────────────────────────
   Future<void> _loadBestSellers() async {
+    if (!mounted) return;
     setState(() {
       _isBestSellersLoading = true;
       _bestSellersError = null;
     });
 
     try {
-      final products = await _bestSellerService.getBestSellers();
+      final products = await _productRepository.getBestSellerProducts();
       if (mounted) {
         setState(() {
           _bestSellers = products;
@@ -564,7 +562,11 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
 
-  Widget _buildProductCard(BestSellerProduct product) {
+  Widget _buildProductCard(Product product) {
+    final url = product.imageUrl.trim();
+    final isNetwork = url.startsWith('http://') || url.startsWith('https://');
+    final hasImage = url.isNotEmpty;
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -584,14 +586,48 @@ class _DashboardScreenState extends State<DashboardScreen>
               ),
               child: ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-                child: Image.asset(
-                  product.imageUrl,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (ctx, err, stack) => Center(
-                    child: Icon(Icons.image_not_supported_outlined, color: AppColors.textLight, size: 32),
-                  ),
-                ),
+                child: hasImage
+                    ? (isNetwork
+                        ? Image.network(
+                            url,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (ctx, child, progress) {
+                              if (progress == null) return child;
+                              return Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary.withOpacity(0.3)),
+                                ),
+                              );
+                            },
+                            errorBuilder: (ctx, err, stack) => const Center(
+                              child: Image(
+                                  image: AssetImage('assets/images/logo-paw.png'),
+                                  width: 48,
+                                  height: 48,
+                              ),
+                            ),
+                          )
+                        : Image.asset(
+                            url,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (ctx, err, stack) => const Center(
+                              child: Image(
+                                  image: AssetImage('assets/images/logo-paw.png'),
+                                  width: 48,
+                                  height: 48,
+                              ),
+                            ),
+                          ))
+                    : const Center(
+                        child: Image(
+                          image: AssetImage('assets/images/logo-paw.png'),
+                          width: 48,
+                          height: 48,
+                        ),
+                      ),
               ),
             ),
           ),
