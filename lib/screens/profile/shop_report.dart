@@ -255,15 +255,21 @@ class _ShopReportPageState extends State<ShopReportPage> {
         : '-';
 
     return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => TransactionDetailPage(
-            transactionId: trx.id,
-            kodeTransaksi: trx.kodeTransaksi,
+      onTap: () async {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => TransactionDetailPage(
+              transactionId: trx.id,
+              kodeTransaksi: trx.kodeTransaksi,
+            ),
           ),
-        ),
-      ),
+        );
+        // Refresh list when returning from detail (status may have changed)
+        if (mounted) {
+          setState(() => _future = ApiService.getTransactions());
+        }
+      },
       child: Container(
       decoration: BoxDecoration(
         color: Colors.white,

@@ -20,6 +20,7 @@ class SnapWebViewScreen extends StatefulWidget {
 class _SnapWebViewScreenState extends State<SnapWebViewScreen> {
   late final WebViewController _controller;
   bool _isLoading = true;
+  bool _canGoBack = false;
 
   @override
   void initState() {
@@ -32,15 +33,27 @@ class _SnapWebViewScreenState extends State<SnapWebViewScreen> {
           onProgress: (int progress) {
             // Can be used to update a progress bar if we want.
           },
-          onPageStarted: (String url) {
-            setState(() {
-              _isLoading = true;
-            });
+          onPageStarted: (String url) async {
+            if (mounted) {
+              setState(() {
+                _isLoading = true;
+              });
+            }
+            final canBack = await _controller.canGoBack();
+            if (mounted) {
+              setState(() {
+                _canGoBack = canBack;
+              });
+            }
           },
-          onPageFinished: (String url) {
-            setState(() {
-              _isLoading = false;
-            });
+          onPageFinished: (String url) async {
+            final canBack = await _controller.canGoBack();
+            if (mounted) {
+              setState(() {
+                _isLoading = false;
+                _canGoBack = canBack;
+              });
+            }
           },
           onWebResourceError: (WebResourceError error) {
             debugPrint("WebResourceError: ${error.description}");
@@ -108,7 +121,21 @@ class _SnapWebViewScreenState extends State<SnapWebViewScreen> {
           ],
         ),
         leading: GestureDetector(
-          onTap: () => Navigator.pop(context, true), // returns true indicating user finished/closed the checkout flow
+          onTap: () async {
+            if (_canGoBack) {
+              if (await _controller.canGoBack()) {
+                await _controller.goBack();
+                final canBack = await _controller.canGoBack();
+                if (mounted) {
+                  setState(() {
+                    _canGoBack = canBack;
+                  });
+                }
+              }
+            } else {
+              Navigator.pop(context, true);
+            }
+          },
           child: Container(
             margin: const EdgeInsets.all(10),
             decoration: BoxDecoration(
@@ -116,13 +143,34 @@ class _SnapWebViewScreenState extends State<SnapWebViewScreen> {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: AppColors.divider),
             ),
-            child: const Icon(
-              Icons.close_rounded,
+            child: Icon(
+              _canGoBack ? Icons.arrow_back_ios_new_rounded : Icons.close_rounded,
               size: 18,
               color: AppColors.textDark,
             ),
           ),
         ),
+        actions: [
+          if (_canGoBack)
+            GestureDetector(
+              onTap: () => Navigator.pop(context, true),
+              child: Container(
+                margin: const EdgeInsets.only(right: 16, top: 10, bottom: 10),
+                width: 36,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.divider),
+                ),
+                child: const Icon(
+                  Icons.close_rounded,
+                  size: 18,
+                  color: AppColors.textDark,
+                ),
+              ),
+            ),
+        ],
       ),
       body: Stack(
         children: [
