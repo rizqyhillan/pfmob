@@ -23,7 +23,6 @@ class _TambahHewanScreenState extends State<TambahHewanScreen> {
   final List<Map<String, dynamic>> _jenisHewan = [
     {'label': 'Anjing', 'icon': Icons.pets},
     {'label': 'Kucing', 'icon': Icons.pets},
-    {'label': 'Burung', 'icon': Icons.flutter_dash},
     {'label': 'Kelinci', 'icon': Icons.cruelty_free},
   ];
 
@@ -265,7 +264,7 @@ class _TambahHewanScreenState extends State<TambahHewanScreen> {
                     color: AppColors.categoryBg1,
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: AppColors.primary.withOpacity(0.3),
+                      color: AppColors.primary.withValues(alpha: 0.3),
                       width: 2,
                     ),
                   ),
@@ -277,7 +276,7 @@ class _TambahHewanScreenState extends State<TambahHewanScreen> {
                               Icon(
                                 Icons.pets_rounded,
                                 size: 40,
-                                color: AppColors.primary.withOpacity(0.4),
+                                color: AppColors.primary.withValues(alpha: 0.4),
                               ),
                             ],
                           )
@@ -430,7 +429,7 @@ class _TambahHewanScreenState extends State<TambahHewanScreen> {
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             suffixIcon: Icon(Icons.search,
-                color: AppColors.textLight.withOpacity(0.6), size: 20),
+                color: AppColors.textLight.withValues(alpha: 0.6), size: 20),
           ),
         ),
       ),
@@ -456,7 +455,7 @@ class _TambahHewanScreenState extends State<TambahHewanScreen> {
                       horizontal: 14, vertical: 14),
                   decoration: BoxDecoration(
                     color: selected
-                        ? AppColors.primary.withOpacity(0.07)
+                        ? AppColors.primary.withValues(alpha: 0.07)
                         : Colors.white,
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(

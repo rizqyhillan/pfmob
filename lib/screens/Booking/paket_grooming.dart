@@ -171,7 +171,7 @@ class _PaketGroomingScreenState extends State<PaketGroomingScreen> {
           color: bgColor,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: isFavorit ? warna : Colors.transparent, width: 2),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 3))],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 3))],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

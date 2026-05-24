@@ -220,7 +220,7 @@ class _DetailProdukScreenState extends State<DetailProdukScreen> {
                       return Center(
                         child: CircularProgressIndicator(
                           strokeWidth: 2.5,
-                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary.withOpacity(0.4)),
+                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary.withValues(alpha: 0.4)),
                         ),
                       );
                     },
@@ -283,7 +283,7 @@ class _DetailProdukScreenState extends State<DetailProdukScreen> {
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
       decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 16, offset: const Offset(0, -4))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 16, offset: const Offset(0, -4))],
       ),
       child: SizedBox(
         width: double.infinity,

@@ -252,7 +252,7 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: AppColors.divider),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))],
           ),
           child: Column(
             children: [
@@ -297,7 +297,7 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
           child: Container(
             width: 36,
             height: 36,
-            decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), shape: BoxShape.circle),
+            decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
             child: const Icon(Icons.arrow_downward_rounded, color: AppColors.primary, size: 20),
           ),
         ),
@@ -378,7 +378,7 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
   Widget _buildSimpanButton() {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-      decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 16, offset: const Offset(0, -4))]),
+      decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 16, offset: const Offset(0, -4))]),
       child: GestureDetector(
         onTap: _saving ? null : _save,
         child: Container(

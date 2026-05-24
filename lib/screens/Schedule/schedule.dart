@@ -326,15 +326,37 @@ class _ScheduleContentState extends State<ScheduleContent> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
+        height: 52,
+        padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
           color: AppColors.categoryBg1,
           borderRadius: BorderRadius.circular(16),
         ),
-        padding: const EdgeInsets.all(4),
-        child: Row(
+        child: Stack(
           children: [
-            _buildTab('Mendatang', 0),
-            _buildTab('Riwayat', 1),
+            AnimatedAlign(
+              duration: const Duration(milliseconds: 360),
+              curve: Curves.easeOutCubic,
+              alignment: _selectedTab == 0
+                  ? Alignment.centerLeft
+                  : Alignment.centerRight,
+              child: FractionallySizedBox(
+                widthFactor: 0.5,
+                heightFactor: 1,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+            Row(
+              children: [
+                _buildTab('Mendatang', 0),
+                _buildTab('Riwayat', 1),
+              ],
+            ),
           ],
         ),
       ),
@@ -345,31 +367,26 @@ class _ScheduleContentState extends State<ScheduleContent> {
     final selected = _selectedTab == index;
 
     return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _selectedTab = index),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: selected ? Colors.white : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: selected
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.06),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : [],
-          ),
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: selected ? AppColors.textDark : AppColors.textLight,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          onTap: () {
+            if (_selectedTab == index) return;
+            setState(() => _selectedTab = index);
+          },
+          child: Center(
+            child: AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: selected ? AppColors.textDark : AppColors.textLight,
+              ),
+              child: Text(label),
             ),
           ),
         ),
@@ -458,7 +475,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
           border: Border.all(color: AppColors.divider),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 10,
               offset: const Offset(0, 3),
             ),
@@ -509,7 +526,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.15),
+                    color: statusColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -679,7 +696,7 @@ class _ScheduleDetailSheet extends StatelessWidget {
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(color: statusColor.withOpacity(0.15), borderRadius: BorderRadius.circular(999)),
+                decoration: BoxDecoration(color: statusColor.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(999)),
                 child: Text(statusLabel, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: statusColor)),
               ),
               const SizedBox(height: 18),

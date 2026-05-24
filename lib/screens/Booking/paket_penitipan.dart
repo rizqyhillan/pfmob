@@ -430,7 +430,7 @@ class _PaketPenitipanScreenState extends State<PaketPenitipanScreen> {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 10,
               offset: const Offset(0, 3),
             ),
@@ -445,7 +445,7 @@ class _PaketPenitipanScreenState extends State<PaketPenitipanScreen> {
                   width: 54,
                   height: 54,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.65),
+                    color: Colors.white.withValues(alpha: 0.65),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Icon(_paketIcon(paket), color: warna, size: 28),
@@ -509,7 +509,7 @@ class _PaketPenitipanScreenState extends State<PaketPenitipanScreen> {
                       'Mulai dari',
                       style: TextStyle(
                         fontSize: 10,
-                        color: warna.withOpacity(0.75),
+                        color: warna.withValues(alpha: 0.75),
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -525,7 +525,7 @@ class _PaketPenitipanScreenState extends State<PaketPenitipanScreen> {
                       '/ hari',
                       style: TextStyle(
                         fontSize: 10,
-                        color: warna.withOpacity(0.75),
+                        color: warna.withValues(alpha: 0.75),
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -612,7 +612,7 @@ class _PaketPenitipanScreenState extends State<PaketPenitipanScreen> {
             border: Border.all(color: AppColors.divider),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.03),
+                color: Colors.black.withValues(alpha: 0.03),
                 blurRadius: 10,
                 offset: const Offset(0, 3),
               ),
@@ -627,7 +627,7 @@ class _PaketPenitipanScreenState extends State<PaketPenitipanScreen> {
                     width: 56,
                     height: 56,
                     decoration: BoxDecoration(
-                      color: warna.withOpacity(0.12),
+                      color: warna.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: Icon(
@@ -682,8 +682,8 @@ class _PaketPenitipanScreenState extends State<PaketPenitipanScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                 decoration: BoxDecoration(
                   color: isAvailable
-                      ? warna.withOpacity(0.10)
-                      : Colors.grey.withOpacity(0.12),
+                      ? warna.withValues(alpha: 0.10)
+                      : Colors.grey.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(

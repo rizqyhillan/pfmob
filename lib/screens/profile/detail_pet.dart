@@ -125,7 +125,7 @@ class DetailPetScreen extends StatelessWidget {
               margin: const EdgeInsets.only(top: 20),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.3),
+                color: Colors.white.withValues(alpha: 0.3),
               ),
             ),
           ),
@@ -146,7 +146,7 @@ class DetailPetScreen extends StatelessWidget {
                           height: 220,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) => Container(
-                            color: Colors.white.withOpacity(0.5),
+                            color: Colors.white.withValues(alpha: 0.5),
                             child: const Icon(
                               Icons.pets,
                               color: AppColors.primary,
@@ -160,7 +160,7 @@ class DetailPetScreen extends StatelessWidget {
                           height: 220,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) => Container(
-                            color: Colors.white.withOpacity(0.5),
+                            color: Colors.white.withValues(alpha: 0.5),
                             child: const Icon(
                               Icons.pets,
                               color: AppColors.primary,
@@ -183,7 +183,7 @@ class DetailPetScreen extends StatelessWidget {
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.8),
+                  color: Colors.white.withValues(alpha: 0.8),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
@@ -213,7 +213,7 @@ class DetailPetScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: i == 0
                         ? AppColors.textDark
-                        : AppColors.textDark.withOpacity(0.25),
+                        : AppColors.textDark.withValues(alpha: 0.25),
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),

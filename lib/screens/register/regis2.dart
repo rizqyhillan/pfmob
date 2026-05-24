@@ -8,7 +8,6 @@ import '../../services/servis_auth.dart';
 
 import '../../theme/tema_app.dart';
 import '../../config/api_config.dart';
-import '../../services/api_service.dart';
 import 'regis1.dart' show buildStepIndicator;
 import 'regis3.dart';
 
@@ -70,8 +69,12 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen>
   void dispose() {
     _animController.dispose();
     _timer?.cancel();
-    for (final c in _controllers) c.dispose();
-    for (final f in _focusNodes) f.dispose();
+    for (final c in _controllers) {
+      c.dispose();
+    }
+    for (final f in _focusNodes) {
+      f.dispose();
+    }
     super.dispose();
   }
 
@@ -121,6 +124,8 @@ Future<void> _verify() async {
 
     if (response.statusCode == 200) {
       await AuthService().saveLoginDataFromResponse(data);
+
+      if (!mounted) return;
     
       Navigator.pushReplacement(
         context,

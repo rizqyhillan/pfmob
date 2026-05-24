@@ -88,8 +88,8 @@ class _RegisterStep3ScreenState extends State<RegisterStep3Screen>
                                 decoration: BoxDecoration(
                                   color: AppColors.accentLight,
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: AppColors.accent.withOpacity(0.3), width: 3),
-                                  boxShadow: [BoxShadow(color: AppColors.accent.withOpacity(0.2), blurRadius: 24, offset: const Offset(0, 8))],
+                                  border: Border.all(color: AppColors.accent.withValues(alpha: 0.3), width: 3),
+                                  boxShadow: [BoxShadow(color: AppColors.accent.withValues(alpha: 0.2), blurRadius: 24, offset: const Offset(0, 8))],
                                 ),
                                 child: const Center(
                                   child: Icon(Icons.check_circle_rounded, color: AppColors.accent, size: 64),

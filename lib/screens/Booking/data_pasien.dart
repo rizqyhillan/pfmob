@@ -84,9 +84,11 @@ class _DataPasienScreenState extends State<DataPasienScreen> {
       if (!mounted) return;
       _showSuksesPopup(context);
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+        );
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -97,7 +99,7 @@ class _DataPasienScreenState extends State<DataPasienScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withOpacity(0.5),
+      barrierColor: Colors.black.withValues(alpha: 0.5),
       isDismissible: false,
       enableDrag: false,
       builder: (_) => Container(
@@ -270,5 +272,22 @@ class _DataPasienScreenState extends State<DataPasienScreen> {
         Wrap(spacing: 8, runSpacing: 8, children: _quickKeluhan.map((k) => GestureDetector(onTap: () => setState(() => _keluhanController.text += _keluhanController.text.isEmpty ? k : ', $k'), child: Container(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.divider)), child: Text(k, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textMedium))))).toList()),
       ]);
 
-  Widget _bottomButton() => Container(padding: const EdgeInsets.fromLTRB(20, 16, 20, 20), decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 16, offset: const Offset(0, -4))]), child: SizedBox(width: double.infinity, child: ElevatedButton(onPressed: _saving ? null : _submit, child: Text(_saving ? 'Menyimpan...' : 'Buat Booking'))));
+  Widget _bottomButton() => Container(
+    padding: const EdgeInsets.fromLTRB(20, 16, 20, 20), 
+    decoration: BoxDecoration(
+      color: Colors.white, 
+      boxShadow: [BoxShadow(
+        color: Colors.black.withValues(alpha: 0.06), 
+        blurRadius: 16, 
+        offset: const Offset(0, -4)
+        )
+      ]), 
+    child: SizedBox(
+      width: double.infinity, 
+      child: ElevatedButton(
+        onPressed: _saving ? null : _submit, 
+        child: Text(_saving ? 'Menyimpan...' : 'Buat Booking')
+        )
+      )
+    );
 }

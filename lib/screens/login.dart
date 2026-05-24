@@ -4,7 +4,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../theme/tema_app.dart';
 import '../services/servis_auth.dart';
 import 'register/regis1.dart';
-import 'profile/profile.dart';
 import 'lupa_pass.dart';
 import 'Home/dashboard.dart';
 
@@ -174,7 +173,7 @@ class _LoginScreenState extends State<LoginScreen>
                           ),
                           validator: (v) {
                             if (v == null || v.isEmpty)
-                              return 'Email wajib diisi';
+                              { return 'Email wajib diisi'; }
                             if (!v.contains('@')) return 'Email tidak valid';
                             return null;
                           },
@@ -212,9 +211,9 @@ class _LoginScreenState extends State<LoginScreen>
                           ),
                           validator: (v) {
                             if (v == null || v.isEmpty)
-                              return 'Password wajib diisi';
+                              { return 'Password wajib diisi'; }
                             if (v.length < 6)
-                              return 'Password minimal 6 karakter';
+                              { return 'Password minimal 6 karakter'; } 
                             return null;
                           },
                         ),

@@ -146,7 +146,7 @@ class _DashboardScreenState extends State<DashboardScreen>
               color: Colors.white,
               borderRadius: BorderRadius.circular(18),
               border: Border.all(color: AppColors.divider),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 3))],
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 3))],
             ),
             child: Column(
               children: [
@@ -203,7 +203,7 @@ class _DashboardScreenState extends State<DashboardScreen>
               color: Colors.white,
               borderRadius: BorderRadius.circular(18),
               border: Border.all(color: AppColors.divider),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 3))],
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 3))],
             ),
             child: Column(
               children: [
@@ -269,7 +269,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: AppColors.divider),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 3))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 3))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -278,7 +278,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             child: Container(
               width: double.infinity,
               decoration: BoxDecoration(
-                color: AppColors.divider.withOpacity(0.5),
+                color: AppColors.divider.withValues(alpha: 0.5),
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
               ),
               child: Center(
@@ -287,7 +287,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                   height: 24,
                   child: CircularProgressIndicator(
                     strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary.withOpacity(0.4)),
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary.withValues(alpha: 0.4)),
                   ),
                 ),
               ),
@@ -404,7 +404,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 border: Border.all(color: AppColors.divider),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
+                    color: Colors.black.withValues(alpha: 0.04),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -418,30 +418,6 @@ class _DashboardScreenState extends State<DashboardScreen>
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildSearchBar() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.divider),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
-        ),
-        child: const TextField(
-          decoration: InputDecoration(
-            hintText: 'Search',
-            prefixIcon: Icon(Icons.search, color: AppColors.textLight, size: 22),
-            border: InputBorder.none,
-            enabledBorder: InputBorder.none,
-            focusedBorder: InputBorder.none,
-            contentPadding: EdgeInsets.symmetric(vertical: 14),
-          ),
-        ),
       ),
     );
   }
@@ -511,10 +487,10 @@ class _DashboardScreenState extends State<DashboardScreen>
         children: List.generate(categories.length, (i) {
           return GestureDetector(
             onTap: () {
-              if (i == 0) setState(() => _currentIndex = 1);
-              else if (i == 1) setState(() => _currentIndex = 2);
-              else if (i == 2) setState(() => _currentIndex = 4);
-              else if (i == 3) setState(() => _currentIndex = 3);
+              if (i == 0) { setState(() => _currentIndex = 1); }
+              else if (i == 1) { setState(() => _currentIndex = 2); }
+              else if (i == 2) { setState(() => _currentIndex = 4); }
+              else if (i == 3) { setState(() => _currentIndex = 3); }
             },
             child: _buildCategoryItem(categories[i]),
           );
@@ -531,7 +507,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           decoration: BoxDecoration(
             color: cat.bgColor,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: cat.bgColor.withOpacity(0.5)),
+            border: Border.all(color: cat.bgColor.withValues(alpha: 0.5)),
           ),
           child: Icon(cat.icon, color: cat.iconColor, size: 26),
         ),
@@ -572,7 +548,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: AppColors.divider),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 3))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 3))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -597,7 +573,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                               return Center(
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary.withOpacity(0.3)),
+                                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary.withValues(alpha: 0.3)),
                                 ),
                               );
                             },
@@ -696,7 +672,7 @@ Widget _buildBottomNav() {
       borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       boxShadow: [
         BoxShadow(
-          color: Colors.black.withOpacity(0.08),
+          color: Colors.black.withValues(alpha: 0.08),
           blurRadius: 20,
           offset: const Offset(0, -4),
         ),
@@ -730,7 +706,7 @@ Widget _buildBottomNav() {
                         borderRadius: BorderRadius.circular(14),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primary.withOpacity(0.28),
+                            color: AppColors.primary.withValues(alpha: 0.28),
                           ),
                         ],
                       ),

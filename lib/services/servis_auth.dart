@@ -1,10 +1,12 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../config/api_config.dart';
 import 'api_service.dart';
+
 
 class AuthService {
   static final AuthService _instance = AuthService._internal();
@@ -92,7 +94,7 @@ class AuthService {
 
       return false;
     } catch (e) {
-      print('Login error: $e');
+      debugPrint('Login error: $e');
       return false;
     }
   }
@@ -176,7 +178,7 @@ class AuthService {
 
       return false;
     } catch (e) {
-      print('Register error: $e');
+      debugPrint('Register error: $e');
       return false;
     }
   }
