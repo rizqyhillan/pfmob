@@ -107,7 +107,7 @@ class _KonfirmasiPenitipanScreenState extends State<KonfirmasiPenitipanScreen> {
     if (pet == null || _saving) return;
     setState(() => _saving = true);
     try {
-      final result = await ApiService.bookBoarding(
+      await ApiService.bookBoarding(
         idHewan: pet.id,
         idKamar: widget.room.id,
         tanggalMasuk: _date(_checkIn),
@@ -545,7 +545,7 @@ class _KonfirmasiPenitipanScreenState extends State<KonfirmasiPenitipanScreen> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 16,
             offset: const Offset(0, -4),
           ),
@@ -756,7 +756,7 @@ class _KonfirmasiPenitipanScreenState extends State<KonfirmasiPenitipanScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withOpacity(0.5),
+      barrierColor: Colors.black.withValues(alpha: 0.5),
       isDismissible: false,
       enableDrag: false,
       builder: (_) => Container(

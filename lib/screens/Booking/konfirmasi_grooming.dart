@@ -350,7 +350,7 @@ class _KonfirmasiGroomingScreenState extends State<KonfirmasiGroomingScreen> {
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
       decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 16, offset: const Offset(0, -4))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 16, offset: const Offset(0, -4))],
       ),
       child: GestureDetector(
         onTap: () => _showRingkasanPopup(context),
@@ -515,20 +515,24 @@ class _KonfirmasiGroomingScreenState extends State<KonfirmasiGroomingScreen> {
                 Expanded(
                   flex: 2,
                   child: GestureDetector(
-                    onTap: () {
-                      Navigator.pop(context);
-                      _submitBooking(hewan.id, hari['full_date'], waktu);
-                    },
+                    onTap: _isSubmitting
+                        ? null
+                        : () {
+                            Navigator.pop(context);
+                            _submitBooking(hewan.id, hari['full_date'], waktu);
+                          },
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       decoration: BoxDecoration(
-                        color: AppColors.primary,
+                        color: _isSubmitting
+                            ? AppColors.textLight
+                            : AppColors.primary,
                         borderRadius: BorderRadius.circular(14),
                       ),
-                      child: const Text(
-                        'Ya, Konfirmasi!',
+                      child: Text(
+                        _isSubmitting ? 'Memproses...' : 'Ya, Konfirmasi!',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
@@ -571,6 +575,8 @@ class _KonfirmasiGroomingScreenState extends State<KonfirmasiGroomingScreen> {
   }
 
   Future<void> _submitBooking(int idHewan, String tanggal, String waktu) async {
+    if (_isSubmitting) return;
+  
     setState(() => _isSubmitting = true);
     showDialog(
       context: context,
@@ -602,7 +608,7 @@ class _KonfirmasiGroomingScreenState extends State<KonfirmasiGroomingScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withOpacity(0.5),
+      barrierColor: Colors.black.withValues(alpha: 0.5),
       isDismissible: false,
       enableDrag: false,
       builder: (_) => Container(
@@ -666,26 +672,6 @@ class _KonfirmasiGroomingScreenState extends State<KonfirmasiGroomingScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildPopupRow(IconData icon, String label, String value, Color iconColor) {
-    return Row(
-      children: [
-        Container(
-          width: 36, height: 36,
-          decoration: BoxDecoration(color: iconColor.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
-          child: Icon(icon, color: iconColor, size: 18),
-        ),
-        const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textLight, fontWeight: FontWeight.w600)),
-            Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textDark)),
-          ],
-        ),
-      ],
     );
   }
 }

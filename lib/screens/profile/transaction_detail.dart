@@ -280,7 +280,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -4),
           ),
@@ -320,7 +320,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                shadowColor: AppColors.primary.withOpacity(0.4),
+                shadowColor: AppColors.primary.withValues(alpha: 0.4),
                 elevation: 4,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
@@ -382,7 +382,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
               border: Border.all(color: AppColors.divider),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -611,7 +611,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
                           color: AppColors.categoryBg1,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                              color: AppColors.primary.withOpacity(0.2)),
+                              color: AppColors.primary.withValues(alpha: 0.2)),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,

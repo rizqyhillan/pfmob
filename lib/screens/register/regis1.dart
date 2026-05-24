@@ -49,69 +49,69 @@ class _RegisterScreenState extends State<RegisterScreen>
     super.dispose();
   }
 
-void _lanjut() async {
+Future<void> _lanjut() async {
   if (!_agreeTerms) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text(
-          'Kamu harus menyetujui syarat & ketentuan',
-        ),
+      const SnackBar(
+        content: Text('Kamu harus menyetujui syarat & ketentuan'),
         backgroundColor: Colors.red,
       ),
     );
     return;
   }
 
-  if (_formKey.currentState!.validate()) {
-    setState(() => _isLoading = true);
+  if (!_formKey.currentState!.validate()) return;
 
-    try {
-      final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/send-otp'),
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'email': _emailController.text.trim(),
-        }),
+  setState(() => _isLoading = true);
+
+  try {
+    final response = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}/send-otp'),
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'email': _emailController.text.trim(),
+      }),
+    );
+
+    if (!mounted) return;
+
+    final data = jsonDecode(response.body);
+
+    setState(() => _isLoading = false);
+
+    if (response.statusCode == 200) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => RegisterStep2Screen(
+            name: _nameController.text.trim(),
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim(),
+          ),
+        ),
       );
-
-      final data = jsonDecode(response.body);
-
-      setState(() => _isLoading = false);
-
-      if (response.statusCode == 200) {
-        if (!mounted) return;
-
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => RegisterStep2Screen(
-              name: _nameController.text.trim(),
-              email: _emailController.text.trim(),
-              password: _passwordController.text.trim(),
-            ),
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(data['message']),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
-      setState(() => _isLoading = false);
-
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error: $e'),
+          content: Text(data['message'] ?? 'Gagal mengirim OTP'),
           backgroundColor: Colors.red,
         ),
       );
     }
+  } catch (e) {
+    if (!mounted) return;
+
+    setState(() => _isLoading = false);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Error: $e'),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
 }
 
@@ -121,7 +121,6 @@ void _lanjut() async {
     required String hint,
     required IconData icon,
     bool obscure = false,
-    VoidCallback? onToggleObscure,
     TextInputType keyboardType = TextInputType.text,
     String? Function(String?)? validator,
   }) {
@@ -242,8 +241,8 @@ void _lanjut() async {
                       icon: Icons.lock_outline,
                       validator: (v) {
                         if (v == null || v.isEmpty)
-                          return 'Password wajib diisi';
-                        if (v.length < 6) return 'Password minimal 6 karakter';
+                          { return 'Password wajib diisi'; }
+                        if (v.length < 6) { return 'Password minimal 6 karakter'; }
                         return null;
                       },
                     ),
@@ -254,9 +253,9 @@ void _lanjut() async {
                       icon: Icons.lock_outline,
                       validator: (v) {
                         if (v == null || v.isEmpty)
-                          return 'Konfirmasi password wajib diisi';
+                          { return 'Konfirmasi password wajib diisi'; }
                         if (v != _passwordController.text)
-                          return 'Password tidak cocok';
+                          { return 'Password tidak cocok'; }
                         return null;
                       },
                     ),

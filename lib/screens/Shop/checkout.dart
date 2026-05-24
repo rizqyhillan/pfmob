@@ -208,7 +208,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       decoration: BoxDecoration(
         color: AppColors.accentLight,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.accent.withOpacity(0.25)),
+        border: Border.all(color: AppColors.accent.withValues(alpha: 0.25)),
       ),
       child: const Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -277,7 +277,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         border: Border.all(color: AppColors.divider),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -472,7 +472,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               height: 42,
               decoration: BoxDecoration(
                 color: selected
-                    ? AppColors.primary.withOpacity(0.1)
+                    ? AppColors.primary.withValues(alpha: 0.1)
                     : AppColors.categoryBg1,
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -591,7 +591,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 16,
             offset: const Offset(0, -4),
           ),

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../theme/tema_app.dart';
 
-// Model rekam medis sesuai field dari backend Laravel
 class MedicalRecord {
   final int id;
   final String namaHewan;
@@ -150,7 +148,7 @@ class MedicalReportDetailPage extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.06),
+                color: Colors.black.withValues(alpha: 0.06),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -243,7 +241,7 @@ class MedicalReportDetailPage extends StatelessWidget {
             borderRadius: BorderRadius.circular(18),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 12,
                 offset: const Offset(0, 3),
               ),
@@ -367,7 +365,7 @@ class MedicalReportDetailPage extends StatelessWidget {
                 color: const Color(0xFFE8F0E8),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: const Color(0xFFE8963A).withOpacity(0.3),
+                  color: const Color(0xFFE8963A).withValues(alpha: 0.3),
                   width: 2,
                 ),
               ),
@@ -421,7 +419,7 @@ class MedicalReportDetailPage extends StatelessWidget {
                 color: const Color(0xFFFFF3E8),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                    color: const Color(0xFFE8963A).withOpacity(0.3)),
+                    color: const Color(0xFFE8963A).withValues(alpha: 0.3)),
               ),
               child: Text(
                 record.namaPemilik,
@@ -453,7 +451,7 @@ class MedicalReportDetailPage extends StatelessWidget {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.12),
+                color: iconColor.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(icon, color: iconColor, size: 17),
@@ -479,7 +477,7 @@ class MedicalReportDetailPage extends StatelessWidget {
             border: Border.all(color: const Color(0xFFEDE8E3)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.03),
+                color: Colors.black.withValues(alpha: 0.03),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -530,23 +528,9 @@ class MedicalReportDetailPage extends StatelessWidget {
         return '🐶';
       case 'kelinci':
         return '🐰';
-      case 'burung':
-        return '🐦';
-      case 'hamster':
-        return '🐹';
-      case 'ikan':
-        return '🐠';
       default:
         return '🐾';
     }
   }
 }
 
-// ─── Contoh cara pakai ────────────────────────────────────────────────────────
-// Panggil page ini dari navigator dengan data dari API:
-//
-// final data = await ApiService.getMedicalRecord(id);
-// final record = MedicalRecord.fromJson(data);
-// Navigator.push(context, MaterialPageRoute(
-//   builder: (_) => MedicalReportDetailPage(record: record),
-// ));

@@ -123,7 +123,7 @@ class _MedicalReportPageState extends State<MedicalReportPage> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(color: AppColors.divider),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 3))],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 3))],
         ),
         padding: const EdgeInsets.all(16),
         child: Row(
@@ -132,7 +132,7 @@ class _MedicalReportPageState extends State<MedicalReportPage> {
               width: 52, height: 52,
               decoration: BoxDecoration(
                 color: AppColors.categoryBg1, shape: BoxShape.circle,
-                border: Border.all(color: AppColors.primary.withOpacity(0.2), width: 2),
+                border: Border.all(color: AppColors.primary.withValues(alpha: 0.2), width: 2),
               ),
               child: Center(child: Text(_petEmoji(record.jenisHewan), style: const TextStyle(fontSize: 26))),
             ),
@@ -199,9 +199,6 @@ class _MedicalReportPageState extends State<MedicalReportPage> {
       case 'kucing': return '🐱';
       case 'anjing': return '🐶';
       case 'kelinci': return '🐰';
-      case 'burung': return '🐦';
-      case 'hamster': return '🐹';
-      case 'ikan': return '🐠';
       default: return '🐾';
     }
   }

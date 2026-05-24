@@ -158,7 +158,7 @@ class BookingContent extends StatelessWidget {
                 image: AssetImage(backgroundImage),
                 fit: BoxFit.cover,
                 colorFilter: ColorFilter.mode(
-                  Colors.black.withOpacity(0.55),
+                  Colors.black.withValues(alpha: 0.55),
                   BlendMode.darken,
                 ),
               )

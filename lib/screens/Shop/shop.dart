@@ -3,7 +3,6 @@ import '../../services/api_service.dart';
 import '../../services/servis_auth.dart';
 import '../../theme/tema_app.dart';
 import '../login.dart';
-import '../profile/my_pets.dart';
 import '../../widgets/user_avatar.dart';
 import 'detail_produk.dart';
 import 'keranjang.dart';
@@ -148,7 +147,7 @@ class _ShopContentState extends State<ShopContent> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: AppColors.divider),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))],
               ),
               child: const Icon(Icons.shopping_cart_outlined, color: AppColors.textDark, size: 22),
             ),
@@ -257,7 +256,7 @@ class _ShopContentState extends State<ShopContent> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(color: AppColors.divider),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 3))],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 3))],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -278,7 +277,7 @@ class _ShopContentState extends State<ShopContent> {
                             return Center(
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary.withOpacity(0.3)),
+                                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary.withValues(alpha: 0.3)),
                               ),
                             );
                           },

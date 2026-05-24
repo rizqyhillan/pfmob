@@ -244,9 +244,9 @@ Future<void> _save() async {
                     ),
                     validator: (v) {
                       if (v == null || v.isEmpty)
-                        return 'Konfirmasi password wajib diisi';
+                        { return 'Konfirmasi password wajib diisi'; }
                       if (v != _passwordController.text)
-                        return 'Password tidak cocok';
+                        { return 'Password tidak cocok'; }
                       return null;
                     },
                   ),

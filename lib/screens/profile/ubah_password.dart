@@ -166,7 +166,7 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
                   border: Border.all(color: Colors.white, width: 4),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withOpacity(0.20),
+                      color: AppColors.primary.withValues(alpha: 0.20),
                       blurRadius: 16,
                       offset: const Offset(0, 6),
                     ),

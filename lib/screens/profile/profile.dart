@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/tema_app.dart';
 import '../../services/servis_auth.dart';
-import '../login.dart';
 import 'medical_report_list.dart';
 import 'shop_report.dart';
 import 'edit_profil.dart';
@@ -124,7 +123,7 @@ class ProfileScreen extends StatelessWidget {
                                   width: 38,
                                   height: 38,
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.18),
+                                    color: Colors.white.withValues(alpha: 0.18),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: const Icon(
@@ -158,6 +157,7 @@ class ProfileScreen extends StatelessWidget {
                                     builder: (_) => const EditProfilPage(),
                                   ),
                                 ).then((updated) {
+                                  if (!context.mounted) return;
                                   if (updated == true) {
                                     Navigator.pushReplacement(
                                       context,
@@ -190,7 +190,7 @@ class ProfileScreen extends StatelessWidget {
                             border: Border.all(color: Colors.white, width: 4),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.primary.withOpacity(0.25),
+                                color: AppColors.primary.withValues(alpha: 0.25),
                                 blurRadius: 16,
                                 offset: const Offset(0, 6),
                               ),
@@ -285,6 +285,7 @@ class ProfileScreen extends StatelessWidget {
                             builder: (_) => const EditProfilPage(),
                           ),
                         ).then((updated) {
+                            if (!context.mounted) return;
                           if (updated == true) {
                             Navigator.pushReplacement(
                               context,
@@ -430,29 +431,6 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStat(String value, String label, String emoji) {
-    return Column(
-      children: [
-        Text(emoji, style: const TextStyle(fontSize: 20)),
-        const SizedBox(height: 4),
-        Text(value,
-            style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: AppColors.textDark)),
-        Text(label,
-            style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.textLight,
-                fontWeight: FontWeight.w500)),
-      ],
-    );
-  }
-
-  Widget _buildStatDivider() {
-    return Container(width: 1, height: 40, color: AppColors.divider);
-  }
-
   Widget _buildMenuCard(BuildContext context, List<_MenuItem> items) {
     return Container(
       decoration: BoxDecoration(
@@ -461,7 +439,7 @@ class ProfileScreen extends StatelessWidget {
         border: Border.all(color: AppColors.divider),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),

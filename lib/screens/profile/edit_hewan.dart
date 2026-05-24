@@ -217,7 +217,7 @@ class _EditHewanScreenState extends State<EditHewanScreen> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: value,
+          initialValue: value,
           items: items
               .map(
                 (item) => DropdownMenuItem(
@@ -281,7 +281,7 @@ class _EditHewanScreenState extends State<EditHewanScreen> {
                     border: Border.all(color: Colors.white, width: 4),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.08),
+                        color: Colors.black.withValues(alpha: 0.08),
                         blurRadius: 12,
                       ),
                     ],
