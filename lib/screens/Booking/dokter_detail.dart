@@ -24,10 +24,19 @@ class _DokterDetailScreenState extends State<DokterDetailScreen> {
   bool _loading = true;
   String? _error;
 
+  final LayerLink _serviceDropdownLink = LayerLink();
+  OverlayEntry? _serviceDropdownOverlay;
+
   @override
   void initState() {
     super.initState();
     _loadOptions();
+  }
+
+  @override
+  void dispose() {
+    _closeServiceDropdown();
+    super.dispose();
   }
 
   String _formatHarga(num harga) => harga.round().toString().replaceAllMapped(
@@ -52,7 +61,8 @@ class _DokterDetailScreenState extends State<DokterDetailScreen> {
       final services = results[0] as List<DoctorServiceItem>;
       final availability = results[1] as Map<String, dynamic>;
       final rawDays = availability['days'] as List? ?? [];
-      final days = rawDays.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      final days =
+          rawDays.map((e) => Map<String, dynamic>.from(e as Map)).toList();
 
       int firstAvailableDay = 0;
       Map<String, dynamic>? firstSlot;
@@ -92,6 +102,7 @@ class _DokterDetailScreenState extends State<DokterDetailScreen> {
     final siang = (times['siang'] as List? ?? [])
         .map((e) => Map<String, dynamic>.from(e as Map))
         .toList();
+
     return [...pagi, ...siang];
   }
 
@@ -103,6 +114,142 @@ class _DokterDetailScreenState extends State<DokterDetailScreen> {
     final raw = times[group] as List? ?? [];
 
     return raw.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
+void _toggleServiceDropdown() {
+  if (_serviceDropdownOverlay != null) {
+    _closeServiceDropdown();
+    return;
+  }
+
+  _serviceDropdownOverlay = OverlayEntry(
+    builder: (context) {
+      return Stack(
+        children: [
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: _closeServiceDropdown,
+              behavior: HitTestBehavior.translucent,
+              child: Container(color: Colors.transparent),
+            ),
+          ),
+          CompositedTransformFollower(
+            link: _serviceDropdownLink,
+            showWhenUnlinked: false,
+            offset: const Offset(0, 58),
+            child: TweenAnimationBuilder<double>(
+              duration: const Duration(milliseconds: 280),
+              curve: Curves.easeOutCubic,
+              tween: Tween<double>(begin: 0, end: 1),
+              builder: (context, value, child) {
+                return Opacity(
+                  opacity: value,
+                  child: Transform.translate(
+                    offset: Offset(0, -8 * (1 - value)),
+                    child: Transform.scale(
+                      scale: 0.96 + (0.04 * value),
+                      alignment: Alignment.topCenter,
+                      child: child,
+                    ),
+                  ),
+                );
+              },
+              child: Material(
+                color: Colors.transparent,
+                child: Container(
+                  width: MediaQuery.of(context).size.width - 40,
+                  constraints: const BoxConstraints(
+                    maxHeight: 240,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.25),
+                      width: 1.2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 18,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: ListView.separated(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      shrinkWrap: true,
+                      itemCount: _services.length,
+                      separatorBuilder: (_, __) => Divider(
+                        height: 1,
+                        color: Colors.grey.withValues(alpha: 0.16),
+                      ),
+                      itemBuilder: (context, index) {
+                        final s = _services[index];
+                        final selected = _selectedService?.id == s.id;
+
+                        return InkWell(
+                          onTap: () {
+                            setState(() {
+                              _selectedService = s;
+                            });
+                            _closeServiceDropdown();
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 13,
+                            ),
+                            color: selected
+                                ? AppColors.primary.withValues(alpha: 0.08)
+                                : Colors.white,
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    '${s.namaLayanan} - Rp ${_formatHarga(s.harga)}',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontWeight: selected
+                                          ? FontWeight.w800
+                                          : FontWeight.w600,
+                                      color: selected
+                                          ? AppColors.primary
+                                          : AppColors.textDark,
+                                    ),
+                                  ),
+                                ),
+                                if (selected)
+                                  const Icon(
+                                    Icons.check_rounded,
+                                    color: AppColors.primary,
+                                    size: 20,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    },
+  );
+
+  Overlay.of(context).insert(_serviceDropdownOverlay!);
+}
+
+  void _closeServiceDropdown() {
+    _serviceDropdownOverlay?.remove();
+    _serviceDropdownOverlay = null;
   }
 
   void _selectDay(int index) {
@@ -246,7 +393,10 @@ class _DokterDetailScreenState extends State<DokterDetailScreen> {
               const SizedBox(height: 12),
               Text(msg, textAlign: TextAlign.center),
               const SizedBox(height: 12),
-              ElevatedButton(onPressed: _loadOptions, child: const Text('Coba Lagi')),
+              ElevatedButton(
+                onPressed: _loadOptions,
+                child: const Text('Coba Lagi'),
+              ),
             ],
           ),
         ),
@@ -282,12 +432,18 @@ class _DokterDetailScreenState extends State<DokterDetailScreen> {
                   const SizedBox(height: 4),
                   Text(
                     widget.doctor.spesialis,
-                    style: const TextStyle(fontSize: 13, color: AppColors.textLight),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textLight,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     '⭐ ${widget.doctor.rating.toStringAsFixed(1)} • ${widget.doctor.pengalaman}',
-                    style: const TextStyle(fontSize: 12, color: AppColors.textMedium),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textMedium,
+                    ),
                   ),
                 ],
               ),
@@ -314,19 +470,91 @@ class _DokterDetailScreenState extends State<DokterDetailScreen> {
               style: TextStyle(color: AppColors.textLight),
             )
           else
-            ..._services.map(
-              (s) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: _optionTile(
-                  selected: _selectedService?.id == s.id,
-                  title: s.namaLayanan,
-                  subtitle: s.deskripsi.isEmpty
-                      ? 'Estimasi Rp ${_formatHarga(s.harga)}'
-                      : '${s.deskripsi}\nEstimasi Rp ${_formatHarga(s.harga)}',
-                  onTap: () => setState(() => _selectedService = s),
+            CompositedTransformTarget(
+              link: _serviceDropdownLink,
+              child: GestureDetector(
+                onTap: _toggleServiceDropdown,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 15,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.25),
+                      width: 1.2,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _selectedService == null
+                              ? 'Pilih layanan dokter'
+                              : '${_selectedService!.namaLayanan} - Rp ${_formatHarga(_selectedService!.harga)}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: _selectedService == null
+                                ? AppColors.textLight
+                                : AppColors.textDark,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      const Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: AppColors.primary,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
+          if (_selectedService != null) ...[
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _selectedService!.namaLayanan,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                  if (_selectedService!.deskripsi.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      _selectedService!.deskripsi,
+                      style: const TextStyle(
+                        color: AppColors.textLight,
+                        height: 1.35,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 6),
+                  Text(
+                    'Estimasi Rp ${_formatHarga(_selectedService!.harga)}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       );
 
@@ -346,7 +574,9 @@ class _DokterDetailScreenState extends State<DokterDetailScreen> {
               ),
             ),
             Text(
-              _days.isNotEmpty ? (_days[_selectedDay]['month_year'] ?? '').toString() : '',
+              _days.isNotEmpty
+                  ? (_days[_selectedDay]['month_year'] ?? '').toString()
+                  : '',
               style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
@@ -383,7 +613,8 @@ class _DokterDetailScreenState extends State<DokterDetailScreen> {
                       color: selected ? AppColors.primary : Colors.white,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: selected ? AppColors.primary : AppColors.divider,
+                        color:
+                            selected ? AppColors.primary : AppColors.divider,
                       ),
                     ),
                     child: Opacity(
@@ -396,7 +627,9 @@ class _DokterDetailScreenState extends State<DokterDetailScreen> {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: selected ? Colors.white70 : AppColors.textLight,
+                              color: selected
+                                  ? Colors.white70
+                                  : AppColors.textLight,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -405,7 +638,9 @@ class _DokterDetailScreenState extends State<DokterDetailScreen> {
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w800,
-                              color: selected ? Colors.white : AppColors.textDark,
+                              color: selected
+                                  ? Colors.white
+                                  : AppColors.textDark,
                             ),
                           ),
                         ],
@@ -456,8 +691,8 @@ class _DokterDetailScreenState extends State<DokterDetailScreen> {
         ),
         const SizedBox(height: 14),
         if (pagi.isNotEmpty) ...[
-          Row(
-            children: const [
+          const Row(
+            children: [
               Icon(Icons.wb_sunny_outlined, size: 16, color: AppColors.gold),
               SizedBox(width: 6),
               Text(
@@ -483,8 +718,8 @@ class _DokterDetailScreenState extends State<DokterDetailScreen> {
           const SizedBox(height: 16),
         ],
         if (siang.isNotEmpty) ...[
-          Row(
-            children: const [
+          const Row(
+            children: [
               Icon(Icons.cloud_outlined, size: 16, color: Color(0xFF4A9B8E)),
               SizedBox(width: 6),
               Text(
@@ -544,57 +779,6 @@ class _DokterDetailScreenState extends State<DokterDetailScreen> {
       ),
     );
   }
-
-  Widget _optionTile({
-    required bool selected,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) =>
-      GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: selected ? AppColors.categoryBg1 : Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: selected ? AppColors.primary : AppColors.divider),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                selected ? Icons.radio_button_checked : Icons.radio_button_off,
-                color: selected ? AppColors.primary : AppColors.textLight,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.textDark,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      subtitle,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textLight,
-                        height: 1.35,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
 
   Widget _paymentNote() => Container(
         padding: const EdgeInsets.all(14),
