@@ -315,75 +315,80 @@ class _KonfirmasiPenitipanScreenState extends State<KonfirmasiPenitipanScreen> {
     );
   }
 
-    Widget _buildPetPicker() {
+  Widget _buildPetPicker() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
           'Pilih Peliharaan',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-            color: AppColors.textDark,
-          ),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDark),
         ),
         const SizedBox(height: 14),
         SizedBox(
-          height: 120, // ← naikkan dari 110 ke 120
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: _pets.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
-            itemBuilder: (_, i) {
-              final pet = _pets[i];
-              final selected = _selectedPet?.id == pet.id;
-              return GestureDetector(
-                onTap: () => setState(() => _selectedPet = pet),
-                child: Container(
-                  width: 100,
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8), // ← kurangi padding vertical
-                  decoration: BoxDecoration(
-                    color: selected ? AppColors.categoryBg1 : Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: selected ? AppColors.primary : AppColors.divider,
-                      width: selected ? 2 : 1,
-                    ),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min, // ← tambah ini
-                    children: [
-                      Text(
-                        pet.jenis.toLowerCase().contains('anjing') ? '🐶' : '🐱',
-                        style: const TextStyle(fontSize: 32), // ← kurangi dari 34 ke 32
-                      ),
-                      const SizedBox(height: 4), // ← kurangi dari 6 ke 4
-                      Text(
-                        pet.nama,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800,
-                          color: selected ? AppColors.primary : AppColors.textDark,
+          height: 110,
+          child: _pets.isEmpty
+              ? const Center(child: Text('Belum ada hewan peliharaan', style: TextStyle(color: AppColors.textLight)))
+              : ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _pets.length,
+                  itemBuilder: (_, i) {
+                    final pet = _pets[i];
+                    final selected = _selectedPet?.id == pet.id;
+                    return GestureDetector(
+                      onTap: () => setState(() => _selectedPet = pet),
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 16),
+                        child: Column(
+                          children: [
+                            Container(
+                              width: 68, height: 68,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white,
+                                border: Border.all(
+                                  color: selected ? AppColors.primary : AppColors.divider,
+                                  width: selected ? 3 : 1.5,
+                                ),
+                              ),
+                              child: ClipOval(
+                                child: pet.foto.isNotEmpty
+                                    ? Image.network(
+                                        pet.foto,
+                                        width: 68, height: 68,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) => Center(
+                                          child: Text(
+                                            pet.jenis.toLowerCase() == 'kucing' ? '🐱' :
+                                            pet.jenis.toLowerCase() == 'anjing' ? '🐶' : '🐾',
+                                            style: const TextStyle(fontSize: 36),
+                                          ),
+                                        ),
+                                      )
+                                    : Center(
+                                        child: Text(
+                                          pet.jenis.toLowerCase() == 'kucing' ? '🐱' :
+                                          pet.jenis.toLowerCase() == 'anjing' ? '🐶' : '🐾',
+                                          style: const TextStyle(fontSize: 36),
+                                        ),
+                                      ),
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              pet.nama,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: selected ? AppColors.primary : AppColors.textDark,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      Text(
-                        pet.jenis,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: AppColors.textLight,
-                        ),
-                      ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
         ),
       ],
     );
