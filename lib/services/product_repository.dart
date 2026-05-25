@@ -10,7 +10,7 @@ import 'servis_auth.dart';
 /// fetching, parsing, and providing fallback strategies for both
 /// normal products and best seller/featured products.
 class ProductRepository {
-  static const String baseUrl = ApiConfig.baseUrl;
+  static final String baseUrl = ApiConfig.baseUrl;
 
   /// Private helper to get default headers with dynamic authorization token
   Map<String, String> get _headers => {

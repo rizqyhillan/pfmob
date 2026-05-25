@@ -13,7 +13,7 @@ class AuthService {
   factory AuthService() => _instance;
   AuthService._internal();
 
-  static const String baseUrl = ApiConfig.baseUrl;
+  static final String baseUrl = ApiConfig.baseUrl;
 
   final storage = const FlutterSecureStorage();
 
@@ -34,6 +34,9 @@ class AuthService {
     if (photo.isEmpty) return '';
 
     if (photo.startsWith('http://') || photo.startsWith('https://')) {
+      if (photo.contains('127.0.0.1')) {
+        return photo.replaceAll('127.0.0.1', '10.0.2.2');
+      }
       return photo;
     }
 
@@ -42,7 +45,11 @@ class AuthService {
         ? photo.replaceFirst('storage/', '')
         : photo;
 
-    return '$serverBaseUrl/storage/$normalizedPhoto';
+    final resolved = '$serverBaseUrl/storage/$normalizedPhoto';
+    if (resolved.contains('127.0.0.1')) {
+      return resolved.replaceAll('127.0.0.1', '10.0.2.2');
+    }
+    return resolved;
   }
 
   String _readPhotoFromUser(dynamic user) {

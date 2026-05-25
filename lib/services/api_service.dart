@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../screens/profile/medical_report.dart';
 import '../screens/profile/shop_report.dart';
@@ -6,6 +7,38 @@ import '../screens/profile/transaction_detail.dart';
 import '../config/api_config.dart';
 import 'dart:io';
 import '../models/product.dart';
+
+String _localResolveImageUrl(dynamic raw) {
+  final value = raw?.toString() ?? '';
+  if (value.isEmpty) return '';
+
+  if (value.startsWith('http://') || value.startsWith('https://')) {
+    if (value.contains('127.0.0.1')) {
+      return value.replaceAll('127.0.0.1', '10.0.2.2');
+    }
+    return value;
+  }
+
+  var path = value.trim();
+  while (path.startsWith('/')) {
+    path = path.substring(1);
+  }
+
+  if (path.startsWith('storage/')) {
+    path = path.replaceFirst('storage/', '');
+  }
+
+  while (path.startsWith('/')) {
+    path = path.substring(1);
+  }
+
+  final serverBaseUrl = ApiConfig.baseUrl.replaceFirst('/api', '');
+  final resolved = '$serverBaseUrl/storage/$path';
+  if (resolved.contains('127.0.0.1')) {
+    return resolved.replaceAll('127.0.0.1', '10.0.2.2');
+  }
+  return resolved;
+}
 
 class UserProfile {
   final int id;
@@ -62,14 +95,7 @@ class Pet {
   });
 
   static String _resolveStorageUrl(dynamic raw) {
-  final value = raw?.toString() ?? '';
-    if (value.isEmpty) return '';
-
-    if (value.startsWith('http://') || value.startsWith('https://')) {
-      return value;
-    }
-
-    return '${ApiConfig.baseUrl.replaceFirst('/api', '')}/storage/$value';
+    return _localResolveImageUrl(raw);
   }
 
   factory Pet.fromJson(Map<String, dynamic> json) {
@@ -205,6 +231,7 @@ class Doctor {
   final String pengalaman;
   final double rating;
   final bool tersedia;
+  final String? fotoUrl;
 
   Doctor({
     required this.id,
@@ -213,16 +240,24 @@ class Doctor {
     required this.pengalaman,
     required this.rating,
     required this.tersedia,
+    this.fotoUrl,
   });
 
-  factory Doctor.fromJson(Map<String, dynamic> json) => Doctor(
-        id: json['id'] ?? 0,
-        nama: json['nama'] ?? '-',
-        spesialis: json['spesialis'] ?? 'Dokter Hewan',
-        pengalaman: json['pengalaman'] ?? '-',
-        rating: double.tryParse(json['rating'].toString()) ?? 0,
-        tersedia: json['tersedia'] == true,
-      );
+  factory Doctor.fromJson(Map<String, dynamic> json) {
+    final rawFoto = json['foto_url'] ?? json['fotoUrl'] ?? json['foto'] ?? json['avatar'] ?? json['image'];
+    final doctor = Doctor(
+      id: json['id'] ?? 0,
+      nama: json['nama'] ?? '-',
+      spesialis: json['spesialis'] ?? 'Dokter Hewan',
+      pengalaman: json['pengalaman'] ?? '-',
+      rating: double.tryParse(json['rating'].toString()) ?? 0,
+      tersedia: json['tersedia'] == true,
+      fotoUrl: rawFoto != null ? _localResolveImageUrl(rawFoto) : null,
+    );
+    debugPrint('PAWPET_DEBUG: Doctor JSON = $json');
+    debugPrint('PAWPET_DEBUG: Doctor photo = ${doctor.fotoUrl}');
+    return doctor;
+  }
 }
 
 class DoctorServiceItem {
@@ -450,7 +485,7 @@ class AppScheduleItem {
 }
 
 class ApiService {
-static const String baseUrl = ApiConfig.baseUrl;
+  static final String baseUrl = ApiConfig.baseUrl;
 
   static String? _token;
 
@@ -903,6 +938,7 @@ static Future<void> deletePet(int id) async {
 
   static Future<List<Doctor>> getDoctors() async {
     final response = await http.get(Uri.parse('$baseUrl/doctors'), headers: _headers);
+    debugPrint('PAWPET_DEBUG: GET /api/doctors response = ${response.body}');
     final list = _parseList(response, 'dokter');
     return list.map((e) => Doctor.fromJson(Map<String, dynamic>.from(e))).toList();
   }

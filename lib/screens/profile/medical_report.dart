@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../config/api_config.dart';
 
 class MedicalRecord {
   final int id;
@@ -16,6 +17,7 @@ class MedicalRecord {
   final String tindakan;
   final String resep;
   final String? catatan;
+  final String? fotoUrl;
 
   const MedicalRecord({
     required this.id,
@@ -33,7 +35,41 @@ class MedicalRecord {
     required this.tindakan,
     required this.resep,
     this.catatan,
+    this.fotoUrl,
   });
+
+  static String _resolveDoctorPhotoUrl(dynamic raw) {
+    final value = raw?.toString() ?? '';
+    if (value.isEmpty) return '';
+
+    if (value.startsWith('http://') || value.startsWith('https://')) {
+      if (value.contains('127.0.0.1')) {
+        return value.replaceAll('127.0.0.1', '10.0.2.2');
+      }
+      return value;
+    }
+
+    // Clean leading slashes
+    var path = value.trim();
+    while (path.startsWith('/')) {
+      path = path.substring(1);
+    }
+
+    if (path.startsWith('storage/')) {
+      path = path.replaceFirst('storage/', '');
+    }
+
+    while (path.startsWith('/')) {
+      path = path.substring(1);
+    }
+
+    final serverBaseUrl = ApiConfig.baseUrl.replaceFirst('/api', '');
+    final resolved = '$serverBaseUrl/storage/$path';
+    if (resolved.contains('127.0.0.1')) {
+      return resolved.replaceAll('127.0.0.1', '10.0.2.2');
+    }
+    return resolved;
+  }
 
   // Dari JSON response Laravel API
   factory MedicalRecord.fromJson(Map<String, dynamic> json) {
@@ -63,6 +99,9 @@ class MedicalRecord {
       tindakan: json['tindakan'] ?? 'Belum ada tindakan',
       resep: json['resep'] ?? 'Belum ada resep',
       catatan: json['catatan'],
+      fotoUrl: dokter['foto_url'] != null || dokter['foto'] != null || dokter['avatar'] != null
+          ? _resolveDoctorPhotoUrl(dokter['foto_url'] ?? dokter['foto'] ?? dokter['avatar'])
+          : null,
     );
   }
 }
@@ -259,8 +298,40 @@ class MedicalReportDetailPage extends StatelessWidget {
                     color: const Color(0xFFE8F0F8),
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: const Center(
-                    child: Text('👩‍⚕️', style: TextStyle(fontSize: 30)),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: _isValidUrl(record.fotoUrl)
+                        ? Image.network(
+                            _getBustedUrl(record.fotoUrl!),
+                            width: 60,
+                            height: 60,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return const Center(
+                                child: SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE8963A)),
+                                  ),
+                                ),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) => Image.asset(
+                              'assets/images/pet-dokter.png',
+                              width: 60,
+                              height: 60,
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                        : Image.asset(
+                            'assets/images/pet-dokter.png',
+                            width: 60,
+                            height: 60,
+                            fit: BoxFit.cover,
+                          ),
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -531,6 +602,20 @@ class MedicalReportDetailPage extends StatelessWidget {
       default:
         return '🐾';
     }
+  }
+
+  bool _isValidUrl(String? url) {
+    if (url == null) return false;
+    final clean = url.trim().toLowerCase();
+    if (clean.isEmpty) return false;
+    if (clean == 'null') return false;
+    if (clean.endsWith('/storage/') || clean.endsWith('/storage')) return false;
+    return true;
+  }
+
+  String _getBustedUrl(String url) {
+    final separator = url.contains('?') ? '&' : '?';
+    return '$url${separator}v=${DateTime.now().minute}';
   }
 }
 

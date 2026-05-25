@@ -120,7 +120,40 @@ class _DaftarDokterScreenState extends State<DaftarDokterScreen> {
                 width: 62,
                 height: 62,
                 decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.categoryBg3),
-                child: const Center(child: Text('👩‍⚕️', style: TextStyle(fontSize: 32))),
+                child: ClipOval(
+                  child: _isValidUrl(dokter.fotoUrl)
+                      ? Image.network(
+                          _getBustedUrl(dokter.fotoUrl!),
+                          width: 62,
+                          height: 62,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return const Center(
+                              child: SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                                ),
+                              ),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) => Image.asset(
+                            'assets/images/pet-dokter.png',
+                            width: 62,
+                            height: 62,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                      : Image.asset(
+                          'assets/images/pet-dokter.png',
+                          width: 62,
+                          height: 62,
+                          fit: BoxFit.cover,
+                        ),
+                ),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -148,4 +181,18 @@ class _DaftarDokterScreenState extends State<DaftarDokterScreen> {
           ),
         ),
       );
+
+  bool _isValidUrl(String? url) {
+    if (url == null) return false;
+    final clean = url.trim().toLowerCase();
+    if (clean.isEmpty) return false;
+    if (clean == 'null') return false;
+    if (clean.endsWith('/storage/') || clean.endsWith('/storage')) return false;
+    return true;
+  }
+
+  String _getBustedUrl(String url) {
+    final separator = url.contains('?') ? '&' : '?';
+    return '$url${separator}v=${DateTime.now().minute}';
+  }
 }
