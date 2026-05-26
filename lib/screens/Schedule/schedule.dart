@@ -135,16 +135,84 @@ class _ScheduleContentState extends State<ScheduleContent> {
   Future<void> _cancelBooking(AppScheduleItem item) async {
     if (!item.canCancel || _cancellingId != null) return;
 
-    final confirm = await showDialog<bool>(
+    final confirm = await showModalBottomSheet<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: const Text('Batalkan Booking?'),
-        content: Text('Booking ${item.serviceTypeLabel.toLowerCase()} ini akan dibatalkan. Aksi ini tidak bisa dibatalkan dari aplikasi.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Tidak')),
-          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Ya, Batalkan')),
-        ],
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.5),
+      builder: (_) => Container(
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40, height: 4,
+              decoration: BoxDecoration(color: AppColors.divider, borderRadius: BorderRadius.circular(2)),
+            ),
+            const SizedBox(height: 28),
+            Image.asset(
+              'assets/images/cancel.png',
+              width: 80,
+              height: 80,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Batalkan Booking?',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.textDark),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Booking ${item.serviceTypeLabel.toLowerCase()} ini akan dibatalkan.\nAksi ini tidak bisa dibatalkan dari aplikasi.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 13, color: AppColors.textLight, height: 1.5),
+            ),
+            const SizedBox(height: 28),
+            Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => Navigator.pop(context, false),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        color: AppColors.categoryBg1,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Text(
+                        'Tidak',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textDark),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: GestureDetector(
+                    onTap: () => Navigator.pop(context, true),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        color: const Color.fromARGB(255, 223, 16, 16),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Text(
+                        'Ya, Batalkan',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
 
@@ -233,7 +301,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
                   ),
                 ),
                 Text(
-                    AuthService().isLoggedIn ? _displayName : 'Masuk untuk lihat jadwal',
+                  AuthService().isLoggedIn ? _displayName : 'Masuk untuk lihat jadwal',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
@@ -306,7 +374,6 @@ class _ScheduleContentState extends State<ScheduleContent> {
         separatorBuilder: (_, __) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final item = items[index];
-
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -337,9 +404,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
             AnimatedAlign(
               duration: const Duration(milliseconds: 360),
               curve: Curves.easeOutCubic,
-              alignment: _selectedTab == 0
-                  ? Alignment.centerLeft
-                  : Alignment.centerRight,
+              alignment: _selectedTab == 0 ? Alignment.centerLeft : Alignment.centerRight,
               child: FractionallySizedBox(
                 widthFactor: 0.5,
                 heightFactor: 1,
@@ -365,7 +430,6 @@ class _ScheduleContentState extends State<ScheduleContent> {
 
   Widget _buildTab(String label, int index) {
     final selected = _selectedTab == index;
-
     return Expanded(
       child: Material(
         color: Colors.transparent,
@@ -438,9 +502,23 @@ class _ScheduleContentState extends State<ScheduleContent> {
             ),
             if (actionText != null && onAction != null) ...[
               const SizedBox(height: 18),
-              ElevatedButton(
-                onPressed: onAction,
-                child: Text(actionText),
+              GestureDetector(
+                onTap: onAction,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Text(
+                    actionText,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
               ),
             ],
           ],
@@ -494,8 +572,17 @@ class _ScheduleContentState extends State<ScheduleContent> {
                     shape: BoxShape.circle,
                     color: AppColors.categoryBg1,
                   ),
-                  child: Center(
-                    child: Text(item.emoji, style: const TextStyle(fontSize: 26)),
+                  child: ClipOval(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: item.type == 'grooming'
+                          ? Image.asset('assets/images/grooming.png', fit: BoxFit.contain)
+                          : item.type == 'boarding'
+                              ? Image.asset('assets/images/pet-boarding.png', fit: BoxFit.contain)
+                              : item.type == 'doctor'
+                                  ? Image.asset('assets/images/pet-dokter.png', fit: BoxFit.contain)
+                                  : Text(item.emoji, style: const TextStyle(fontSize: 26)),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -577,14 +664,22 @@ class _ScheduleContentState extends State<ScheduleContent> {
                 children: [
                   if (item.canReschedule) ...[
                     Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () => _rescheduleBooking(item),
-                        icon: const Icon(Icons.edit_calendar_rounded, size: 18),
-                        label: const Text('Ubah Jadwal'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      child: GestureDetector(
+                        onTap: () => _rescheduleBooking(item),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.edit_calendar_rounded, size: 16, color: Colors.white),
+                              SizedBox(width: 6),
+                              Text('Ubah Jadwal', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white)),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -592,16 +687,25 @@ class _ScheduleContentState extends State<ScheduleContent> {
                   ],
                   if (item.canCancel)
                     Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: isCancelling ? null : () => _cancelBooking(item),
-                        icon: isCancelling
-                            ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
-                            : const Icon(Icons.cancel_outlined, size: 18),
-                        label: Text(isCancelling ? 'Batal...' : 'Batalkan'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFFE57373),
-                          side: const BorderSide(color: Color(0xFFE57373)),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      child: GestureDetector(
+                        onTap: isCancelling ? null : () => _cancelBooking(item),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: const Color(0xFFE57373)),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              isCancelling
+                                  ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFE57373)))
+                                  : const Icon(Icons.cancel_outlined, size: 16, color: Color(0xFFE57373)),
+                              const SizedBox(width: 6),
+                              Text(isCancelling ? 'Batal...' : 'Batalkan', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFFE57373))),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -710,34 +814,47 @@ class _ScheduleDetailSheet extends StatelessWidget {
               ),
               if (onReschedule != null) ...[
                 const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: onReschedule,
-                    icon: const Icon(Icons.edit_calendar_rounded, size: 18),
-                    label: const Text('Ubah Jadwal'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                GestureDetector(
+                  onTap: onReschedule,
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.edit_calendar_rounded, size: 18, color: Colors.white),
+                        SizedBox(width: 8),
+                        Text('Ubah Jadwal', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white)),
+                      ],
                     ),
                   ),
                 ),
               ],
               if (onCancel != null) ...[
                 const SizedBox(height: 10),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: cancelling ? null : onCancel,
-                    icon: cancelling
-                        ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
-                        : const Icon(Icons.cancel_outlined, size: 18),
-                    label: Text(cancelling ? 'Membatalkan...' : 'Batalkan Booking'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFFE57373),
-                      side: const BorderSide(color: Color(0xFFE57373)),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                GestureDetector(
+                  onTap: cancelling ? null : onCancel,
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color.fromARGB(255, 223, 16, 16)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        cancelling
+                            ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: const Color.fromARGB(255, 223, 16, 16)))
+                            : const Icon(Icons.cancel_outlined, size: 18, color: const Color.fromARGB(255, 223, 16, 16),),
+                        const SizedBox(width: 8),
+                        Text(cancelling ? 'Membatalkan...' : 'Batalkan Booking', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: const Color.fromARGB(255, 223, 16, 16))),
+                      ],
                     ),
                   ),
                 ),

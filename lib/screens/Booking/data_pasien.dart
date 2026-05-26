@@ -119,15 +119,11 @@ class _DataPasienScreenState extends State<DataPasienScreen> {
               ),
             ),
             const SizedBox(height: 28),
-            Container(
-              width: 80, height: 80,
-              decoration: const BoxDecoration(
-                color: Color(0xFFE8F5E9),
-                shape: BoxShape.circle,
-              ),
-              child: const Center(
-                child: Text('🎉', style: TextStyle(fontSize: 40)),
-              ),
+            Image.asset(
+              'assets/images/check.png',
+              width: 80,
+              height: 80,
+              fit: BoxFit.contain,
             ),
             const SizedBox(height: 20),
             const Text(
@@ -186,9 +182,9 @@ class _DataPasienScreenState extends State<DataPasienScreen> {
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
                   : _error != null
-                      ? _message('⚠️', _error!, 'Coba Lagi', _loadPets)
-                      : _pets.isEmpty
-                          ? _message('🐾', 'Kamu belum punya data hewan. Tambahkan hewan dulu dari Profile > My Pets.', 'Muat ulang', _loadPets)
+                  ? _message(Image.asset('assets/images/warning.png', width: 56, height: 56), _error!, 'Coba Lagi', _loadPets)
+                  : _pets.isEmpty
+                  ? _message(Image.asset('assets/images/logo-paw.png', width: 56, height: 56), 'Kamu belum punya data hewan. Tambahkan hewan dulu dari Profile > My Pets.', 'Muat ulang', _loadPets)
                           : SingleChildScrollView(
                               padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
                               child: Column(
@@ -219,7 +215,7 @@ class _DataPasienScreenState extends State<DataPasienScreen> {
         ]),
       );
 
-  Widget _message(String icon, String title, String action, VoidCallback onAction) => Center(child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min, children: [Text(icon, style: const TextStyle(fontSize: 48)), const SizedBox(height: 12), Text(title, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMedium, fontWeight: FontWeight.w700)), const SizedBox(height: 12), ElevatedButton(onPressed: onAction, child: Text(action))])));
+  Widget _message(Widget icon, String title, String action, VoidCallback onAction) => Center(child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min, children: [icon, const SizedBox(height: 12), Text(title, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMedium, fontWeight: FontWeight.w700)), const SizedBox(height: 12), ElevatedButton(onPressed: onAction, child: Text(action))])));
 
   Widget _summaryCard() => Container(
         padding: const EdgeInsets.all(16),
@@ -239,7 +235,7 @@ class _DataPasienScreenState extends State<DataPasienScreen> {
       const Text('Pilih Hewan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDark)),
       const SizedBox(height: 14),
       SizedBox(
-        height: 110, // ← sama dengan KonfirmasiGroomingScreen
+        height: 110,
         child: _pets.isEmpty
             ? const Center(child: Text('Belum ada hewan peliharaan', style: TextStyle(color: AppColors.textLight)))
             : ListView.builder(

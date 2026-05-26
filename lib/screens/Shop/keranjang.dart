@@ -636,17 +636,42 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
   }
 
   Widget _buildMessage(Widget icon, String title, String action, VoidCallback onAction) => Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            icon,
-            const SizedBox(height: 12),
-            Text(title, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMedium, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 12),
-            ElevatedButton(onPressed: onAction, child: Text(action)),
-          ],
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        icon,
+        const SizedBox(height: 16),
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textMedium,
+          ),
         ),
-      );
+        const SizedBox(height: 20),
+        GestureDetector(
+          onTap: onAction,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Text(
+              action,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
 
   Widget _buildItem(ShopCartItem item) => Container(
         padding: const EdgeInsets.all(12),
