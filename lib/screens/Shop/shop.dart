@@ -8,6 +8,7 @@ import 'detail_produk.dart';
 import 'keranjang.dart';
 import '../../models/product.dart';
 import '../../services/product_repository.dart';
+import '../profile/profile.dart';
 
 class ShopContent extends StatefulWidget {
   const ShopContent({super.key});
@@ -112,13 +113,33 @@ class _ShopContentState extends State<ShopContent> {
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
       child: Row(
         children: [
-          const UserAvatar(),
+          GestureDetector(
+            onTap: () {
+              if (AuthService().isLoggedIn) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ProfileScreen(showBackButton: true),
+                  ),
+                );
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const LoginScreen(redirectToProfile: false),
+                  ),
+                );
+              }
+            },
+            child: const UserAvatar(),
+          ),
           const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Text(
-                  isLoggedIn ? 'OWNER' : 'WELCOME',
+                  isLoggedIn ? 'PET OWNER' : 'WELCOME',
                   style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
@@ -136,9 +157,9 @@ class _ShopContentState extends State<ShopContent> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-            ],
+              ],
+            ),
           ),
-          const Spacer(),
           GestureDetector(
             onTap: _openCart,
             child: Container(

@@ -5,6 +5,7 @@ import 'daftar_dokter.dart';
 import 'paket_grooming.dart';
 import 'paket_penitipan.dart';
 import '../../widgets/user_avatar.dart';
+import '../profile/profile.dart';
 
 class BookingContent extends StatelessWidget {
   const BookingContent({super.key});
@@ -16,7 +17,7 @@ class BookingContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeader(),
+          _buildHeader(context),
           const SizedBox(height: 24),
           _buildTitle(),
           const SizedBox(height: 24),
@@ -80,7 +81,7 @@ class BookingContent extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     final auth = AuthService();
     final isLoggedIn = auth.isLoggedIn;
     final displayName = auth.userName.trim().isNotEmpty
@@ -89,7 +90,19 @@ class BookingContent extends StatelessWidget {
 
     return Row(
       children: [
-        const UserAvatar(),
+        GestureDetector(
+          onTap: () {
+            if (AuthService().isLoggedIn) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ProfileScreen(showBackButton: true),
+                ),
+              );
+            }
+          },
+          child: const UserAvatar(),
+        ),
         const SizedBox(width: 12),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,

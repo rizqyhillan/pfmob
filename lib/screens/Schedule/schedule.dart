@@ -5,6 +5,7 @@ import '../../theme/tema_app.dart';
 import '../login.dart';
 import '../../widgets/user_avatar.dart';
 import 'reschedule.dart';
+import '../profile/profile.dart';
 
 class ScheduleContent extends StatefulWidget {
   const ScheduleContent({super.key});
@@ -285,14 +286,26 @@ class _ScheduleContentState extends State<ScheduleContent> {
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
       child: Row(
         children: [
-          const UserAvatar(),
+          GestureDetector(
+            onTap: () {
+              if (AuthService().isLoggedIn) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ProfileScreen(showBackButton: true),
+                  ),
+                );
+              }
+            },
+            child: const UserAvatar(),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'SCHEDULE',
+                  'PET OWNER',
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
