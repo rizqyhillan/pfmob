@@ -40,6 +40,7 @@ class _DetailProdukScreenState extends State<DetailProdukScreen> {
   String? _error;
   int _currentImageIndex = 0;
   final PageController _pageController = PageController();
+  ProductVariation? _selectedVariation;
 
   @override
   void initState() {
@@ -74,6 +75,7 @@ class _DetailProdukScreenState extends State<DetailProdukScreen> {
           isFeatured: false,
           totalSold: 0,
           bgColor: Colors.white,
+          variations: [],
         );
         _loading = false;
       });
@@ -100,6 +102,16 @@ class _DetailProdukScreenState extends State<DetailProdukScreen> {
     final product = _product;
   
     if (product == null || product.id == 0 || _saving) return;
+
+    if (product.variations.isNotEmpty && _selectedVariation == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Pilih variasi produk terlebih dahulu'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
   
     if (!AuthService().isLoggedIn) {
       Navigator.push(
@@ -117,11 +129,17 @@ class _DetailProdukScreenState extends State<DetailProdukScreen> {
       await ApiService.addCartItem(
         idBarang: product.id,
         jumlah: _jumlah,
+        idVariasi: _selectedVariation?.id,
       );
   
       if (!mounted) return;
   
-
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Produk berhasil ditambahkan ke keranjang'),
+        ),
+      );
+  
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
@@ -163,11 +181,12 @@ class _DetailProdukScreenState extends State<DetailProdukScreen> {
                                     const SizedBox(height: 8),
                                     Text(product.category, style: const TextStyle(fontSize: 13, color: AppColors.textLight, fontWeight: FontWeight.w700)),
                                     const SizedBox(height: 14),
-                                    Text('Rp ${_formatHarga(product.price)}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.primary)),
+                                    Text('Rp ${_formatHarga(_selectedVariation?.harga ?? product.price)}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.primary)),
                                     const SizedBox(height: 8),
-                                    Text('Stok tersedia: ${product.stock}', style: const TextStyle(fontSize: 13, color: AppColors.textMedium)),
+                                    Text('Stok tersedia: ${_selectedVariation?.stok ?? product.stock}', style: const TextStyle(fontSize: 13, color: AppColors.textMedium)),
                                     const SizedBox(height: 24),
-                                    _buildJumlah(product.stock),
+                                    _buildVariations(product),
+                                    _buildJumlah(_selectedVariation?.stok ?? product.stock),
                                     const SizedBox(height: 18),
                                     _infoBox(),
                                   ],
@@ -312,6 +331,73 @@ class _DetailProdukScreenState extends State<DetailProdukScreen> {
     );
   }
 
+  Widget _buildVariations(Product product) {
+    if (product.variations.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Pilih Variasi',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDark),
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: product.variations.map((v) {
+            final isSelected = _selectedVariation?.id == v.id;
+            final isOutOfStock = v.stok <= 0;
+
+            return GestureDetector(
+              onTap: isOutOfStock
+                  ? null
+                  : () {
+                      setState(() {
+                        _selectedVariation = isSelected ? null : v;
+                        if (_selectedVariation != null && _jumlah > _selectedVariation!.stok) {
+                          _jumlah = _selectedVariation!.stok;
+                        } else if (_selectedVariation == null && _jumlah > product.stock) {
+                          _jumlah = product.stock > 0 ? product.stock : 1;
+                        }
+                      });
+                    },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.primary
+                      : (isOutOfStock ? AppColors.divider.withValues(alpha: 0.5) : Colors.white),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isSelected
+                        ? AppColors.primary
+                        : (isOutOfStock ? AppColors.divider.withValues(alpha: 0.3) : AppColors.divider),
+                    width: 1.5,
+                  ),
+                ),
+                child: Opacity(
+                  opacity: isOutOfStock ? 0.5 : 1.0,
+                  child: Text(
+                    '${v.namaVariasi} (${isOutOfStock ? "Habis" : "Stok: ${v.stok}"})',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: isSelected
+                          ? Colors.white
+                          : (isOutOfStock ? AppColors.textLight : AppColors.textDark),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 20),
+      ],
+    );
+  }
+
   Widget _buildJumlah(int stok) {
     return Row(
       children: [
@@ -343,7 +429,13 @@ class _DetailProdukScreenState extends State<DetailProdukScreen> {
         ),
       );
 
-  Widget _buildBottom(ShopProduct product) {
+  Widget _buildBottom(Product product) {
+    final isOutOfStock = product.variations.isNotEmpty 
+        ? (_selectedVariation != null && _selectedVariation!.stok <= 0)
+        : product.stock <= 0;
+    
+    final canAddToCart = product.id != 0 && !isOutOfStock && !_saving;
+
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
       decoration: BoxDecoration(
@@ -354,7 +446,7 @@ class _DetailProdukScreenState extends State<DetailProdukScreen> {
         width: double.infinity,
         height: 52,
         child: ElevatedButton(
-          onPressed: product.id != 0 && product.stok > 0 && !_saving ? _addToCart : null,
+          onPressed: canAddToCart ? _addToCart : null,
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
@@ -364,7 +456,9 @@ class _DetailProdukScreenState extends State<DetailProdukScreen> {
           child: Text(
             product.id == 0
                 ? 'Buka tab Shop untuk checkout'
-                : (_saving ? 'Menambahkan...' : 'Tambah ke Keranjang'),
+                : (isOutOfStock
+                    ? 'Stok Habis'
+                    : (_saving ? 'Menambahkan...' : 'Tambah ke Keranjang')),
           ),
         ),
       ),

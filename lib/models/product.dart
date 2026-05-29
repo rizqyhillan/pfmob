@@ -17,6 +17,7 @@ class Product {
   final int totalSold;
   final bool tersedia;
   final Color bgColor; // For Home Dashboard pastel grid visual consistency
+  final List<ProductVariation> variations;
 
   const Product({
     required this.id,
@@ -30,6 +31,7 @@ class Product {
     required this.totalSold,
     required this.tersedia,
     required this.bgColor,
+    this.variations = const [],
   });
 
   // ─── Backward compatibility getters for legacy ShopProduct ───
@@ -80,6 +82,11 @@ class Product {
       imageUrls.add(imageUrl);
     }
 
+    final List<dynamic> rawVariations = json['variations'] is List ? json['variations'] : [];
+    final List<ProductVariation> variations = rawVariations
+        .map((v) => ProductVariation.fromJson(Map<String, dynamic>.from(v)))
+        .toList();
+
     return Product(
       id: id,
       name: name.toString().trim(),
@@ -92,6 +99,7 @@ class Product {
       totalSold: totalSold,
       tersedia: tersedia,
       bgColor: _bgColorFromId(id),
+      variations: variations,
     );
   }
 
@@ -136,6 +144,39 @@ class Product {
       'is_featured': isFeatured ? 1 : 0,
       'total_sold': totalSold,
       'tersedia': tersedia ? 1 : 0,
+      'variations': variations.map((v) => v.toJson()).toList(),
+    };
+  }
+}
+
+class ProductVariation {
+  final int id;
+  final String namaVariasi;
+  final double harga;
+  final int stok;
+
+  const ProductVariation({
+    required this.id,
+    required this.namaVariasi,
+    required this.harga,
+    required this.stok,
+  });
+
+  factory ProductVariation.fromJson(Map<String, dynamic> json) {
+    return ProductVariation(
+      id: json['id'] ?? 0,
+      namaVariasi: json['nama_variasi'] ?? '',
+      harga: double.tryParse((json['harga'] ?? 0).toString()) ?? 0.0,
+      stok: int.tryParse((json['stok'] ?? 0).toString()) ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'nama_variasi': namaVariasi,
+      'harga': harga,
+      'stok': stok,
     };
   }
 }
