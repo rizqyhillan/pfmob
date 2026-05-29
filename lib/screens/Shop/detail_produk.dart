@@ -39,11 +39,19 @@ class _DetailProdukScreenState extends State<DetailProdukScreen> {
   bool _loading = true;
   bool _saving = false;
   String? _error;
+  int _currentImageIndex = 0;
+  final PageController _pageController = PageController();
 
   @override
   void initState() {
     super.initState();
     _loadProduct();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   String _formatHarga(num harga) => harga.round().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.');
@@ -202,34 +210,93 @@ class _DetailProdukScreenState extends State<DetailProdukScreen> {
       );
 
   Widget _buildImage(Product product) {
-    final hasImage = product.imageUrl.isNotEmpty;
+    final hasImages = product.imageUrls.isNotEmpty;
     return Stack(
       children: [
         Container(
           height: 310,
           width: double.infinity,
-          decoration: const BoxDecoration(color: AppColors.categoryBg1, borderRadius: BorderRadius.vertical(bottom: Radius.circular(28))),
-          child: hasImage
+          decoration: const BoxDecoration(
+            color: AppColors.categoryBg1,
+            borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
+          ),
+          child: hasImages
               ? ClipRRect(
                   borderRadius: const BorderRadius.vertical(bottom: Radius.circular(28)),
-                  child: Image.network(
-                    product.imageUrl,
-                    fit: BoxFit.cover,
-                    loadingBuilder: (ctx, child, progress) {
-                      if (progress == null) return child;
-                      return Center(
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary.withValues(alpha: 0.4)),
+                  child: PageView.builder(
+                    controller: _pageController,
+                    itemCount: product.imageUrls.length,
+                    onPageChanged: (index) {
+                      setState(() {
+                        _currentImageIndex = index;
+                      });
+                    },
+                    itemBuilder: (context, index) {
+                      final url = product.imageUrls[index];
+                      return Image.network(
+                        url,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (ctx, child, progress) {
+                          if (progress == null) return child;
+                          return Center(
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                AppColors.primary.withValues(alpha: 0.4),
+                              ),
+                            ),
+                          );
+                        },
+                        errorBuilder: (ctx, err, stack) => const Center(
+                          child: Image(
+                            image: AssetImage('assets/images/logo-paw.png'),
+                            width: 88,
+                            height: 88,
+                          ),
                         ),
                       );
                     },
-                    errorBuilder: (ctx, err, stack) =>
-                        const Center(child: Image(image: AssetImage('assets/images/logo-paw.png'), width: 88, height: 88)),
                   ),
                 )
-              : const Center(child: Image(image: AssetImage('assets/images/logo-paw.png'), width: 88, height: 88)),
+              : const Center(
+                  child: Image(
+                    image: AssetImage('assets/images/logo-paw.png'),
+                    width: 88,
+                    height: 88,
+                  ),
+                ),
         ),
+        if (hasImages && product.imageUrls.length > 1)
+          Positioned(
+            bottom: 16,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                product.imageUrls.length,
+                (index) => AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: _currentImageIndex == index ? 24 : 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: _currentImageIndex == index
+                        ? AppColors.primary
+                        : Colors.white.withValues(alpha: 0.6),
+                    borderRadius: BorderRadius.circular(4),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
         Positioned(
           top: 16,
           left: 16,
@@ -238,8 +305,15 @@ class _DetailProdukScreenState extends State<DetailProdukScreen> {
             child: Container(
               width: 38,
               height: 38,
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
-              child: const Icon(Icons.arrow_back_ios_new_rounded, size: 16, color: AppColors.primary),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                size: 16,
+                color: AppColors.primary,
+              ),
             ),
           ),
         ),

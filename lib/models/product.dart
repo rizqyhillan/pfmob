@@ -9,6 +9,7 @@ class Product {
   final int id;
   final String name;
   final String imageUrl;
+  final List<String> imageUrls;
   final double price;
   final String category;
   final int stock;
@@ -21,6 +22,7 @@ class Product {
     required this.id,
     required this.name,
     required this.imageUrl,
+    this.imageUrls = const [],
     required this.price,
     required this.category,
     required this.stock,
@@ -72,10 +74,17 @@ class Product {
     final rawImg = json['image_url'] ?? json['imageUrl'] ?? json['foto'] ?? '';
     final imageUrl = _resolveImageUrl(rawImg);
 
+    final List<dynamic> rawUrls = json['image_urls'] is List ? json['image_urls'] : [];
+    final List<String> imageUrls = rawUrls.map((url) => _resolveImageUrl(url)).toList();
+    if (imageUrls.isEmpty && imageUrl.isNotEmpty) {
+      imageUrls.add(imageUrl);
+    }
+
     return Product(
       id: id,
       name: name.toString().trim(),
       imageUrl: imageUrl,
+      imageUrls: imageUrls,
       price: price,
       category: category.toString().trim(),
       stock: stock,
@@ -120,6 +129,7 @@ class Product {
       'id': id,
       'nama_barang': name,
       'image_url': imageUrl,
+      'image_urls': imageUrls,
       'harga': price,
       'kategori': category,
       'stok': stock,
