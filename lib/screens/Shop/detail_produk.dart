@@ -3,7 +3,6 @@ import '../../services/api_service.dart';
 import '../../services/servis_auth.dart';
 import '../../theme/tema_app.dart';
 import '../login.dart';
-import 'keranjang.dart';
 import '../../models/product.dart';
 import '../../services/product_repository.dart';
 
@@ -122,16 +121,8 @@ class _DetailProdukScreenState extends State<DetailProdukScreen> {
   
       if (!mounted) return;
   
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Produk berhasil ditambahkan ke keranjang'),
-        ),
-      );
-  
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const KeranjangScreen()),
-      );
+
+      Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
   

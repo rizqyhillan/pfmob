@@ -24,11 +24,14 @@ class _ShopContentState extends State<ShopContent> {
   String _selectedCategory = 'Semua';
   bool _loading = true;
   String? _error;
+  ShopCart? _cart;
+  bool _showCartSummary = false;
 
   @override
   void initState() {
     super.initState();
     _loadData();
+    _loadCart();
   }
 
   @override
@@ -74,19 +77,45 @@ class _ShopContentState extends State<ShopContent> {
     }
   }
 
-    void _openCart() {
-      if (AuthService().isLoggedIn) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const KeranjangScreen()),
-        );
-      } else {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const LoginScreen(redirectToProfile: false),
-          ),
-        );
+  Future<void> _loadCart() async {
+    if (!AuthService().isLoggedIn) {
+      if (!mounted) return;
+      setState(() {
+        _cart = null;
+        _showCartSummary = false;
+      });
+      return;
+    }
+
+    try {
+      final cart = await ApiService.getCart();
+      if (!mounted) return;
+      setState(() {
+        _cart = cart;
+        _showCartSummary = cart.items.isNotEmpty;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _cart = null;
+        _showCartSummary = false;
+      });
+    }
+  }
+
+  void _openCart() {
+    if (AuthService().isLoggedIn) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const KeranjangScreen()),
+      );
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const LoginScreen(redirectToProfile: false),
+        ),
+      );
     }
   }
 
@@ -99,6 +128,7 @@ class _ShopContentState extends State<ShopContent> {
         _buildCategories(),
         _buildTitle(),
         Expanded(child: _buildBody()),
+        if (_showCartSummary) _buildCartSummaryBanner(),
       ],
     );
   }
@@ -248,9 +278,9 @@ class _ShopContentState extends State<ShopContent> {
   Widget _buildBody() {
     if (_loading) return const Center(child: CircularProgressIndicator());
     if (_error != null) {
-      return _MessageState(icon: '⚠️', title: _error!, actionText: 'Coba Lagi', onAction: _loadData);
+      return _MessageState(image: const AssetImage('assets/images/warning.png'), title: _error!, actionText: 'Coba Lagi', onAction: _loadData);
     }
-    if (_products.isEmpty) return _MessageState(icon: '🛒', title: 'Produk belum tersedia', actionText: 'Muat ulang', onAction: _loadData);
+    if (_products.isEmpty) return _MessageState(image: const AssetImage('assets/images/shopping-cart.png'), title: 'Produk belum tersedia', actionText: 'Muat ulang', onAction: _loadData);
 
     return RefreshIndicator(
       onRefresh: _loadData,
@@ -268,10 +298,77 @@ class _ShopContentState extends State<ShopContent> {
     );
   }
 
+  Widget _buildCartSummaryBanner() {
+    final cart = _cart;
+    if (cart == null || cart.items.isEmpty) return const SizedBox.shrink();
+
+    return GestureDetector(
+      onTap: _openCart,
+      child: Container(
+        width: double.infinity,
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: AppColors.primary,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${cart.totalItem} produk',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Rp ${_formatHarga(cart.totalHarga)}',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              width: 26,
+              height: 26,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 1.5),
+              ),
+              child: const Icon(
+                Icons.arrow_forward,
+                color: Colors.white,
+                size: 10,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildProductCard(Product product) {
     final hasImage = product.imageUrl.isNotEmpty;
     return GestureDetector(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailProdukScreen(productId: product.id))),
+      onTap: () async {
+        final updated = await Navigator.push<bool?>(
+          context,
+          MaterialPageRoute(builder: (_) => DetailProdukScreen(productId: product.id)),
+        );
+        if (updated == true) {
+          await _loadCart();
+        }
+      },
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -336,12 +433,12 @@ class _ShopContentState extends State<ShopContent> {
 }
 
 class _MessageState extends StatelessWidget {
-  final String icon;
+  final AssetImage image;
   final String title;
   final String actionText;
   final VoidCallback onAction;
 
-  const _MessageState({required this.icon, required this.title, required this.actionText, required this.onAction});
+  const _MessageState({required this.image, required this.title, required this.actionText, required this.onAction});
 
   @override
   Widget build(BuildContext context) {
@@ -351,7 +448,7 @@ class _MessageState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(icon, style: const TextStyle(fontSize: 48)),
+            Image(image: image, width: 48, height: 48),
             const SizedBox(height: 10),
             Text(title, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMedium, fontWeight: FontWeight.w700)),
             const SizedBox(height: 12),
