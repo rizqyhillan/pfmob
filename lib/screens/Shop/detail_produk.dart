@@ -134,12 +134,6 @@ class _DetailProdukScreenState extends State<DetailProdukScreen> {
   
       if (!mounted) return;
   
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Produk berhasil ditambahkan ke keranjang'),
-        ),
-      );
-  
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
