@@ -880,11 +880,15 @@ static Future<void> deletePet(int id) async {
     throw Exception('Gagal mengambil keranjang');
   }
 
-  static Future<ShopCart> addCartItem({required int idBarang, required int jumlah}) async {
+  static Future<ShopCart> addCartItem({required int idBarang, required int jumlah, int? idVariasi}) async {
     final response = await http.post(
       Uri.parse('$baseUrl/shop/cart/items'),
       headers: _headers,
-      body: jsonEncode({'id_barang': idBarang, 'jumlah': jumlah}),
+      body: jsonEncode({
+        'id_barang': idBarang,
+        'jumlah': jumlah,
+        if (idVariasi != null) 'id_variasi': idVariasi,
+      }),
     );
     if (response.statusCode == 200 || response.statusCode == 201) {
       final body = _decodeMap(response);

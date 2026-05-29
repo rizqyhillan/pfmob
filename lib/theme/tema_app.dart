@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
   static const Color primary = Color(0xFFE87722);        // Orange utama
@@ -23,7 +24,7 @@ class AppColors {
 class AppTheme {
   static ThemeData get theme => ThemeData(
         useMaterial3: true,
-        fontFamily: 'Nunito',
+        textTheme: GoogleFonts.robotoTextTheme(),
         scaffoldBackgroundColor: AppColors.background,
         colorScheme: ColorScheme.fromSeed(
           seedColor: AppColors.primary,
@@ -44,10 +45,10 @@ class AppTheme {
               borderRadius: BorderRadius.circular(14),
             ),
             padding: const EdgeInsets.symmetric(vertical: 16),
-            textStyle: const TextStyle(
+             textStyle: GoogleFonts.roboto(  // ← ganti ini
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              fontFamily: 'Nunito',
+
             ),
           ),
         ),
@@ -68,10 +69,9 @@ class AppTheme {
           ),
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-          hintStyle: TextStyle(
+          hintStyle: GoogleFonts.roboto(  
             color: AppColors.textLight,
             fontSize: 14,
-            fontFamily: 'Nunito',
           ),
         ),
       );

@@ -195,31 +195,6 @@ class DetailPetScreen extends StatelessWidget {
             ),
             
           ),
-
-          // Indikator dot
-          Positioned(
-            bottom: 16,
-            left: 0,
-            right: 0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                3,
-                (i) => AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  width: i == 0 ? 20 : 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: i == 0
-                        ? AppColors.textDark
-                        : AppColors.textDark.withValues(alpha: 0.25),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-              ),
-            ),
-          ),
         ],
       ),
     );

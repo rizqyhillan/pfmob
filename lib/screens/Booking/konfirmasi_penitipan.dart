@@ -140,10 +140,10 @@ class _KonfirmasiPenitipanScreenState extends State<KonfirmasiPenitipanScreen> {
                   ? const Center(
                       child: CircularProgressIndicator(color: AppColors.primary))
                   : _error != null
-                      ? _buildMessage('⚠️', _error!, 'Coba Lagi', _loadPets)
+                      ? _buildMessage(Image.asset('assets/images/warning.png', width: 56, height: 56), _error!, 'Coba Lagi', _loadPets)
                       : _pets.isEmpty
                           ? _buildMessage(
-                              '🐾',
+                              Image.asset('assets/images/logo-paw.png', width: 56, height: 56),
                               'Kamu belum punya data hewan.\nTambahkan hewan dulu dari Profile > My Pets.',
                               'Muat ulang',
                               _loadPets,
@@ -210,14 +210,14 @@ class _KonfirmasiPenitipanScreenState extends State<KonfirmasiPenitipanScreen> {
   }
 
   Widget _buildMessage(
-      String icon, String title, String action, VoidCallback onAction) {
+      Widget icon, String title, String action, VoidCallback onAction) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(icon, style: const TextStyle(fontSize: 48)),
+            icon,
             const SizedBox(height: 12),
             Text(
               title,
@@ -781,15 +781,11 @@ class _KonfirmasiPenitipanScreenState extends State<KonfirmasiPenitipanScreen> {
               ),
             ),
             const SizedBox(height: 28),
-            Container(
-              width: 80, height: 80,
-              decoration: const BoxDecoration(
-                color: Color(0xFFE8F5E9),
-                shape: BoxShape.circle,
-              ),
-              child: const Center(
-                child: Text('🎉', style: TextStyle(fontSize: 40)),
-              ),
+            Image.asset(
+              'assets/images/check.png',
+              width: 80,
+              height: 80,
+              fit: BoxFit.contain,
             ),
             const SizedBox(height: 20),
             const Text(

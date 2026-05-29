@@ -625,15 +625,11 @@ class _KonfirmasiGroomingScreenState extends State<KonfirmasiGroomingScreen> {
               decoration: BoxDecoration(color: AppColors.divider, borderRadius: BorderRadius.circular(2)),
             ),
             const SizedBox(height: 28),
-            Container(
-              width: 80, height: 80,
-              decoration: const BoxDecoration(
-                color: Color(0xFFE8F5E9),
-                shape: BoxShape.circle,
-              ),
-              child: const Center(
-                child: Text('🎉', style: TextStyle(fontSize: 40)),
-              ),
+            Image.asset(
+              'assets/images/check.png',
+              width: 80,
+              height: 80,
+              fit: BoxFit.contain,
             ),
             const SizedBox(height: 20),
             const Text(

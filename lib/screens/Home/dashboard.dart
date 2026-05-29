@@ -11,6 +11,7 @@ import '../profile/my_pets.dart';
 import '../Shop/keranjang.dart';
 import '../Shop/detail_produk.dart';
 import '../../widgets/user_avatar.dart';
+import '../profile/profile.dart';
 
 class DashboardScreen extends StatefulWidget {
   final int initialIndex;
@@ -341,25 +342,44 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
 
-  Widget _buildHeader() {
+    Widget _buildHeader() {
     final auth = AuthService();
     final isLoggedIn = auth.isLoggedIn;
     final displayName = auth.userName.trim().isNotEmpty
         ? auth.userName.trim()
         : 'User PawPet';
-  
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
       child: Row(
         children: [
-          const UserAvatar(),
+          GestureDetector(
+            onTap: () {
+              if (AuthService().isLoggedIn) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ProfileScreen(showBackButton: true),
+                  ),
+                );
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const LoginScreen(redirectToProfile: false),
+                  ),
+                );
+              }
+            },
+            child: const UserAvatar(),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  isLoggedIn ? 'OWNER' : 'WELCOME',
+                  isLoggedIn ? 'PET OWNER' : 'WELCOME',
                   style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
@@ -421,7 +441,6 @@ class _DashboardScreenState extends State<DashboardScreen>
       ),
     );
   }
-
   Widget _buildBanner() {
     final banners = [
       'assets/images/iklan1.jpg',

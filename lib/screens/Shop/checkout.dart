@@ -19,7 +19,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final TextEditingController _catatanController = TextEditingController();
   bool _loading = false;
 
-  String _metodeBayar = 'ewallet';
+  String _metodeBayar = '';
 
   @override
   void dispose() {
@@ -35,6 +35,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<void> _buatPesanan() async {
+    if (_metodeBayar.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Pilih metode pembayaran terlebih dahulu'),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+    return;
+  }
+
     if (_loading) return;
 
     setState(() => _loading = true);
@@ -52,7 +63,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       final redirectUrl = trx['redirect_url']?.toString();
       final kodeTransaksi = trx['kode_transaksi']?.toString() ?? '-';
 
-      if (redirectUrl != null && (_metodeBayar == 'transfer' || _metodeBayar == 'ewallet')) {
+      if (redirectUrl != null && (_metodeBayar == 'transfer')) {
         // Pindah ke WebView Midtrans
         await Navigator.push<bool>(
           context,
@@ -67,27 +78,78 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         if (!mounted) return;
 
         // Tampilkan dialog penyelesaian
-        await showDialog<void>(
+        await showModalBottomSheet<void>(
           context: context,
-          barrierDismissible: false,
-          builder: (_) => AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
+          isDismissible: false,
+          enableDrag: false,
+          backgroundColor: Colors.transparent,
+          barrierColor: Colors.black.withValues(alpha: 0.5),
+          builder: (_) => Container(
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
             ),
-            title: const Text('Pembayaran Diproses'),
-            content: Text(
-              'Kode Pesanan: $kodeTransaksi\n\n'
-              'Terima kasih! Pesanan Anda sedang diproses. Silakan periksa status pembayaran terbaru Anda di halaman Riwayat Belanja.',
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40, height: 4,
+                  decoration: BoxDecoration(color: AppColors.divider, borderRadius: BorderRadius.circular(2)),
+                ),
+                const SizedBox(height: 28),
+                Image.asset(
+                  'assets/images/check.png',
+                  width: 80,
+                  height: 80,
+                  fit: BoxFit.contain,
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Pesanan Dibuat!',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.textDark),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Pembayaran kamu sedang diproses.\nCek status di Riwayat Belanja ya!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 13, color: AppColors.textLight, height: 1.5),
+                ),
+                const SizedBox(height: 20),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.categoryBg1,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.receipt_long_outlined, color: AppColors.primary, size: 18),
+                      const SizedBox(width: 10),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Kode Pesanan', style: TextStyle(fontSize: 11, color: AppColors.textLight)),
+                          Text(kodeTransaksi, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                GestureDetector(
+                  onTap: () { Navigator.pop(context); Navigator.pop(context, true); },
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(16)),
+                    child: const Text('Lihat Riwayat Belanja', textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
+                  ),
+                ),
+              ],
             ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.pop(context, true);
-                },
-                child: const Text('Tutup'),
-              ),
-            ],
           ),
         );
       } else {
@@ -421,12 +483,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ),
         ),
         const SizedBox(height: 12),
-        _paymentTile(
-          value: 'ewallet',
-          title: 'E-Wallet',
-          subtitle: 'Default sementara sampai payment gateway aktif',
-          icon: Icons.account_balance_wallet_outlined,
-        ),
+
         const SizedBox(height: 10),
         _paymentTile(
           value: 'transfer',
