@@ -104,19 +104,14 @@ class _ShopContentState extends State<ShopContent> {
   }
 
   void _openCart() {
-    if (AuthService().isLoggedIn) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const KeranjangScreen()),
-      );
-    } else {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const LoginScreen(redirectToProfile: false),
-        ),
-      );
-    }
+    final route = AuthService().isLoggedIn
+        ? MaterialPageRoute(builder: (_) => const KeranjangScreen())
+        : MaterialPageRoute(builder: (_) => const LoginScreen(redirectToProfile: false));
+
+    Navigator.push(context, route).then((_) {
+      // Reload cart summary after returning from cart or login flow.
+      _loadCart();
+    });
   }
 
   @override

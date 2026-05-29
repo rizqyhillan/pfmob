@@ -139,12 +139,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
                 const SizedBox(height: 24),
                 GestureDetector(
-                  onTap: () { Navigator.pop(context); Navigator.pop(context, true); },
+                  onTap: () { Navigator.popUntil(context, (route) => route.isFirst); },
                   child: Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(16)),
-                    child: const Text('Lihat Riwayat Belanja', textAlign: TextAlign.center,
+                    child: const Text('Kembali ke Beranda', textAlign: TextAlign.center,
                       style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
                   ),
                 ),
@@ -153,32 +153,80 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ),
         );
       } else {
-        // Cash payment flow
-        await showDialog<void>(
-          context: context,
-          barrierDismissible: false,
-          builder: (_) => AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
+    // COD payment flow
+    await showModalBottomSheet<void>(
+      context: context,
+      isDismissible: false,
+      enableDrag: false,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.5),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+        child: SingleChildScrollView(
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
             ),
-            title: const Text('Pesanan berhasil dibuat'),
-            content: Text(
-              'Kode: $kodeTransaksi\n'
-              'Status: ${trx['status'] ?? 'pending'}\n\n'
-              'Pesanan dengan metode Cash berhasil dibuat. Silakan lakukan pembayaran secara langsung di kasir sesuai instruksi admin.',
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40, height: 4,
+                  decoration: BoxDecoration(color: AppColors.divider, borderRadius: BorderRadius.circular(2)),
+                ),
+                const SizedBox(height: 28),
+                Image.asset('assets/images/check.png', width: 80, height: 80, fit: BoxFit.contain),
+                const SizedBox(height: 20),
+                const Text(
+                  'Pesanan Dibuat!',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.textDark),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Pesanan COD kamu berhasil dibuat.\nKurir akan mengantarkan pesanan dan\npembayaran dilakukan saat barang tiba.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 13, color: AppColors.textLight, height: 1.5),
+                ),
+                const SizedBox(height: 20),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(color: AppColors.categoryBg1, borderRadius: BorderRadius.circular(12)),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.receipt_long_outlined, color: AppColors.primary, size: 18),
+                      const SizedBox(width: 10),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Kode Pesanan', style: TextStyle(fontSize: 11, color: AppColors.textLight)),
+                          Text(kodeTransaksi, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                GestureDetector(
+                  onTap: () { Navigator.popUntil(context, (route) => route.isFirst); },
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(16)),
+                    child: const Text('Kembali ke Beranda', textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
+                  ),
+                ),
+              ],
             ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.pop(context, true);
-                },
-                child: const Text('OK'),
-              ),
-            ],
           ),
-        );
-      }
+        ),
+      ),
+    );
+  }
     } catch (e) {
       if (!mounted) return;
 
@@ -494,8 +542,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         const SizedBox(height: 10),
         _paymentTile(
           value: 'cash',
-          title: 'Cash',
-          subtitle: 'Bayar manual sesuai arahan admin',
+          title: 'COD',
+          subtitle: 'Bayar saat barang tiba diantar kurir',
           icon: Icons.payments_outlined,
         ),
       ],
