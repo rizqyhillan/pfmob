@@ -4,10 +4,12 @@ import '../../theme/tema_app.dart';
 
 class RescheduleScreen extends StatefulWidget {
   final AppScheduleItem item;
+  final String? doctorPhoto;
 
   const RescheduleScreen({
     super.key,
     required this.item,
+    this.doctorPhoto,
   });
 
   @override
@@ -258,12 +260,7 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
             children: [
               Row(
                 children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(color: AppColors.categoryBg1, borderRadius: BorderRadius.circular(12)),
-                    child: Center(child: Text(widget.item.emoji, style: const TextStyle(fontSize: 22))),
-                  ),
+                  _buildRescheduleAvatar(widget.item, widget.doctorPhoto, 40),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -394,4 +391,85 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
       ),
     );
   }
+}
+
+Widget _buildRescheduleAvatar(AppScheduleItem item, String? doctorPhoto, double size) {
+  final isDoctor = item.type == 'doctor';
+  final hasPhoto = isDoctor &&
+      doctorPhoto != null &&
+      doctorPhoto.trim().isNotEmpty &&
+      doctorPhoto.toLowerCase() != 'null' &&
+      !doctorPhoto.toLowerCase().endsWith('/storage') &&
+      !doctorPhoto.toLowerCase().endsWith('/storage/');
+
+  if (hasPhoto) {
+    final bustedUrl = '$doctorPhoto${doctorPhoto.contains('?') ? '&' : '?'}v=${DateTime.now().minute}';
+    return Container(
+      width: size,
+      height: size,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        color: AppColors.categoryBg1,
+      ),
+      child: ClipOval(
+        child: Image.network(
+          bustedUrl,
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return const Center(
+              child: SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                ),
+              ),
+            );
+          },
+          errorBuilder: (context, error, stackTrace) => Image.asset(
+            'assets/images/pet-dokter.png',
+            width: size,
+            height: size,
+            fit: BoxFit.cover,
+          ),
+        ),
+      ),
+    );
+  } else if (isDoctor) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        color: AppColors.categoryBg1,
+      ),
+      child: ClipOval(
+        child: Image.asset(
+          'assets/images/pet-dokter.png',
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+        ),
+      ),
+    );
+  }
+
+  return Container(
+    width: size,
+    height: size,
+    decoration: BoxDecoration(
+      color: AppColors.categoryBg1,
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Center(
+      child: Text(
+        item.emoji,
+        style: TextStyle(fontSize: size * 0.55),
+      ),
+    ),
+  );
 }

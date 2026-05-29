@@ -19,6 +19,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
   int? _cancellingId;
   String? _error;
   List<AppScheduleItem> _items = [];
+  Map<int, String?> _doctorPhotos = {};
 
   @override
   void initState() {
@@ -46,15 +47,21 @@ class _ScheduleContentState extends State<ScheduleContent> {
         ApiService.getMyDoctorBookings(),
         ApiService.getMyGroomingBookings(),
         ApiService.getMyBoardings(),
+        ApiService.getDoctors(),
       ]);
 
       final merged = <AppScheduleItem>[
-        ...results[0],
-        ...results[1],
-        ...results[2],
+        ...results[0] as List<AppScheduleItem>,
+        ...results[1] as List<AppScheduleItem>,
+        ...results[2] as List<AppScheduleItem>,
       ];
 
       merged.sort((a, b) => b.date.compareTo(a.date));
+
+      final doctors = results[3] as List<Doctor>;
+      _doctorPhotos = {
+        for (var doc in doctors) doc.id: doc.fotoUrl,
+      };
 
       if (!mounted) return;
       setState(() {
@@ -112,6 +119,9 @@ class _ScheduleContentState extends State<ScheduleContent> {
   }
 
   Future<void> _showDetail(AppScheduleItem item) async {
+    final doctorId = int.tryParse(item.raw['id_dokter']?.toString() ?? '');
+    final doctorPhoto = doctorId != null ? _doctorPhotos[doctorId] : null;
+
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -128,6 +138,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
               }
             : null,
         cancelling: _cancellingId == item.id,
+        doctorPhoto: doctorPhoto,
       ),
     );
   }
@@ -179,9 +190,12 @@ class _ScheduleContentState extends State<ScheduleContent> {
   Future<void> _rescheduleBooking(AppScheduleItem item) async {
     if (!item.canReschedule) return;
 
+    final doctorId = int.tryParse(item.raw['id_dokter']?.toString() ?? '');
+    final doctorPhoto = doctorId != null ? _doctorPhotos[doctorId] : null;
+
     final changed = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(builder: (_) => RescheduleScreen(item: item)),
+      MaterialPageRoute(builder: (_) => RescheduleScreen(item: item, doctorPhoto: doctorPhoto)),
     );
 
     if (changed == true) {
@@ -487,16 +501,12 @@ class _ScheduleContentState extends State<ScheduleContent> {
           children: [
             Row(
               children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.categoryBg1,
-                  ),
-                  child: Center(
-                    child: Text(item.emoji, style: const TextStyle(fontSize: 26)),
-                  ),
+                Builder(
+                  builder: (context) {
+                    final doctorId = int.tryParse(item.raw['id_dokter']?.toString() ?? '');
+                    final doctorPhoto = doctorId != null ? _doctorPhotos[doctorId] : null;
+                    return _buildAvatarWidget(item, doctorPhoto, 48);
+                  },
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -622,6 +632,7 @@ class _ScheduleDetailSheet extends StatelessWidget {
   final VoidCallback? onCancel;
   final VoidCallback? onReschedule;
   final bool cancelling;
+  final String? doctorPhoto;
 
   const _ScheduleDetailSheet({
     required this.item,
@@ -630,6 +641,7 @@ class _ScheduleDetailSheet extends StatelessWidget {
     required this.onCancel,
     required this.onReschedule,
     required this.cancelling,
+    this.doctorPhoto,
   });
 
   @override
@@ -674,12 +686,7 @@ class _ScheduleDetailSheet extends StatelessWidget {
               const SizedBox(height: 18),
               Row(
                 children: [
-                  Container(
-                    width: 52,
-                    height: 52,
-                    decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.categoryBg1),
-                    child: Center(child: Text(item.emoji, style: const TextStyle(fontSize: 28))),
-                  ),
+                  _buildAvatarWidget(item, doctorPhoto, 52),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Column(
@@ -769,4 +776,85 @@ class _DetailRowData {
   final String value;
 
   _DetailRowData(this.label, this.value);
+}
+
+Widget _buildAvatarWidget(AppScheduleItem item, String? doctorPhoto, double size) {
+  final isDoctor = item.type == 'doctor';
+  final hasPhoto = isDoctor &&
+      doctorPhoto != null &&
+      doctorPhoto.trim().isNotEmpty &&
+      doctorPhoto.toLowerCase() != 'null' &&
+      !doctorPhoto.toLowerCase().endsWith('/storage') &&
+      !doctorPhoto.toLowerCase().endsWith('/storage/');
+
+  if (hasPhoto) {
+    final bustedUrl = '$doctorPhoto${doctorPhoto.contains('?') ? '&' : '?'}v=${DateTime.now().minute}';
+    return Container(
+      width: size,
+      height: size,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        color: AppColors.categoryBg1,
+      ),
+      child: ClipOval(
+        child: Image.network(
+          bustedUrl,
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return const Center(
+              child: SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                ),
+              ),
+            );
+          },
+          errorBuilder: (context, error, stackTrace) => Image.asset(
+            'assets/images/pet-dokter.png',
+            width: size,
+            height: size,
+            fit: BoxFit.cover,
+          ),
+        ),
+      ),
+    );
+  } else if (isDoctor) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        color: AppColors.categoryBg1,
+      ),
+      child: ClipOval(
+        child: Image.asset(
+          'assets/images/pet-dokter.png',
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+        ),
+      ),
+    );
+  }
+
+  return Container(
+    width: size,
+    height: size,
+    decoration: const BoxDecoration(
+      shape: BoxShape.circle,
+      color: AppColors.categoryBg1,
+    ),
+    child: Center(
+      child: Text(
+        item.emoji,
+        style: TextStyle(fontSize: size * 0.54),
+      ),
+    ),
+  );
 }
