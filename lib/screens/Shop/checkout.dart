@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../services/api_service.dart';
+import '../../viewmodels/shop_viewmodel.dart';
 import '../../theme/tema_app.dart';
 import 'snap_webview.dart';
 
@@ -51,14 +53,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     setState(() => _loading = true);
 
     try {
-      final trx = await ApiService.checkoutCart(
-        metodeBayar: _metodeBayar,
-        catatan: _catatanController.text.trim().isEmpty
+      final trx = await context.read<ShopViewModel>().checkoutCart(
+        paymentMethod: _metodeBayar,
+        note: _catatanController.text.trim().isEmpty
             ? null
             : _catatanController.text.trim(),
       );
 
       if (!mounted) return;
+      if (trx == null) {
+        throw Exception(context.read<ShopViewModel>().errorMessage ?? 'Checkout gagal');
+      }
 
       final redirectUrl = trx['redirect_url']?.toString();
       final kodeTransaksi = trx['kode_transaksi']?.toString() ?? '-';

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../theme/tema_app.dart';
 import '../Home/dashboard.dart';
 import '../../services/api_service.dart';
+import '../../viewmodels/booking_viewmodel.dart';
 
 class KonfirmasiGroomingScreen extends StatefulWidget {
   final int idPaket;
@@ -33,8 +35,10 @@ class _KonfirmasiGroomingScreenState extends State<KonfirmasiGroomingScreen> {
 
   Future<void> _fetchData() async {
     try {
-      final pets = await ApiService.getMyPets();
-      final avail = await ApiService.getGroomingAvailability();
+      final bookingViewModel = context.read<BookingViewModel>();
+      await bookingViewModel.loadGroomingFormData();
+      final pets = bookingViewModel.pets;
+      final avail = bookingViewModel.groomingAvailability ?? <String, dynamic>{};
       
       if (!mounted) return;
       setState(() {
@@ -585,7 +589,8 @@ class _KonfirmasiGroomingScreenState extends State<KonfirmasiGroomingScreen> {
     );
     
     try {
-      await ApiService.bookGrooming(
+      final bookingViewModel = context.read<BookingViewModel>();
+      await bookingViewModel.bookGrooming(
         idHewan: idHewan,
         idPaket: widget.idPaket,
         tanggalGrooming: tanggal,

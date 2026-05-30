@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../theme/tema_app.dart';
-import '../../services/api_service.dart';
+import '../../viewmodels/report_viewmodel.dart';
 import '../Shop/snap_webview.dart';
 
 
@@ -150,7 +151,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
   @override
   void initState() {
     super.initState();
-    _future = ApiService.getTransactionDetail(widget.transactionId);
+    _future = context.read<ReportViewModel>().loadTransactionDetail(widget.transactionId);
   }
 
   @override
@@ -215,7 +216,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
                     ElevatedButton.icon(
                       onPressed: () => setState(() {
                         _future =
-                            ApiService.getTransactionDetail(widget.transactionId);
+                            context.read<ReportViewModel>().loadTransactionDetail(widget.transactionId);
                       }),
                       icon: const Icon(Icons.refresh),
                       label: const Text('Coba Lagi'),
@@ -247,7 +248,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
 
   void _refreshDetail() {
     setState(() {
-      _future = ApiService.getTransactionDetail(widget.transactionId);
+      _future = context.read<ReportViewModel>().loadTransactionDetail(widget.transactionId);
     });
   }
 

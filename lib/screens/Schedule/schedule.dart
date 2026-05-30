@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../services/api_service.dart';
 import '../../theme/tema_app.dart';
 import '../../viewmodels/auth_viewmodel.dart';
+import '../../viewmodels/schedule_viewmodel.dart';
 import '../login.dart';
 import '../../widgets/user_avatar.dart';
 import 'reschedule.dart';
@@ -45,22 +46,13 @@ class _ScheduleContentState extends State<ScheduleContent> {
     });
 
     try {
-      final results = await Future.wait([
-        ApiService.getMyDoctorBookings(),
-        ApiService.getMyGroomingBookings(),
-        ApiService.getMyBoardings(),
-        ApiService.getDoctors(),
-      ]);
+      final scheduleViewModel = context.read<ScheduleViewModel>();
+      await scheduleViewModel.loadSchedules();
 
-      final merged = <AppScheduleItem>[
-        ...results[0] as List<AppScheduleItem>,
-        ...results[1] as List<AppScheduleItem>,
-        ...results[2] as List<AppScheduleItem>,
-      ];
-
+      final merged = [...scheduleViewModel.items];
       merged.sort((a, b) => b.date.compareTo(a.date));
 
-      final doctors = results[3] as List<Doctor>;
+      final doctors = scheduleViewModel.doctors;
       _doctorPhotos = {
         for (var doc in doctors) doc.id: doc.fotoUrl,
       };
@@ -233,13 +225,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
 
     setState(() => _cancellingId = item.id);
     try {
-      if (item.type == 'doctor') {
-        await ApiService.cancelDoctorBooking(item.id);
-      } else if (item.type == 'grooming') {
-        await ApiService.cancelGroomingBooking(item.id);
-      } else if (item.type == 'boarding') {
-        await ApiService.cancelBoarding(item.id);
-      }
+      await context.read<ScheduleViewModel>().cancelSchedule(item);
 
       if (!mounted) return;
       Navigator.of(context).maybePop();

@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../theme/tema_app.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import '../../models/product.dart';
-import '../../services/product_repository.dart';
+import '../../viewmodels/home_viewmodel.dart';
 import '../login.dart';
 import '../Shop/shop.dart';
 import '../Booking/booking.dart';
@@ -31,8 +31,6 @@ class _DashboardScreenState extends State<DashboardScreen>
   int _currentBanner = 0;
 
   // ─── Best Seller state ──────────────────────────────────────
-  final ProductRepository _productRepository = ProductRepository();
-
   List<Product> _bestSellers = [];
   bool _isBestSellersLoading = true;
   String? _bestSellersError;
@@ -63,7 +61,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     });
 
     try {
-      final products = await _productRepository.getBestSellerProducts();
+      final products = await context.read<HomeViewModel>().loadBestSellers();
       if (mounted) {
         setState(() {
           _bestSellers = products;

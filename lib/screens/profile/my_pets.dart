@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../services/api_service.dart';
+import '../../viewmodels/pet_viewmodel.dart';
 import '../../theme/tema_app.dart';
 import '../../widgets/user_avatar.dart';
 import 'detail_pet.dart';
@@ -23,12 +25,12 @@ class _MyPetsScreenState extends State<MyPetsScreen> {
   @override
   void initState() {
     super.initState();
-    _futurePets = ApiService.getMyPets();
+    _futurePets = context.read<PetViewModel>().loadPets();
   }
 
   void _refreshPets() {
     setState(() {
-      _futurePets = ApiService.getMyPets();
+      _futurePets = context.read<PetViewModel>().loadPets();
     });
   }
 

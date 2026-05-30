@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../theme/tema_app.dart';
-import '../../services/api_service.dart';
+import '../../viewmodels/report_viewmodel.dart';
 import 'transaction_detail.dart';
 
 // ─── Model Transaksi sesuai field Laravel ────────────────────
@@ -59,7 +60,7 @@ class _ShopReportPageState extends State<ShopReportPage> {
   @override
   void initState() {
     super.initState();
-    _future = ApiService.getTransactions();
+    _future = context.read<ReportViewModel>().loadTransactions();
   }
 
   List<Transaction> _applyFilter(List<Transaction> all) {
@@ -132,7 +133,7 @@ class _ShopReportPageState extends State<ShopReportPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: AppColors.textDark),
-            onPressed: () => setState(() => _future = ApiService.getTransactions()),
+            onPressed: () => setState(() => _future = context.read<ReportViewModel>().loadTransactions()),
           ),
         ],
       ),
@@ -170,7 +171,7 @@ class _ShopReportPageState extends State<ShopReportPage> {
                           const SizedBox(height: 20),
                           ElevatedButton.icon(
                             onPressed: () => setState(
-                                () => _future = ApiService.getTransactions()),
+                                () => _future = context.read<ReportViewModel>().loadTransactions()),
                             icon: const Icon(Icons.refresh),
                             label: const Text('Coba Lagi'),
                           ),
@@ -267,7 +268,7 @@ class _ShopReportPageState extends State<ShopReportPage> {
         );
         // Refresh list when returning from detail (status may have changed)
         if (mounted) {
-          setState(() => _future = ApiService.getTransactions());
+          setState(() => _future = context.read<ReportViewModel>().loadTransactions());
         }
       },
       child: Container(

@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../services/api_service.dart';
 import '../../theme/tema_app.dart';
 import '../../viewmodels/auth_viewmodel.dart';
+import '../../viewmodels/profile_viewmodel.dart';
 
 class EditProfilPage extends StatefulWidget {
   const EditProfilPage({super.key});
@@ -33,6 +33,7 @@ class _EditProfilPageState extends State<EditProfilPage> {
     super.initState();
 
     final authViewModel = context.read<AuthViewModel>();
+    final profileViewModel = context.read<ProfileViewModel>();
     _namaController.text = authViewModel.userName;
     _emailController.text = authViewModel.userEmail;
 
@@ -50,9 +51,11 @@ class _EditProfilPageState extends State<EditProfilPage> {
 
   Future<void> _loadProfile() async {
     try {
-      final profile = await ApiService.getProfile();
+      final profileViewModel = context.read<ProfileViewModel>();
+      final profile = await profileViewModel.loadProfile();
 
       if (!mounted) return;
+      if (profile == null) throw Exception(profileViewModel.errorMessage ?? 'Gagal memuat profil');
 
       _namaController.text = profile.nama;
       _emailController.text = profile.email;
@@ -86,6 +89,7 @@ class _EditProfilPageState extends State<EditProfilPage> {
     if (!_formKey.currentState!.validate()) return;
 
     final authViewModel = context.read<AuthViewModel>();
+    final profileViewModel = context.read<ProfileViewModel>();
 
     final nama = _namaController.text.trim();
     final email = _emailController.text.trim();
@@ -95,13 +99,17 @@ class _EditProfilPageState extends State<EditProfilPage> {
     setState(() => _isSaving = true);
 
     try {
-      final profile = await ApiService.updateProfile(
+      final profile = await profileViewModel.updateProfile(
         nama: nama,
         email: email,
         noHp: noHp.isEmpty ? null : noHp,
         alamat: alamat.isEmpty ? null : alamat,
         fotoFile: _fotoFile,
       );
+
+      if (profile == null) {
+        throw Exception(profileViewModel.errorMessage ?? 'Gagal memperbarui profil');
+      }
 
       await authViewModel.updateLocalProfile(
         name: profile.nama,

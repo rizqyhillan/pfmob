@@ -1,8 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../services/api_service.dart';
+import '../../viewmodels/pet_viewmodel.dart';
 import '../../theme/tema_app.dart';
 
 class EditHewanScreen extends StatefulWidget {
@@ -106,7 +107,7 @@ class _EditHewanScreenState extends State<EditHewanScreen> {
     setState(() => _isLoading = true);
 
     try {
-      await ApiService.updatePet(
+      await context.read<PetViewModel>().updatePet(
         id: widget.id,
         namaHewan: nama,
         jenis: _selectedJenis,

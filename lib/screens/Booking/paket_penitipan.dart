@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/api_service.dart';
+import '../../viewmodels/booking_viewmodel.dart';
 import '../../theme/tema_app.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import '../login.dart';
@@ -38,7 +39,7 @@ class _PaketPenitipanScreenState extends State<PaketPenitipanScreen> {
     });
 
     try {
-      final rooms = await ApiService.getBoardingRooms();
+      final rooms = await context.read<BookingViewModel>().loadBoardingRooms();
 
       if (!mounted) return;
       setState(() {

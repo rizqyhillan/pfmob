@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import '../../services/api_service.dart';
+import '../../viewmodels/profile_viewmodel.dart';
 import '../../theme/tema_app.dart';
 
 class UbahPasswordPage extends StatefulWidget {
@@ -36,7 +37,7 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
     setState(() => _isLoading = true);
 
     try {
-      await ApiService.changePassword(
+      await context.read<ProfileViewModel>().changePassword(
         currentPassword: _currentController.text,
         newPassword: _newController.text,
         confirmPassword: _confirmController.text,

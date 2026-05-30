@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../../services/api_service.dart';
 import '../../theme/tema_app.dart';
 import '../../viewmodels/auth_viewmodel.dart';
+import '../../viewmodels/shop_viewmodel.dart';
+import '../../viewmodels/report_viewmodel.dart';
 import '../login.dart';
 import 'checkout.dart';
 import '../profile/shop_report.dart';
@@ -51,12 +53,12 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
       _error = null;
     });
     try {
-      final cart = await ApiService.getCart();
+      final cart = await context.read<ShopViewModel>().loadCart();
       List<Transaction> all = [];
       List<Transaction> pending = [];
       
       try {
-        all = await ApiService.getTransactions();
+        all = await context.read<ReportViewModel>().loadTransactions();
         pending = all.where((t) => t.status.toLowerCase() == 'pending' && 
             (t.metodeBayar.toLowerCase() == 'transfer' || t.metodeBayar.toLowerCase() == 'ewallet')).toList();
       } catch (e) {
@@ -82,7 +84,7 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
   Future<void> _updateQty(ShopCartItem item, int qty) async {
     if (qty < 1) return;
     try {
-      final cart = await ApiService.updateCartItem(itemId: item.id, jumlah: qty);
+      final cart = await context.read<ShopViewModel>().updateCartItem(itemId: item.id, quantity: qty);
       if (mounted) setState(() => _cart = cart);
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))));
@@ -91,7 +93,7 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
 
   Future<void> _removeItem(ShopCartItem item) async {
     try {
-      final cart = await ApiService.removeCartItem(item.id);
+      final cart = await context.read<ShopViewModel>().removeCartItem(item.id);
       if (mounted) setState(() => _cart = cart);
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))));

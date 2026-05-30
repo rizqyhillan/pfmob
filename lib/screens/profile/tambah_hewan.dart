@@ -1,9 +1,10 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../theme/tema_app.dart';
-import '../../services/api_service.dart';
+import '../../viewmodels/pet_viewmodel.dart';
 
 class TambahHewanScreen extends StatefulWidget {
   const TambahHewanScreen({super.key});
@@ -118,7 +119,7 @@ class _TambahHewanScreenState extends State<TambahHewanScreen> {
   setState(() => _isLoading = true);
 
   try {
-  await ApiService.addPet(
+  await context.read<PetViewModel>().addPet(
     namaHewan: nama,
     jenis: jenis,
     jenisKelamin: _selectedKelamin,

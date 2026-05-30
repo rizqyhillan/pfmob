@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../services/api_service.dart';
 import '../../theme/tema_app.dart';
 import '../../viewmodels/auth_viewmodel.dart';
+import '../../viewmodels/shop_viewmodel.dart';
 import '../login.dart';
 import '../../models/product.dart';
-import '../../services/product_repository.dart';
 
 class DetailProdukScreen extends StatefulWidget {
   final int? productId;
@@ -84,7 +83,7 @@ class _DetailProdukScreenState extends State<DetailProdukScreen> {
     }
 
     try {
-      final product = await ProductRepository().getProductDetail(widget.productId!);
+      final product = await context.read<ShopViewModel>().loadProductDetail(widget.productId!);
       if (!mounted) return;
       setState(() {
         _product = product;
@@ -127,10 +126,10 @@ class _DetailProdukScreenState extends State<DetailProdukScreen> {
     setState(() => _saving = true);
   
     try {
-      await ApiService.addCartItem(
-        idBarang: product.id,
-        jumlah: _jumlah,
-        idVariasi: _selectedVariation?.id,
+      await context.read<ShopViewModel>().addToCart(
+        productId: product.id,
+        quantity: _jumlah,
+        variationId: _selectedVariation?.id,
       );
   
       if (!mounted) return;

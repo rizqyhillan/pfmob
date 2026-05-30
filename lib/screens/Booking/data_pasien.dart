@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../services/api_service.dart';
+import '../../viewmodels/booking_viewmodel.dart';
 import '../../theme/tema_app.dart';
 
 class DataPasienScreen extends StatefulWidget {
@@ -51,7 +53,7 @@ class _DataPasienScreenState extends State<DataPasienScreen> {
       _error = null;
     });
     try {
-      final pets = await ApiService.getMyPets();
+      final pets = await context.read<BookingViewModel>().loadPets();
       if (!mounted) return;
       setState(() {
         _pets = pets;
@@ -72,7 +74,8 @@ class _DataPasienScreenState extends State<DataPasienScreen> {
     if (pet == null || _saving) return;
     setState(() => _saving = true);
     try {
-      await ApiService.bookDoctor(
+      final bookingViewModel = context.read<BookingViewModel>();
+      await bookingViewModel.bookDoctor(
         idHewan: pet.id,
         idDokter: widget.doctor.id,
         idLayanan: widget.service.id,

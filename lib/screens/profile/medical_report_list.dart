@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../theme/tema_app.dart';
-import '../../services/api_service.dart';
+import '../../viewmodels/report_viewmodel.dart';
 import 'medical_report.dart';
 
 class MedicalReportPage extends StatefulWidget {
@@ -16,7 +17,7 @@ class _MedicalReportPageState extends State<MedicalReportPage> {
   @override
   void initState() {
     super.initState();
-    _future = ApiService.getMedicalRecords();
+    _future = context.read<ReportViewModel>().loadMedicalRecords();
   }
 
   @override
@@ -53,7 +54,7 @@ class _MedicalReportPageState extends State<MedicalReportPage> {
           IconButton(
             icon: const Icon(Icons.refresh, color: AppColors.textDark),
             onPressed: () => setState(() {
-              _future = ApiService.getMedicalRecords();
+              _future = context.read<ReportViewModel>().loadMedicalRecords();
             }),
           ),
         ],
@@ -88,7 +89,7 @@ class _MedicalReportPageState extends State<MedicalReportPage> {
                     const SizedBox(height: 20),
                     ElevatedButton.icon(
                       onPressed: () => setState(() {
-                        _future = ApiService.getMedicalRecords();
+                        _future = context.read<ReportViewModel>().loadMedicalRecords();
                       }),
                       icon: const Icon(Icons.refresh),
                       label: const Text('Coba Lagi'),

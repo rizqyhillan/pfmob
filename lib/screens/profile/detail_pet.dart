@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../theme/tema_app.dart';
 import 'edit_hewan.dart';
-import '../../services/api_service.dart';
+import '../../viewmodels/pet_viewmodel.dart';
 
 class DetailPetScreen extends StatelessWidget {
   final int id;
@@ -63,7 +64,7 @@ class DetailPetScreen extends StatelessWidget {
   if (confirm != true) return;
 
   try {
-    await ApiService.deletePet(id);
+    await context.read<PetViewModel>().deletePet(id);
 
     if (!context.mounted) return;
 

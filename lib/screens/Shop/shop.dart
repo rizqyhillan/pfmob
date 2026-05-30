@@ -3,12 +3,12 @@ import 'package:provider/provider.dart';
 import '../../services/api_service.dart';
 import '../../theme/tema_app.dart';
 import '../../viewmodels/auth_viewmodel.dart';
+import '../../viewmodels/shop_viewmodel.dart';
 import '../login.dart';
 import '../../widgets/user_avatar.dart';
 import 'detail_produk.dart';
 import 'keranjang.dart';
 import '../../models/product.dart';
-import '../../services/product_repository.dart';
 import '../profile/profile.dart';
 
 class ShopContent extends StatefulWidget {
@@ -55,18 +55,16 @@ class _ShopContentState extends State<ShopContent> {
     });
 
     try {
-      final results = await Future.wait([
-        ApiService.getShopCategories(),
-        ProductRepository().getProducts(
-          search: _searchController.text,
-          kategori: _selectedCategory == 'Semua' ? null : _selectedCategory,
-        ),
-      ]);
+      final shopViewModel = context.read<ShopViewModel>();
+      await shopViewModel.loadProducts(
+        search: _searchController.text,
+        selectedCategory: _selectedCategory,
+      );
 
       if (!mounted) return;
       setState(() {
-        _categories = ['Semua', ...(results[0] as List<String>)];
-        _products = results[1] as List<Product>;
+        _categories = shopViewModel.categories;
+        _products = shopViewModel.products;
         _loading = false;
       });
     } catch (e) {
@@ -89,7 +87,7 @@ class _ShopContentState extends State<ShopContent> {
     }
 
     try {
-      final cart = await ApiService.getCart();
+      final cart = await context.read<ShopViewModel>().loadCart(silent: true);
       if (!mounted) return;
       setState(() {
         _cart = cart;
