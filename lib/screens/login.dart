@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
+
 import '../theme/tema_app.dart';
-import '../services/servis_auth.dart';
+import '../viewmodels/auth_viewmodel.dart';
 import 'register/regis1.dart';
 import 'lupa_pass.dart';
 import 'Home/dashboard.dart';
-
 class LoginScreen extends StatefulWidget {
   final bool redirectToProfile;
   const LoginScreen({super.key, this.redirectToProfile = false});
@@ -21,7 +22,6 @@ class _LoginScreenState extends State<LoginScreen>
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
-  bool _isLoading = false;
   late AnimationController _animController;
   late Animation<double> _fadeAnim;
   late Animation<Offset> _slideAnim;
@@ -47,41 +47,43 @@ class _LoginScreenState extends State<LoginScreen>
     super.dispose();
   }
 
-  void _login() async {
-  if (_formKey.currentState!.validate()) {
-    setState(() => _isLoading = true);
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) return;
 
-    final success = await AuthService().login(
+    final authViewModel = context.read<AuthViewModel>();
+
+    final success = await authViewModel.login(
       email: _emailController.text.trim(),
       password: _passwordController.text.trim(),
     );
 
-    setState(() => _isLoading = false);
-
     if (!mounted) return;
 
-  if (success) {
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(
-        builder: (_) => DashboardScreen(
-          initialIndex: widget.redirectToProfile ? 4 : 0,
+    if (success) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (_) => DashboardScreen(
+            initialIndex: widget.redirectToProfile ? 4 : 0,
+          ),
         ),
-      ),
-      (route) => false,
-    );
-  } else {
+        (route) => false,
+      );
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Email atau password salah'),
+        SnackBar(
+          content: Text(
+            authViewModel.errorMessage ?? 'Email atau password salah',
+          ),
         ),
       );
     }
   }
-}
 
   @override
   Widget build(BuildContext context) {
+    final authViewModel = context.watch<AuthViewModel>();
+
     return Scaffold(
       backgroundColor: AppColors.background,
       resizeToAvoidBottomInset: false,
@@ -252,13 +254,15 @@ class _LoginScreenState extends State<LoginScreen>
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: _isLoading ? null : _login,
-                            child: _isLoading
+                            onPressed: authViewModel.isLoading ? null : _login,
+                            child: authViewModel.isLoading
                                 ? const SizedBox(
                                     height: 20,
                                     width: 20,
                                     child: CircularProgressIndicator(
-                                        color: Colors.white, strokeWidth: 2),
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
                                   )
                                 : const Text('Masuk'),
                           ),
