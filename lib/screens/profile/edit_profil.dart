@@ -85,6 +85,8 @@ class _EditProfilPageState extends State<EditProfilPage> {
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final authViewModel = context.read<AuthViewModel>();
+
     final nama = _namaController.text.trim();
     final email = _emailController.text.trim();
     final noHp = _noHpController.text.trim();
@@ -101,7 +103,7 @@ class _EditProfilPageState extends State<EditProfilPage> {
         fotoFile: _fotoFile,
       );
 
-      await context.read<AuthViewModel>().updateLocalProfile(
+      await authViewModel.updateLocalProfile(
         name: profile.nama,
         email: profile.email,
         photo: profile.foto,
