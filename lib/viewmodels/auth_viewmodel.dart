@@ -74,6 +74,50 @@ class AuthViewModel extends ChangeNotifier {
     return success;
   }
 
+  Future<bool> sendOtp({
+  required String email,
+  }) async {
+    _setLoading(true);
+
+    final result = await _authService.sendOtp(
+      email: email,
+    );
+
+    if (result['success'] == true) {
+      _errorMessage = null;
+    } else {
+      _errorMessage = result['message']?.toString() ?? 'Gagal mengirim OTP.';
+    }
+
+    _setLoading(false);
+    return result['success'] == true;
+  }
+
+  Future<bool> verifyOtpAndRegister({
+    required String nama,
+    required String email,
+    required String password,
+    required String otp,
+  }) async {
+    _setLoading(true);
+
+    final result = await _authService.verifyOtpAndRegister(
+      nama: nama,
+      email: email,
+      password: password,
+      otp: otp,
+    );
+
+    if (result['success'] == true) {
+      _errorMessage = null;
+    } else {
+      _errorMessage = result['message']?.toString() ?? 'Verifikasi gagal.';
+    }
+
+    _setLoading(false);
+    return result['success'] == true;
+  }
+
   Future<void> logout() async {
     _setLoading(true);
     await _authService.logout();

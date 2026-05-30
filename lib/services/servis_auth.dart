@@ -147,6 +147,86 @@ class AuthService {
     _userPhoto = '';
   }
 
+  Future<Map<String, dynamic>> sendOtp({
+    required String email,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/send-otp'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'email': email,
+        }),
+      );
+  
+      final data = jsonDecode(response.body);
+  
+      return {
+        'success': response.statusCode == 200,
+        'message': data['message'] ?? 'Gagal mengirim OTP',
+        'data': data,
+      };
+    } catch (e) {
+      debugPrint('Send OTP error: $e');
+      return {
+        'success': false,
+        'message': 'Error: $e',
+        'data': null,
+      };
+    }
+  }
+  
+  Future<Map<String, dynamic>> verifyOtpAndRegister({
+    required String nama,
+    required String email,
+    required String password,
+    required String otp,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/verify-otp'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'nama': nama,
+          'email': email,
+          'password': password,
+          'otp': otp,
+        }),
+      );
+  
+      final data = jsonDecode(response.body);
+  
+      if (response.statusCode == 200) {
+        await saveLoginDataFromResponse(data);
+  
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Registrasi berhasil',
+          'data': data,
+        };
+      }
+  
+      return {
+        'success': false,
+        'message': data['message'] ?? 'Verifikasi gagal',
+        'data': data,
+      };
+    } catch (e) {
+      debugPrint('Verify OTP error: $e');
+      return {
+        'success': false,
+        'message': 'Error: $e',
+        'data': null,
+      };
+    }
+  }
+
   Future<bool> register({
     required String nama,
     required String email,
