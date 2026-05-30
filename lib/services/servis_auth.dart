@@ -161,9 +161,9 @@ class AuthService {
           'email': email,
         }),
       );
-  
+
       final data = jsonDecode(response.body);
-  
+
       return {
         'success': response.statusCode == 200,
         'message': data['message'] ?? 'Gagal mengirim OTP',
@@ -178,7 +178,7 @@ class AuthService {
       };
     }
   }
-  
+
   Future<Map<String, dynamic>> verifyOtpAndRegister({
     required String nama,
     required String email,
@@ -199,19 +199,19 @@ class AuthService {
           'otp': otp,
         }),
       );
-  
+
       final data = jsonDecode(response.body);
-  
+
       if (response.statusCode == 200) {
         await saveLoginDataFromResponse(data);
-  
+
         return {
           'success': true,
           'message': data['message'] ?? 'Registrasi berhasil',
           'data': data,
         };
       }
-  
+
       return {
         'success': false,
         'message': data['message'] ?? 'Verifikasi gagal',
@@ -252,6 +252,7 @@ class AuthService {
         _token = data['token'] ?? '';
         _userName = data['user']['nama'] ?? '';
         _userEmail = data['user']['email'] ?? '';
+        _userPhoto = _readPhotoFromUser(data['user']);
         _isLoggedIn = true;
 
         ApiService.setToken(_token);
@@ -259,6 +260,7 @@ class AuthService {
         await storage.write(key: 'token', value: _token);
         await storage.write(key: 'name', value: _userName);
         await storage.write(key: 'email', value: _userEmail);
+        await storage.write(key: 'photo', value: _userPhoto);
 
         return true;
       }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter/gestures.dart';
 import '../../theme/tema_app.dart';
-import 'package:provider/provider.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import 'regis2.dart';
 
@@ -47,49 +47,48 @@ class _RegisterScreenState extends State<RegisterScreen>
     super.dispose();
   }
 
-  Future<void> _lanjut() async {
-    if (!_agreeTerms) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Kamu harus menyetujui syarat & ketentuan'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    if (!_formKey.currentState!.validate()) return;
-
-    final authViewModel = context.read<AuthViewModel>();
-
-    final success = await authViewModel.sendOtp(
-      email: _emailController.text.trim(),
+Future<void> _lanjut() async {
+  if (!_agreeTerms) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Kamu harus menyetujui syarat & ketentuan'),
+        backgroundColor: Colors.red,
+      ),
     );
-
-    if (!mounted) return;
-
-    if (success) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => RegisterStep2Screen(
-            name: _nameController.text.trim(),
-            email: _emailController.text.trim(),
-            password: _passwordController.text.trim(),
-          ),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            authViewModel.errorMessage ?? 'Gagal mengirim OTP',
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
+    return;
   }
+
+  if (!_formKey.currentState!.validate()) return;
+
+  final authViewModel = context.read<AuthViewModel>();
+
+  final success = await authViewModel.sendOtp(
+    email: _emailController.text.trim(),
+  );
+
+  if (!mounted) return;
+
+  if (success) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RegisterStep2Screen(
+          name: _nameController.text.trim(),
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        ),
+      ),
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(authViewModel.errorMessage ?? 'Gagal mengirim OTP'),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+}
+
 
   Widget _buildField({
     required TextEditingController controller,
@@ -126,7 +125,7 @@ class _RegisterScreenState extends State<RegisterScreen>
 
   @override
   Widget build(BuildContext context) {
-      final authViewModel = context.watch<AuthViewModel>();
+    final authViewModel = context.watch<AuthViewModel>();
 
     return Scaffold(
       backgroundColor: AppColors.background,

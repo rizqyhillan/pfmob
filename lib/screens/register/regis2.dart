@@ -1,8 +1,10 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import '../../theme/tema_app.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/services.dart';
+
+import '../../theme/tema_app.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import 'regis1.dart' show buildStepIndicator;
 import 'regis3.dart';
@@ -84,78 +86,76 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen>
     setState(() {});
   }
 
-  Future<void> _verify() async {
-    if (_otpCode.length < 4) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Masukkan 4 digit kode verifikasi'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    final authViewModel = context.read<AuthViewModel>();
-
-    final success = await authViewModel.verifyOtpAndRegister(
-      nama: widget.name,
-      email: widget.email,
-      password: widget.password,
-      otp: _otpCode,
+Future<void> _verify() async {
+  if (_otpCode.length < 4) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Masukkan 4 digit kode verifikasi'),
+        backgroundColor: Colors.red,
+      ),
     );
-
-    if (!mounted) return;
-
-    if (success) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => RegisterStep3Screen(
-            name: widget.name,
-          ),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            authViewModel.errorMessage ?? 'Verifikasi gagal',
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
+    return;
   }
 
-  Future<void> _resendOtp() async {
-    final authViewModel = context.read<AuthViewModel>();
+  final authViewModel = context.read<AuthViewModel>();
 
-    final success = await authViewModel.sendOtp(
-      email: widget.email,
+  final success = await authViewModel.verifyOtpAndRegister(
+    nama: widget.name,
+    email: widget.email,
+    password: widget.password,
+    otp: _otpCode,
+  );
+
+  if (!mounted) return;
+
+  if (success) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RegisterStep3Screen(
+          name: widget.name,
+        ),
+      ),
     );
-
-    if (!mounted) return;
-
-    if (success) {
-      _startCountdown();
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Kode OTP berhasil dikirim ulang'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            authViewModel.errorMessage ?? 'Gagal mengirim ulang OTP',
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(authViewModel.errorMessage ?? 'Verifikasi gagal'),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
+}
+
+
+Future<void> _resendOtp() async {
+  final authViewModel = context.read<AuthViewModel>();
+
+  final success = await authViewModel.sendOtp(
+    email: widget.email,
+  );
+
+  if (!mounted) return;
+
+  if (success) {
+    _startCountdown();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Kode OTP berhasil dikirim ulang'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(authViewModel.errorMessage ?? 'Gagal mengirim ulang OTP'),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+}
+
 
   String _maskEmail(String email) {
     final parts = email.split('@');
@@ -168,7 +168,7 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen>
 
   @override
   Widget build(BuildContext context) {
-      final authViewModel = context.watch<AuthViewModel>();
+    final authViewModel = context.watch<AuthViewModel>();
 
     return Scaffold(
       backgroundColor: AppColors.background,

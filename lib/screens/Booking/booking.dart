@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../services/servis_auth.dart';
+import 'package:provider/provider.dart';
 import '../../theme/tema_app.dart';
+import '../../viewmodels/auth_viewmodel.dart';
 import 'daftar_dokter.dart';
 import 'paket_grooming.dart';
 import 'paket_penitipan.dart';
@@ -82,17 +83,17 @@ class BookingContent extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context) {
-    final auth = AuthService();
-    final isLoggedIn = auth.isLoggedIn;
-    final displayName = auth.userName.trim().isNotEmpty
-        ? auth.userName.trim()
+    final authViewModel = context.watch<AuthViewModel>();
+    final isLoggedIn = authViewModel.isLoggedIn;
+    final displayName = authViewModel.userName.trim().isNotEmpty
+        ? authViewModel.userName.trim()
         : 'User PawPet';
 
     return Row(
       children: [
         GestureDetector(
           onTap: () {
-            if (AuthService().isLoggedIn) {
+            if (context.read<AuthViewModel>().isLoggedIn) {
               Navigator.push(
                 context,
                 MaterialPageRoute(

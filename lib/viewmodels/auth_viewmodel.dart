@@ -41,12 +41,7 @@ class AuthViewModel extends ChangeNotifier {
       password: password,
     );
 
-    if (success) {
-      _errorMessage = null;
-    } else {
-      _errorMessage = 'Email atau password salah.';
-    }
-
+    _errorMessage = success ? null : 'Email atau password salah.';
     _setLoading(false);
     return success;
   }
@@ -64,18 +59,16 @@ class AuthViewModel extends ChangeNotifier {
       password: password,
     );
 
-    if (success) {
-      _errorMessage = null;
-    } else {
-      _errorMessage = 'Registrasi gagal. Periksa kembali data kamu.';
-    }
+    _errorMessage = success
+        ? null
+        : 'Registrasi gagal. Periksa kembali data kamu.';
 
     _setLoading(false);
     return success;
   }
 
   Future<bool> sendOtp({
-  required String email,
+    required String email,
   }) async {
     _setLoading(true);
 

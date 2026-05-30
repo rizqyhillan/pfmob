@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../theme/tema_app.dart';
-import '../../services/servis_auth.dart';
+import '../../viewmodels/auth_viewmodel.dart';
 import 'medical_report_list.dart';
 import 'shop_report.dart';
 import 'edit_profil.dart';
@@ -53,9 +54,10 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(ctx);
-              AuthService().logout();
+              await context.read<AuthViewModel>().logout();
+              if (!context.mounted) return;
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(
@@ -78,6 +80,8 @@ class ProfileScreen extends StatelessWidget {
 
   @override
 Widget build(BuildContext context) {
+  final authViewModel = context.watch<AuthViewModel>();
+
   return Scaffold(
     backgroundColor: AppColors.background,
     body: CustomScrollView(
@@ -175,9 +179,9 @@ Widget build(BuildContext context) {
                       ],
                     ),
                     child: ClipOval(
-                      child: AuthService().userPhoto.isNotEmpty
+                      child: authViewModel.userPhoto.isNotEmpty
                           ? Image.network(
-                              AuthService().userPhoto,
+                              authViewModel.userPhoto,
                               fit: BoxFit.cover,
                               errorBuilder: (_, __, ___) => const Icon(Icons.person_rounded, color: AppColors.primary, size: 44),
                             )
@@ -186,12 +190,12 @@ Widget build(BuildContext context) {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    AuthService().userName.isNotEmpty ? AuthService().userName : 'Pengguna PetCare',
+                    authViewModel.userName.isNotEmpty ? authViewModel.userName : 'Pengguna PetCare',
                     style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    AuthService().userEmail.isNotEmpty ? AuthService().userEmail : '-',
+                    authViewModel.userEmail.isNotEmpty ? authViewModel.userEmail : '-',
                     style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.8), fontWeight: FontWeight.w500),
                   ),
                   const SizedBox(height: 28),

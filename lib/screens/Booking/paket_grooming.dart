@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../services/api_service.dart';
-import '../../services/servis_auth.dart';
 import '../../theme/tema_app.dart';
+import '../../viewmodels/auth_viewmodel.dart';
 import '../login.dart';
 import 'konfirmasi_grooming.dart';
 
@@ -47,7 +48,7 @@ class _PaketGroomingScreenState extends State<PaketGroomingScreen> {
   required String paket,
   required String harga,
   }) {
-    if (!AuthService().isLoggedIn) {
+    if (!context.read<AuthViewModel>().isLoggedIn) {
       Navigator.push(
         context,
         MaterialPageRoute(

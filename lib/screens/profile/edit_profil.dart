@@ -1,11 +1,12 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../services/api_service.dart';
-import '../../services/servis_auth.dart';
 import '../../theme/tema_app.dart';
+import '../../viewmodels/auth_viewmodel.dart';
 
 class EditProfilPage extends StatefulWidget {
   const EditProfilPage({super.key});
@@ -31,9 +32,9 @@ class _EditProfilPageState extends State<EditProfilPage> {
   void initState() {
     super.initState();
 
-    final auth = AuthService();
-    _namaController.text = auth.userName;
-    _emailController.text = auth.userEmail;
+    final authViewModel = context.read<AuthViewModel>();
+    _namaController.text = authViewModel.userName;
+    _emailController.text = authViewModel.userEmail;
 
     _loadProfile();
   }
@@ -100,7 +101,7 @@ class _EditProfilPageState extends State<EditProfilPage> {
         fotoFile: _fotoFile,
       );
 
-      await AuthService().updateLocalProfile(
+      await context.read<AuthViewModel>().updateLocalProfile(
         name: profile.nama,
         email: profile.email,
         photo: profile.foto,
@@ -237,9 +238,9 @@ class _EditProfilPageState extends State<EditProfilPage> {
                                       _fotoFile!,
                                       fit: BoxFit.cover,
                                     )
-                                  : AuthService().userPhoto.isNotEmpty
+                                  : context.watch<AuthViewModel>().userPhoto.isNotEmpty
                                       ? Image.network(
-                                          AuthService().userPhoto,
+                                          context.watch<AuthViewModel>().userPhoto,
                                           fit: BoxFit.cover,
                                           errorBuilder: (_, __, ___) => const Icon(
                                             Icons.person_rounded,

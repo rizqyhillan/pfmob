@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../services/api_service.dart';
-import '../../services/servis_auth.dart';
 import '../../theme/tema_app.dart';
+import '../../viewmodels/auth_viewmodel.dart';
 import '../login.dart';
 import '../../widgets/user_avatar.dart';
 import 'detail_produk.dart';
@@ -78,7 +79,7 @@ class _ShopContentState extends State<ShopContent> {
   }
 
   Future<void> _loadCart() async {
-    if (!AuthService().isLoggedIn) {
+    if (!context.read<AuthViewModel>().isLoggedIn) {
       if (!mounted) return;
       setState(() {
         _cart = null;
@@ -104,7 +105,7 @@ class _ShopContentState extends State<ShopContent> {
   }
 
   void _openCart() {
-    final route = AuthService().isLoggedIn
+    final route = context.read<AuthViewModel>().isLoggedIn
         ? MaterialPageRoute(builder: (_) => const KeranjangScreen())
         : MaterialPageRoute(builder: (_) => const LoginScreen(redirectToProfile: false));
 
@@ -129,10 +130,10 @@ class _ShopContentState extends State<ShopContent> {
   }
 
   Widget _buildHeader() {
-    final auth = AuthService();
-    final isLoggedIn = auth.isLoggedIn;
-    final displayName = auth.userName.trim().isNotEmpty
-        ? auth.userName.trim()
+    final authViewModel = context.watch<AuthViewModel>();
+    final isLoggedIn = authViewModel.isLoggedIn;
+    final displayName = authViewModel.userName.trim().isNotEmpty
+        ? authViewModel.userName.trim()
         : 'User PawPet';
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
@@ -140,7 +141,7 @@ class _ShopContentState extends State<ShopContent> {
         children: [
           GestureDetector(
             onTap: () {
-              if (AuthService().isLoggedIn) {
+              if (context.read<AuthViewModel>().isLoggedIn) {
                 Navigator.push(
                   context,
                   MaterialPageRoute(

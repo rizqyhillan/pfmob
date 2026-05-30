@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 
-import '../services/servis_auth.dart';
 import '../theme/tema_app.dart';
+import '../viewmodels/auth_viewmodel.dart';
 
 class UserAvatar extends StatelessWidget {
   final double size;
@@ -16,9 +17,9 @@ class UserAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final auth = AuthService();
-    final isLoggedIn = auth.isLoggedIn;
-    final photo = auth.userPhoto.trim();
+    final authViewModel = context.watch<AuthViewModel>();
+    final isLoggedIn = authViewModel.isLoggedIn;
+    final photo = authViewModel.userPhoto.trim();
 
     Widget avatarChild;
 

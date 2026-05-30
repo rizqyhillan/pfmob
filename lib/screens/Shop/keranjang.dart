@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../services/api_service.dart';
-import '../../services/servis_auth.dart';
 import '../../theme/tema_app.dart';
+import '../../viewmodels/auth_viewmodel.dart';
 import '../login.dart';
 import 'checkout.dart';
 import '../profile/shop_report.dart';
@@ -26,7 +27,7 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
   void initState() {
     super.initState();
   
-    if (AuthService().isLoggedIn) {
+    if (context.read<AuthViewModel>().isLoggedIn) {
       _loadCart();
     } else {
       WidgetsBinding.instance.addPostFrameCallback((_) {

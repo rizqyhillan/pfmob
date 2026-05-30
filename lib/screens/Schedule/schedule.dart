@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../services/api_service.dart';
-import '../../services/servis_auth.dart';
 import '../../theme/tema_app.dart';
+import '../../viewmodels/auth_viewmodel.dart';
 import '../login.dart';
 import '../../widgets/user_avatar.dart';
 import 'reschedule.dart';
@@ -29,7 +30,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
   }
 
   Future<void> _loadSchedules() async {
-    if (!AuthService().isLoggedIn) {
+    if (!context.read<AuthViewModel>().isLoggedIn) {
       setState(() {
         _loading = false;
         _items = [];
@@ -86,7 +87,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
   }
 
   String get _displayName {
-    final name = AuthService().userName.trim();
+    final name = context.read<AuthViewModel>().userName.trim();
     if (name.isEmpty) return 'PawPet User';
     return name;
   }
@@ -274,7 +275,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
 
   @override
   Widget build(BuildContext context) {
-    final isLoggedIn = AuthService().isLoggedIn;
+    final isLoggedIn = context.watch<AuthViewModel>().isLoggedIn;
 
     return Column(
       children: [
@@ -302,7 +303,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
         children: [
           GestureDetector(
             onTap: () {
-              if (AuthService().isLoggedIn) {
+              if (context.read<AuthViewModel>().isLoggedIn) {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -328,7 +329,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
                   ),
                 ),
                 Text(
-                  AuthService().isLoggedIn ? _displayName : 'Masuk untuk lihat jadwal',
+                  context.watch<AuthViewModel>().isLoggedIn ? _displayName : 'Masuk untuk lihat jadwal',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,

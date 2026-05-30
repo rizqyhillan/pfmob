@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:provider/provider.dart';
-
 import '../theme/tema_app.dart';
 import '../viewmodels/auth_viewmodel.dart';
 import 'register/regis1.dart';
 import 'lupa_pass.dart';
 import 'Home/dashboard.dart';
+
 class LoginScreen extends StatefulWidget {
   final bool redirectToProfile;
   const LoginScreen({super.key, this.redirectToProfile = false});
@@ -260,9 +260,7 @@ class _LoginScreenState extends State<LoginScreen>
                                     height: 20,
                                     width: 20,
                                     child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
-                                    ),
+                                        color: Colors.white, strokeWidth: 2),
                                   )
                                 : const Text('Masuk'),
                           ),

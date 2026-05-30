@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../theme/tema_app.dart';
-import '../../services/servis_auth.dart';
+import '../../viewmodels/auth_viewmodel.dart';
 import '../../models/product.dart';
 import '../../services/product_repository.dart';
 import '../login.dart';
@@ -343,10 +344,10 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
     Widget _buildHeader() {
-    final auth = AuthService();
-    final isLoggedIn = auth.isLoggedIn;
-    final displayName = auth.userName.trim().isNotEmpty
-        ? auth.userName.trim()
+    final authViewModel = context.watch<AuthViewModel>();
+    final isLoggedIn = authViewModel.isLoggedIn;
+    final displayName = authViewModel.userName.trim().isNotEmpty
+        ? authViewModel.userName.trim()
         : 'User PawPet';
 
     return Padding(
@@ -355,7 +356,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         children: [
           GestureDetector(
             onTap: () {
-              if (AuthService().isLoggedIn) {
+              if (context.read<AuthViewModel>().isLoggedIn) {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -402,7 +403,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           ),
           GestureDetector(
             onTap: () {
-              if (AuthService().isLoggedIn) {
+              if (context.read<AuthViewModel>().isLoggedIn) {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const KeranjangScreen()),
@@ -670,7 +671,7 @@ Widget _buildBottomNav() {
 
   void changeTab(int index) {
     if (index == 4) {
-      if (AuthService().isLoggedIn) {
+      if (context.read<AuthViewModel>().isLoggedIn) {
         setState(() => _currentIndex = 4);
       } else {
         Navigator.push(
