@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+
 import 'theme/tema_app.dart';
 import 'screens/splash_screen.dart';
-import 'services/servis_auth.dart';
+import 'viewmodels/auth_viewmodel.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await AuthService().loadLoginData();
+  final authViewModel = AuthViewModel();
+  await authViewModel.loadLoginData();
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -16,7 +19,16 @@ void main() async {
     ),
   );
 
-  runApp(const PetCareApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider<AuthViewModel>.value(
+          value: authViewModel,
+        ),
+      ],
+      child: const PetCareApp(),
+    ),
+  );
 }
 
 class PetCareApp extends StatelessWidget {
