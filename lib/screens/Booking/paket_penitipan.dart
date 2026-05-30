@@ -158,6 +158,14 @@ class _PaketPenitipanScreenState extends State<PaketPenitipanScreen> {
     }
   }
 
+
+  Widget _roomImage(BoardingRoom room, Color warna) {
+    return _RoomImageCarousel(
+      room: room,
+      warna: warna,
+    );
+  }
+
   void _openBoardingConfirmation(BoardingRoom room) {
     if (!room.tersedia) return;
 
@@ -621,22 +629,28 @@ class _PaketPenitipanScreenState extends State<PaketPenitipanScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              SizedBox(
+                height: 150,
+                width: double.infinity,
+                child: _roomImage(room, warna),
+              ),
+              const SizedBox(height: 14),
               Row(
                 children: [
                   Container(
-                    width: 56,
-                    height: 56,
+                    width: 44,
+                    height: 44,
                     decoration: BoxDecoration(
                       color: warna.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(13),
                     ),
                     child: Icon(
                       Icons.bedroom_parent_rounded,
                       color: warna,
-                      size: 28,
+                      size: 23,
                     ),
                   ),
-                  const SizedBox(width: 14),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -650,14 +664,6 @@ class _PaketPenitipanScreenState extends State<PaketPenitipanScreen> {
                           ),
                         ),
                         const SizedBox(height: 3),
-                        Text(
-                          'Paket ${room.paket}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textLight,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
                         Text(
                           'Rp ${_formatHarga(room.hargaPerHari)} / hari',
                           style: TextStyle(
@@ -728,6 +734,473 @@ class _PaketPenitipanScreenState extends State<PaketPenitipanScreen> {
                 ),
               ],
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RoomImageCarousel extends StatefulWidget {
+  final BoardingRoom room;
+  final Color warna;
+  const _RoomImageCarousel({
+    required this.room,
+    required this.warna,
+  });
+
+  @override
+  State<_RoomImageCarousel> createState() => _RoomImageCarouselState();
+}
+
+class _RoomImageCarouselState extends State<_RoomImageCarousel> {
+  late final PageController _pageController;
+  int _activeIndex = 0;
+
+  List<String> get _photos => widget.room.fotoUrls;
+  bool get _hasMultiplePhotos => _photos.length > 1;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  Widget _emptyPhotoPlaceholder({
+    required IconData icon,
+    required String title,
+  }) {
+    return Container(
+      color: widget.warna.withValues(alpha: 0.10),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: widget.warna,
+              size: 34,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: TextStyle(
+                color: widget.warna,
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _networkImage(String url) {
+    return Image.network(
+      url,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => _emptyPhotoPlaceholder(
+        icon: Icons.broken_image_rounded,
+        title: 'Foto gagal dimuat',
+      ),
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+
+        return Container(
+          color: widget.warna.withValues(alpha: 0.10),
+          child: Center(
+            child: CircularProgressIndicator(
+              color: widget.warna,
+              strokeWidth: 2,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _imageContent() {
+    if (_photos.isEmpty) {
+      return _emptyPhotoPlaceholder(
+        icon: Icons.image_not_supported_rounded,
+        title: 'Belum ada foto kamar',
+      );
+    }
+
+    if (_photos.length == 1) {
+      return _networkImage(_photos.first);
+    }
+
+    return PageView.builder(
+      controller: _pageController,
+      physics: const PageScrollPhysics(
+        parent: AlwaysScrollableScrollPhysics(),
+      ),
+      itemCount: _photos.length,
+      onPageChanged: (index) {
+        setState(() => _activeIndex = index);
+      },
+      itemBuilder: (context, index) => _networkImage(_photos[index]),
+    );
+  }
+
+  void _openPhotoPreview() {
+    if (_photos.isEmpty) return;
+
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.88),
+      builder: (_) => _RoomPhotoPreviewDialog(
+        photos: _photos,
+        initialIndex: _activeIndex.clamp(0, _photos.length - 1),
+        roomName: widget.room.namaKamar,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final room = widget.room;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: _photos.isEmpty ? null : _openPhotoPreview,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+          _imageContent(),
+          Positioned.fill(
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.08),
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.48),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          if (_hasMultiplePhotos)
+            Positioned(
+              top: 10,
+              right: 10,
+              child: IgnorePointer(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.42),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.photo_library_rounded,
+                        color: Colors.white,
+                        size: 13,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${_activeIndex + 1}/${_photos.length}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          Positioned(
+            left: 12,
+            right: 12,
+            bottom: 10,
+            child: IgnorePointer(
+              child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.92),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        'Paket ${room.paket}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          color: widget.warna,
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: room.tersedia
+                            ? widget.warna.withValues(alpha: 0.92)
+                            : Colors.grey.withValues(alpha: 0.92),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        room.tersedia ? 'Tersedia' : 'Penuh',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (_hasMultiplePhotos) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      _photos.length,
+                      (index) => AnimatedContainer(
+                        duration: const Duration(milliseconds: 220),
+                        margin: const EdgeInsets.symmetric(horizontal: 2.5),
+                        width: _activeIndex == index ? 14 : 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: _activeIndex == index
+                              ? Colors.white
+                              : Colors.white.withValues(alpha: 0.55),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+              ),
+            ),
+          ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+class _RoomPhotoPreviewDialog extends StatefulWidget {
+  final List<String> photos;
+  final int initialIndex;
+  final String roomName;
+
+  const _RoomPhotoPreviewDialog({
+    required this.photos,
+    required this.initialIndex,
+    required this.roomName,
+  });
+
+  @override
+  State<_RoomPhotoPreviewDialog> createState() =>
+      _RoomPhotoPreviewDialogState();
+}
+
+class _RoomPhotoPreviewDialogState extends State<_RoomPhotoPreviewDialog> {
+  late final PageController _previewController;
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+    _previewController = PageController(initialPage: widget.initialIndex);
+  }
+
+  @override
+  void dispose() {
+    _previewController.dispose();
+    super.dispose();
+  }
+
+  Widget _previewImage(String url) {
+    return InteractiveViewer(
+      minScale: 1,
+      maxScale: 4,
+      child: Center(
+        child: Image.network(
+          url,
+          fit: BoxFit.contain,
+          errorBuilder: (_, __, ___) => const Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.broken_image_rounded,
+                color: Colors.white,
+                size: 46,
+              ),
+              SizedBox(height: 10),
+              Text(
+                'Foto gagal dimuat',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+
+            return const Center(
+              child: CircularProgressIndicator(
+                color: Colors.white,
+                strokeWidth: 2,
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    final hasMultiplePhotos = widget.photos.length > 1;
+
+    return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 18),
+      backgroundColor: Colors.transparent,
+      child: SafeArea(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: size.width - 28,
+            maxHeight: size.height * 0.86,
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(22),
+            child: Material(
+              color: Colors.black,
+              child: Stack(
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    height: size.height * 0.78,
+                    child: PageView.builder(
+                      controller: _previewController,
+                      physics: const PageScrollPhysics(
+                        parent: AlwaysScrollableScrollPhysics(),
+                      ),
+                      itemCount: widget.photos.length,
+                      onPageChanged: (index) {
+                        setState(() => _currentIndex = index);
+                      },
+                      itemBuilder: (context, index) =>
+                          _previewImage(widget.photos[index]),
+                    ),
+                  ),
+                  Positioned(
+                    left: 14,
+                    right: 56,
+                    top: 12,
+                    child: IgnorePointer(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            widget.roomName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          if (hasMultiplePhotos) ...[
+                            const SizedBox(height: 3),
+                            Text(
+                              '${_currentIndex + 1}/${widget.photos.length}',
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.82),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: IconButton.filled(
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.black.withValues(alpha: 0.45),
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close_rounded),
+                    ),
+                  ),
+                  if (hasMultiplePhotos)
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 14,
+                      child: IgnorePointer(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(
+                            widget.photos.length,
+                            (index) => AnimatedContainer(
+                              duration: const Duration(milliseconds: 220),
+                              margin:
+                                  const EdgeInsets.symmetric(horizontal: 3),
+                              width: _currentIndex == index ? 16 : 7,
+                              height: 7,
+                              decoration: BoxDecoration(
+                                color: _currentIndex == index
+                                    ? Colors.white
+                                    : Colors.white.withValues(alpha: 0.48),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
