@@ -11,6 +11,17 @@ class BaseViewModel extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   bool get hasError => _errorMessage != null && _errorMessage!.isNotEmpty;
 
+
+  static const Duration defaultCacheDuration = Duration(minutes: 5);
+
+  bool isCacheValid(
+    DateTime? loadedAt, {
+    Duration maxAge = defaultCacheDuration,
+  }) {
+    if (loadedAt == null) return false;
+    return DateTime.now().difference(loadedAt) < maxAge;
+  }
+
   @override
   void dispose() {
     _isDisposed = true;

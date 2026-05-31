@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 import 'model_utils.dart';
 
 class Doctor {
