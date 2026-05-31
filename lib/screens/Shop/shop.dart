@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../services/api_service.dart';
+import '../../models/models.dart';
 import '../../theme/tema_app.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import '../../viewmodels/shop_viewmodel.dart';
@@ -8,7 +8,6 @@ import '../login.dart';
 import '../../widgets/user_avatar.dart';
 import 'detail_produk.dart';
 import 'keranjang.dart';
-import '../../models/product.dart';
 import '../profile/profile.dart';
 
 class ShopContent extends StatefulWidget {

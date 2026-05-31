@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../../services/api_service.dart';
+import '../../models/models.dart';
 import '../../viewmodels/booking_viewmodel.dart';
 import '../../theme/tema_app.dart';
 import '../../viewmodels/auth_viewmodel.dart';
