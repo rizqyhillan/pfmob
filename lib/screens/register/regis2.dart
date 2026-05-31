@@ -1,13 +1,11 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
-import '../../services/servis_auth.dart';
 
 import '../../theme/tema_app.dart';
-import '../../config/api_config.dart';
+import '../../viewmodels/auth_viewmodel.dart';
 import 'regis1.dart' show buildStepIndicator;
 import 'regis3.dart';
 
@@ -32,7 +30,6 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen>
   final List<TextEditingController> _controllers =
       List.generate(4, (_) => TextEditingController());
   final List<FocusNode> _focusNodes = List.generate(4, (_) => FocusNode());
-  bool _isLoading = false;
   int _countdown = 60;
   Timer? _timer;
   late AnimationController _animController;
@@ -100,111 +97,65 @@ Future<void> _verify() async {
     return;
   }
 
-  setState(() => _isLoading = true);
+  final authViewModel = context.read<AuthViewModel>();
 
-  try {
-    final response = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/verify-otp'),
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'nama': widget.name,
-        'email': widget.email,
-        'password': widget.password,
-        'otp': _otpCode,
-      }),
+  final success = await authViewModel.verifyOtpAndRegister(
+    nama: widget.name,
+    email: widget.email,
+    password: widget.password,
+    otp: _otpCode,
+  );
+
+  if (!mounted) return;
+
+  if (success) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RegisterStep3Screen(
+          name: widget.name,
+        ),
+      ),
     );
-
-    final data = jsonDecode(response.body);
-
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-
-    if (response.statusCode == 200) {
-      await AuthService().saveLoginDataFromResponse(data);
-
-      if (!mounted) return;
-    
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => RegisterStep3Screen(
-            name: widget.name,
-          ),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(data['message'] ?? 'Verifikasi gagal'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  } catch (e) {
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-
+  } else {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Error: $e'),
+        content: Text(authViewModel.errorMessage ?? 'Verifikasi gagal'),
         backgroundColor: Colors.red,
       ),
     );
   }
 }
+
 
 Future<void> _resendOtp() async {
-  setState(() => _isLoading = true);
+  final authViewModel = context.read<AuthViewModel>();
 
-  try {
-    final response = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/send-otp'),
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'email': widget.email,
-      }),
-    );
+  final success = await authViewModel.sendOtp(
+    email: widget.email,
+  );
 
-    final data = jsonDecode(response.body);
+  if (!mounted) return;
 
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-
-    if (response.statusCode == 200) {
-      _startCountdown();
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Kode OTP berhasil dikirim ulang'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(data['message'] ?? 'Gagal mengirim ulang OTP'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  } catch (e) {
-    if (!mounted) return;
-    setState(() => _isLoading = false);
+  if (success) {
+    _startCountdown();
 
     ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Kode OTP berhasil dikirim ulang'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Error: $e'),
+        content: Text(authViewModel.errorMessage ?? 'Gagal mengirim ulang OTP'),
         backgroundColor: Colors.red,
       ),
     );
   }
 }
+
 
   String _maskEmail(String email) {
     final parts = email.split('@');
@@ -217,6 +168,8 @@ Future<void> _resendOtp() async {
 
   @override
   Widget build(BuildContext context) {
+    final authViewModel = context.watch<AuthViewModel>();
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -353,7 +306,7 @@ Future<void> _resendOtp() async {
                             ),
                           )
                         : TextButton(
-                            onPressed: _isLoading ? null : _resendOtp,
+                            onPressed: authViewModel.isLoading ? null : _resendOtp,
                             child: const Text(
                               'Kirim Ulang Kode',
                               style: TextStyle(
@@ -369,8 +322,8 @@ Future<void> _resendOtp() async {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: _isLoading ? null : _verify,
-                      child: _isLoading
+                      onPressed: authViewModel.isLoading ? null : _verify,
+                      child: authViewModel.isLoading
                           ? const SizedBox(
                               height: 20,
                               width: 20,

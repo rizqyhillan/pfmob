@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../services/api_service.dart';
+import 'package:provider/provider.dart';
+import '../../models/models.dart';
+import '../../viewmodels/schedule_viewmodel.dart';
 import '../../theme/tema_app.dart';
 
 class RescheduleScreen extends StatefulWidget {
@@ -89,20 +91,20 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
     setState(() => _saving = true);
     try {
       if (widget.item.type == 'doctor') {
-        await ApiService.rescheduleDoctorBooking(
+        await context.read<ScheduleViewModel>().rescheduleDoctor(
           id: widget.item.id,
           tanggalBooking: _formatDateForApi(_selectedDate),
           jamBooking: _selectedTime,
           idJadwal: int.tryParse(widget.item.raw['id_jadwal']?.toString() ?? ''),
         );
       } else if (widget.item.type == 'grooming') {
-        await ApiService.rescheduleGroomingBooking(
+        await context.read<ScheduleViewModel>().rescheduleGrooming(
           id: widget.item.id,
           tanggalGrooming: _formatDateForApi(_selectedDate),
           waktuGrooming: _selectedTime,
         );
       } else if (widget.item.type == 'boarding') {
-        await ApiService.rescheduleBoarding(
+        await context.read<ScheduleViewModel>().rescheduleBoarding(
           id: widget.item.id,
           tanggalMasuk: _formatDateForApi(_selectedDate),
           tanggalRencanaKeluar: _formatDateForApi(_selectedCheckoutDate),

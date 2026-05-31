@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../services/api_service.dart';
-import '../../services/servis_auth.dart';
+import 'package:provider/provider.dart';
+import '../../models/models.dart';
 import '../../theme/tema_app.dart';
+import '../../viewmodels/auth_viewmodel.dart';
+import '../../viewmodels/schedule_viewmodel.dart';
 import '../login.dart';
 import '../../widgets/user_avatar.dart';
 import 'reschedule.dart';
@@ -28,8 +30,11 @@ class _ScheduleContentState extends State<ScheduleContent> {
     _loadSchedules();
   }
 
-  Future<void> _loadSchedules() async {
-    if (!AuthService().isLoggedIn) {
+  Future<void> _loadSchedules({bool forceRefresh = false}) async {
+    final authViewModel = context.read<AuthViewModel>();
+    final scheduleViewModel = context.read<ScheduleViewModel>();
+
+    if (!authViewModel.isLoggedIn) {
       setState(() {
         _loading = false;
         _items = [];
@@ -44,22 +49,12 @@ class _ScheduleContentState extends State<ScheduleContent> {
     });
 
     try {
-      final results = await Future.wait([
-        ApiService.getMyDoctorBookings(),
-        ApiService.getMyGroomingBookings(),
-        ApiService.getMyBoardings(),
-        ApiService.getDoctors(),
-      ]);
+      await scheduleViewModel.loadSchedules(forceRefresh: forceRefresh);
 
-      final merged = <AppScheduleItem>[
-        ...results[0] as List<AppScheduleItem>,
-        ...results[1] as List<AppScheduleItem>,
-        ...results[2] as List<AppScheduleItem>,
-      ];
-
+      final merged = [...scheduleViewModel.items];
       merged.sort((a, b) => b.date.compareTo(a.date));
 
-      final doctors = results[3] as List<Doctor>;
+      final doctors = scheduleViewModel.doctors;
       _doctorPhotos = {
         for (var doc in doctors) doc.id: doc.fotoUrl,
       };
@@ -86,7 +81,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
   }
 
   String get _displayName {
-    final name = AuthService().userName.trim();
+    final name = context.read<AuthViewModel>().userName.trim();
     if (name.isEmpty) return 'PawPet User';
     return name;
   }
@@ -146,12 +141,16 @@ class _ScheduleContentState extends State<ScheduleContent> {
 
   Future<void> _cancelBooking(AppScheduleItem item) async {
     if (!item.canCancel || _cancellingId != null) return;
-
+  
+    final scheduleViewModel = context.read<ScheduleViewModel>();
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+  
     final confirm = await showModalBottomSheet<bool>(
       context: context,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.5),
-      builder: (_) => Container(
+      builder: (sheetContext) => Container(
         padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
         decoration: const BoxDecoration(
           color: Colors.white,
@@ -161,8 +160,12 @@ class _ScheduleContentState extends State<ScheduleContent> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 40, height: 4,
-              decoration: BoxDecoration(color: AppColors.divider, borderRadius: BorderRadius.circular(2)),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.divider,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
             const SizedBox(height: 28),
             Image.asset(
@@ -174,20 +177,28 @@ class _ScheduleContentState extends State<ScheduleContent> {
             const SizedBox(height: 20),
             const Text(
               'Batalkan Booking?',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.textDark),
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textDark,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               'Booking ${item.serviceTypeLabel.toLowerCase()} ini akan dibatalkan.\nAksi ini tidak bisa dibatalkan dari aplikasi.',
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 13, color: AppColors.textLight, height: 1.5),
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textLight,
+                height: 1.5,
+              ),
             ),
             const SizedBox(height: 28),
             Row(
               children: [
                 Expanded(
                   child: GestureDetector(
-                    onTap: () => Navigator.pop(context, false),
+                    onTap: () => Navigator.pop(sheetContext, false),
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       decoration: BoxDecoration(
@@ -197,7 +208,11 @@ class _ScheduleContentState extends State<ScheduleContent> {
                       child: const Text(
                         'Tidak',
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textDark),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textDark,
+                        ),
                       ),
                     ),
                   ),
@@ -206,17 +221,21 @@ class _ScheduleContentState extends State<ScheduleContent> {
                 Expanded(
                   flex: 2,
                   child: GestureDetector(
-                    onTap: () => Navigator.pop(context, true),
+                    onTap: () => Navigator.pop(sheetContext, true),
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       decoration: BoxDecoration(
-                        color: const Color.fromARGB(255, 223, 16, 16),
+                        color: Color.fromARGB(255, 223, 16, 16),
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: const Text(
                         'Ya, Batalkan',
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
@@ -227,32 +246,41 @@ class _ScheduleContentState extends State<ScheduleContent> {
         ),
       ),
     );
-
-    if (confirm != true) return;
-
+  
+    if (!mounted || confirm != true) return;
+  
     setState(() => _cancellingId = item.id);
+  
     try {
-      if (item.type == 'doctor') {
-        await ApiService.cancelDoctorBooking(item.id);
-      } else if (item.type == 'grooming') {
-        await ApiService.cancelGroomingBooking(item.id);
-      } else if (item.type == 'boarding') {
-        await ApiService.cancelBoarding(item.id);
-      }
-
+      await scheduleViewModel.cancelSchedule(item);
+  
       if (!mounted) return;
-      Navigator.of(context).maybePop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Booking ${item.serviceTypeLabel.toLowerCase()} berhasil dibatalkan.')),
+  
+      navigator.maybePop();
+  
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            'Booking ${item.serviceTypeLabel.toLowerCase()} berhasil dibatalkan.',
+          ),
+        ),
       );
-      await _loadSchedules();
+  
+      await _loadSchedules(forceRefresh: true);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+  
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            e.toString().replaceFirst('Exception: ', ''),
+          ),
+        ),
       );
     } finally {
-      if (mounted) setState(() => _cancellingId = null);
+      if (mounted) {
+        setState(() => _cancellingId = null);
+      }
     }
   }
 
@@ -268,15 +296,15 @@ class _ScheduleContentState extends State<ScheduleContent> {
     );
 
     if (changed == true) {
-      await _loadSchedules();
+      await _loadSchedules(forceRefresh: true);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final isLoggedIn = AuthService().isLoggedIn;
-
-    return Column(
+    return Selector<AuthViewModel, bool>(
+      selector: (_, vm) => vm.isLoggedIn,
+      builder: (_, isLoggedIn, __) => Column(
       children: [
         _buildHeader(),
         const SizedBox(height: 16),
@@ -292,6 +320,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
                       : _buildScheduleList(),
         ),
       ],
+    ),
     );
   }
 
@@ -302,7 +331,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
         children: [
           GestureDetector(
             onTap: () {
-              if (AuthService().isLoggedIn) {
+              if (context.read<AuthViewModel>().isLoggedIn) {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -327,21 +356,24 @@ class _ScheduleContentState extends State<ScheduleContent> {
                     letterSpacing: 1.2,
                   ),
                 ),
-                Text(
-                  AuthService().isLoggedIn ? _displayName : 'Masuk untuk lihat jadwal',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textDark,
+                Selector<AuthViewModel, bool>(
+                  selector: (_, vm) => vm.isLoggedIn,
+                  builder: (_, isLoggedIn, __) => Text(
+                    isLoggedIn ? _displayName : 'Masuk untuk lihat jadwal',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textDark,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
           IconButton(
-            onPressed: _loadSchedules,
+            onPressed: () => _loadSchedules(forceRefresh: true),
             icon: const Icon(Icons.refresh_rounded, color: AppColors.primary),
           ),
         ],
@@ -361,7 +393,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
           MaterialPageRoute(
             builder: (_) => const LoginScreen(redirectToProfile: false),
           ),
-        ).then((_) => _loadSchedules());
+        ).then((_) => _loadSchedules(forceRefresh: true));
       },
     );
   }
@@ -372,7 +404,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
       judul: 'Gagal Memuat Jadwal',
       deskripsi: _error ?? 'Terjadi kesalahan saat memuat jadwal.',
       actionText: 'Coba Lagi',
-      onAction: _loadSchedules,
+      onAction: () => _loadSchedules(forceRefresh: true),
     );
   }
 
@@ -394,7 +426,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
     }
 
     return RefreshIndicator(
-      onRefresh: _loadSchedules,
+      onRefresh: () => _loadSchedules(forceRefresh: true),
       child: ListView.separated(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
         itemCount: items.length,

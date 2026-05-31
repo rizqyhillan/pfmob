@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../services/api_service.dart';
+import 'package:provider/provider.dart';
+import '../../models/models.dart';
+import '../../viewmodels/booking_viewmodel.dart';
 import '../../theme/tema_app.dart';
 import 'dokter_detail.dart';
 
@@ -27,7 +29,7 @@ class _DaftarDokterScreenState extends State<DaftarDokterScreen> {
       _error = null;
     });
     try {
-      final doctors = await ApiService.getDoctors();
+      final doctors = await context.read<BookingViewModel>().loadDoctors();
       if (!mounted) return;
       setState(() {
         _doctors = doctors;

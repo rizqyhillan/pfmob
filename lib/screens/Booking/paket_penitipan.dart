@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../services/api_service.dart';
-import '../../services/servis_auth.dart';
+import 'package:provider/provider.dart';
+import '../../models/models.dart';
+import '../../viewmodels/booking_viewmodel.dart';
 import '../../theme/tema_app.dart';
+import '../../viewmodels/auth_viewmodel.dart';
 import '../login.dart';
 import 'konfirmasi_penitipan.dart';
 
@@ -37,7 +39,7 @@ class _PaketPenitipanScreenState extends State<PaketPenitipanScreen> {
     });
 
     try {
-      final rooms = await ApiService.getBoardingRooms();
+      final rooms = await context.read<BookingViewModel>().loadBoardingRooms();
 
       if (!mounted) return;
       setState(() {
@@ -169,7 +171,7 @@ class _PaketPenitipanScreenState extends State<PaketPenitipanScreen> {
   void _openBoardingConfirmation(BoardingRoom room) {
     if (!room.tersedia) return;
 
-    if (!AuthService().isLoggedIn) {
+    if (!context.read<AuthViewModel>().isLoggedIn) {
       Navigator.push(
         context,
         MaterialPageRoute(

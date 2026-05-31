@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
 import '../theme/tema_app.dart';
+import '../viewmodels/auth_viewmodel.dart';
 import 'login.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import '../config/api_config.dart';
 
 class NewPasswordScreen extends StatefulWidget {
   final String email;
@@ -25,7 +25,6 @@ class _NewPasswordScreenState extends State<NewPasswordScreen>
   final _confirmController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
-  bool _isLoading = false;
   late AnimationController _animController;
   late Animation<double> _fadeAnim;
 
@@ -48,34 +47,25 @@ class _NewPasswordScreenState extends State<NewPasswordScreen>
     super.dispose();
   }
 
-Future<void> _save() async {
-  if (!_formKey.currentState!.validate()) return;
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
 
-  setState(() => _isLoading = true);
+    final authViewModel = context.read<AuthViewModel>();
 
-  try {
-    final response = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/forgot-password/reset'),
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'email': widget.email,
-        'otp': widget.otp,
-        'password': _passwordController.text,
-      }),
+    final success = await authViewModel.resetForgotPassword(
+      email: widget.email,
+      otp: widget.otp,
+      password: _passwordController.text,
     );
 
-    final data = jsonDecode(response.body);
-
     if (!mounted) return;
-    setState(() => _isLoading = false);
 
-    if (response.statusCode == 200) {
+    if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(data['message'] ?? 'Password berhasil diubah'),
+          content: Text(
+            authViewModel.errorMessage ?? 'Password berhasil diubah',
+          ),
           backgroundColor: AppColors.accent,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -93,25 +83,18 @@ Future<void> _save() async {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(data['message'] ?? 'Gagal mengubah password'),
+          content: Text(
+            authViewModel.errorMessage ?? 'Gagal mengubah password',
+          ),
           backgroundColor: Colors.red,
         ),
       );
     }
-  } catch (e) {
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Error: $e'),
-        backgroundColor: Colors.red,
-      ),
-    );
   }
-}
   @override
   Widget build(BuildContext context) {
+    final authViewModel = context.watch<AuthViewModel>();
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -254,8 +237,8 @@ Future<void> _save() async {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: _isLoading ? null : _save,
-                      child: _isLoading
+                      onPressed: authViewModel.isLoading ? null : _save,
+                      child: authViewModel.isLoading
                           ? const SizedBox(
                               height: 20,
                               width: 20,

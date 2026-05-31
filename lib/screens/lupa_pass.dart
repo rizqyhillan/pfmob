@@ -1,10 +1,8 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-
 import '../theme/tema_app.dart';
-import '../config/api_config.dart';
+import 'package:provider/provider.dart';
+
+import '../viewmodels/auth_viewmodel.dart';
 import 'otp.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -18,7 +16,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
     with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
-  bool _isLoading = false;
   late AnimationController _animController;
   late Animation<double> _fadeAnim;
   late Animation<Offset> _slideAnim;
@@ -46,33 +43,23 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
   }
 
   Future<void> _sendCode() async {
-  if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) return;
 
-  setState(() => _isLoading = true);
+    final authViewModel = context.read<AuthViewModel>();
+    final email = _emailController.text.trim();
 
-  try {
-    final response = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/forgot-password/send-otp'),
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'email': _emailController.text.trim(),
-      }),
+    final success = await authViewModel.sendForgotPasswordOtp(
+      email: email,
     );
 
-    final data = jsonDecode(response.body);
-
     if (!mounted) return;
-    setState(() => _isLoading = false);
 
-    if (response.statusCode == 200) {
+    if (success) {
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => OtpScreen(
-            email: _emailController.text.trim(),
+            email: email,
             isForgotPassword: true,
           ),
         ),
@@ -80,26 +67,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(data['message'] ?? 'Gagal mengirim OTP'),
+          content: Text(
+            authViewModel.errorMessage ?? 'Gagal mengirim OTP',
+          ),
           backgroundColor: Colors.red,
         ),
       );
     }
-  } catch (e) {
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Error: $e'),
-        backgroundColor: Colors.red,
-      ),
-    );
   }
-}
 
   @override
   Widget build(BuildContext context) {
+    final authViewModel = context.watch<AuthViewModel>();
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -241,8 +221,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _isLoading ? null : _sendCode,
-                        child: _isLoading
+                        onPressed: authViewModel.isLoading ? null : _sendCode,
+                        child: authViewModel.isLoading
                             ? const SizedBox(
                                 height: 20,
                                 width: 20,

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../services/api_service.dart';
-import '../../services/servis_auth.dart';
+import 'package:provider/provider.dart';
+import '../../models/models.dart';
+import '../../viewmodels/booking_viewmodel.dart';
 import '../../theme/tema_app.dart';
+import '../../viewmodels/auth_viewmodel.dart';
 import '../login.dart';
 import 'data_pasien.dart';
 
@@ -51,15 +53,13 @@ class _DokterDetailScreenState extends State<DokterDetailScreen> {
     });
 
     try {
-      final results = await Future.wait([
-        ApiService.getDoctorServices(doctorId: widget.doctor.id),
-        ApiService.getDoctorAvailability(doctorId: widget.doctor.id, days: 6),
-      ]);
+      final bookingViewModel = context.read<BookingViewModel>();
+      await bookingViewModel.loadDoctorDetail(doctorId: widget.doctor.id);
 
       if (!mounted) return;
 
-      final services = results[0] as List<DoctorServiceItem>;
-      final availability = results[1] as Map<String, dynamic>;
+      final services = bookingViewModel.doctorServices;
+      final availability = bookingViewModel.doctorAvailability ?? <String, dynamic>{};
       final rawDays = availability['days'] as List? ?? [];
       final days =
           rawDays.map((e) => Map<String, dynamic>.from(e as Map)).toList();
@@ -280,7 +280,7 @@ void _toggleServiceDropdown() {
       return;
     }
 
-    if (!AuthService().isLoggedIn) {
+    if (!context.read<AuthViewModel>().isLoggedIn) {
       Navigator.push(
         context,
         MaterialPageRoute(

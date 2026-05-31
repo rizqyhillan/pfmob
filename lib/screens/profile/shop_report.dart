@@ -1,49 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../theme/tema_app.dart';
-import '../../services/api_service.dart';
+import '../../viewmodels/report_viewmodel.dart';
 import 'transaction_detail.dart';
 
-// ─── Model Transaksi sesuai field Laravel ────────────────────
-class Transaction {
-  final int id;
-  final String kodeTransaksi;
-  final String namaPelanggan;
-  final String namaKasir;
-  final String jenis;
-  final double total;
-  final String metodeBayar;
-  final String status;
-  final DateTime? tanggal;
-
-  const Transaction({
-    required this.id,
-    required this.kodeTransaksi,
-    required this.namaPelanggan,
-    required this.namaKasir,
-    required this.jenis,
-    required this.total,
-    required this.metodeBayar,
-    required this.status,
-    this.tanggal,
-  });
-
-  factory Transaction.fromJson(Map<String, dynamic> json) {
-    return Transaction(
-      id: json['id'] ?? 0,
-      kodeTransaksi: json['kode_transaksi'] ?? '-',
-      namaPelanggan: json['nama_pelanggan'] ?? json['pelanggan']?['nama'] ?? '-',
-      namaKasir: json['nama_kasir'] ?? json['kasir']?['nama'] ?? '-',
-      jenis: json['jenis'] ?? '-',
-      total: double.tryParse(json['total'].toString()) ?? 0,
-      metodeBayar: json['metode_bayar'] ?? '-',
-      status: json['status'] ?? '-',
-      tanggal: json['tanggal'] != null
-          ? DateTime.tryParse(json['tanggal'])
-          : null,
-    );
-  }
-}
-
+import '../../models/transaction.dart';
 // ─── Halaman utama ───────────────────────────────────────────
 class ShopReportPage extends StatefulWidget {
   const ShopReportPage({super.key});
@@ -59,7 +20,7 @@ class _ShopReportPageState extends State<ShopReportPage> {
   @override
   void initState() {
     super.initState();
-    _future = ApiService.getTransactions();
+    _future = context.read<ReportViewModel>().loadTransactions();
   }
 
   List<Transaction> _applyFilter(List<Transaction> all) {
@@ -132,7 +93,7 @@ class _ShopReportPageState extends State<ShopReportPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: AppColors.textDark),
-            onPressed: () => setState(() => _future = ApiService.getTransactions()),
+            onPressed: () => setState(() => _future = context.read<ReportViewModel>().loadTransactions()),
           ),
         ],
       ),
@@ -170,7 +131,7 @@ class _ShopReportPageState extends State<ShopReportPage> {
                           const SizedBox(height: 20),
                           ElevatedButton.icon(
                             onPressed: () => setState(
-                                () => _future = ApiService.getTransactions()),
+                                () => _future = context.read<ReportViewModel>().loadTransactions()),
                             icon: const Icon(Icons.refresh),
                             label: const Text('Coba Lagi'),
                           ),
@@ -267,7 +228,7 @@ class _ShopReportPageState extends State<ShopReportPage> {
         );
         // Refresh list when returning from detail (status may have changed)
         if (mounted) {
-          setState(() => _future = ApiService.getTransactions());
+          setState(() => _future = context.read<ReportViewModel>().loadTransactions());
         }
       },
       child: Container(

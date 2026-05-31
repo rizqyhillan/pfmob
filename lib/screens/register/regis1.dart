@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter/gestures.dart';
 import '../../theme/tema_app.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import '../../config/api_config.dart';
+import '../../viewmodels/auth_viewmodel.dart';
 import 'regis2.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -20,7 +19,6 @@ class _RegisterScreenState extends State<RegisterScreen>
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  bool _isLoading = false;
   bool _agreeTerms = false;
   late AnimationController _animController;
   late Animation<double> _fadeAnim;
@@ -62,58 +60,35 @@ Future<void> _lanjut() async {
 
   if (!_formKey.currentState!.validate()) return;
 
-  setState(() => _isLoading = true);
+  final authViewModel = context.read<AuthViewModel>();
 
-  try {
-    final response = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/send-otp'),
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'email': _emailController.text.trim(),
-      }),
+  final success = await authViewModel.sendOtp(
+    email: _emailController.text.trim(),
+  );
+
+  if (!mounted) return;
+
+  if (success) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RegisterStep2Screen(
+          name: _nameController.text.trim(),
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        ),
+      ),
     );
-
-    if (!mounted) return;
-
-    final data = jsonDecode(response.body);
-
-    setState(() => _isLoading = false);
-
-    if (response.statusCode == 200) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => RegisterStep2Screen(
-            name: _nameController.text.trim(),
-            email: _emailController.text.trim(),
-            password: _passwordController.text.trim(),
-          ),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(data['message'] ?? 'Gagal mengirim OTP'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  } catch (e) {
-    if (!mounted) return;
-
-    setState(() => _isLoading = false);
-
+  } else {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Error: $e'),
+        content: Text(authViewModel.errorMessage ?? 'Gagal mengirim OTP'),
         backgroundColor: Colors.red,
       ),
     );
   }
 }
+
 
   Widget _buildField({
     required TextEditingController controller,
@@ -150,6 +125,8 @@ Future<void> _lanjut() async {
 
   @override
   Widget build(BuildContext context) {
+    final authViewModel = context.watch<AuthViewModel>();
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -312,8 +289,8 @@ Future<void> _lanjut() async {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _isLoading ? null : _lanjut,
-                        child: _isLoading
+                        onPressed: authViewModel.isLoading ? null : _lanjut,
+                        child: authViewModel.isLoading
                             ? const SizedBox(
                                 height: 20,
                                 width: 20,

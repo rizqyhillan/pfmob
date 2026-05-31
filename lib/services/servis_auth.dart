@@ -147,6 +147,189 @@ class AuthService {
     _userPhoto = '';
   }
 
+  Future<Map<String, dynamic>> sendOtp({
+    required String email,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/send-otp'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'email': email,
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+
+      return {
+        'success': response.statusCode == 200,
+        'message': data['message'] ?? 'Gagal mengirim OTP',
+        'data': data,
+      };
+    } catch (e) {
+      debugPrint('Send OTP error: $e');
+      return {
+        'success': false,
+        'message': 'Error: $e',
+        'data': null,
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> verifyOtpAndRegister({
+    required String nama,
+    required String email,
+    required String password,
+    required String otp,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/verify-otp'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'nama': nama,
+          'email': email,
+          'password': password,
+          'otp': otp,
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        await saveLoginDataFromResponse(data);
+
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Registrasi berhasil',
+          'data': data,
+        };
+      }
+
+      return {
+        'success': false,
+        'message': data['message'] ?? 'Verifikasi gagal',
+        'data': data,
+      };
+    } catch (e) {
+      debugPrint('Verify OTP error: $e');
+      return {
+        'success': false,
+        'message': 'Error: $e',
+        'data': null,
+      };
+    }
+  }
+
+
+  Future<Map<String, dynamic>> sendForgotPasswordOtp({
+    required String email,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/forgot-password/send-otp'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'email': email,
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+
+      return {
+        'success': response.statusCode == 200,
+        'message': data['message'] ?? 'Gagal mengirim OTP',
+        'data': data,
+      };
+    } catch (e) {
+      debugPrint('Forgot password send OTP error: $e');
+      return {
+        'success': false,
+        'message': 'Error: $e',
+        'data': null,
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> verifyForgotPasswordOtp({
+    required String email,
+    required String otp,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/forgot-password/verify-otp'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'email': email,
+          'otp': otp,
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+
+      return {
+        'success': response.statusCode == 200,
+        'message': data['message'] ?? 'Verifikasi OTP gagal',
+        'data': data,
+      };
+    } catch (e) {
+      debugPrint('Forgot password verify OTP error: $e');
+      return {
+        'success': false,
+        'message': 'Error: $e',
+        'data': null,
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> resetForgotPassword({
+    required String email,
+    required String otp,
+    required String password,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/forgot-password/reset'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'email': email,
+          'otp': otp,
+          'password': password,
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+
+      return {
+        'success': response.statusCode == 200,
+        'message': data['message'] ?? 'Gagal mengubah password',
+        'data': data,
+      };
+    } catch (e) {
+      debugPrint('Forgot password reset error: $e');
+      return {
+        'success': false,
+        'message': 'Error: $e',
+        'data': null,
+      };
+    }
+  }
+
   Future<bool> register({
     required String nama,
     required String email,
@@ -172,6 +355,7 @@ class AuthService {
         _token = data['token'] ?? '';
         _userName = data['user']['nama'] ?? '';
         _userEmail = data['user']['email'] ?? '';
+        _userPhoto = _readPhotoFromUser(data['user']);
         _isLoggedIn = true;
 
         ApiService.setToken(_token);
@@ -179,6 +363,7 @@ class AuthService {
         await storage.write(key: 'token', value: _token);
         await storage.write(key: 'name', value: _userName);
         await storage.write(key: 'email', value: _userEmail);
+        await storage.write(key: 'photo', value: _userPhoto);
 
         return true;
       }

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../../services/api_service.dart';
-import '../../services/servis_auth.dart';
+import '../../models/models.dart';
+import '../../viewmodels/booking_viewmodel.dart';
 import '../../theme/tema_app.dart';
+import '../../viewmodels/auth_viewmodel.dart';
 import '../login.dart';
 import 'konfirmasi_grooming.dart';
 
@@ -25,7 +27,7 @@ class _PaketGroomingScreenState extends State<PaketGroomingScreen> {
 
   Future<void> _fetchPackages() async {
     try {
-      final packages = await ApiService.getGroomingPackages();
+      final packages = await context.read<BookingViewModel>().loadGroomingPackages();
       setState(() {
         _packages = packages;
         _isLoading = false;
@@ -47,7 +49,7 @@ class _PaketGroomingScreenState extends State<PaketGroomingScreen> {
   required String paket,
   required String harga,
   }) {
-    if (!AuthService().isLoggedIn) {
+    if (!context.read<AuthViewModel>().isLoggedIn) {
       Navigator.push(
         context,
         MaterialPageRoute(

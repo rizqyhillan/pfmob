@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../theme/tema_app.dart';
 import 'edit_hewan.dart';
-import '../../services/api_service.dart';
+import '../../viewmodels/pet_viewmodel.dart';
 
 class DetailPetScreen extends StatelessWidget {
   final int id;
@@ -28,6 +29,8 @@ class DetailPetScreen extends StatelessWidget {
   });
 
   Future<void> _hapusHewan(BuildContext context) async {
+  final petViewModel = context.read<PetViewModel>();
+
   final confirm = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
@@ -63,7 +66,7 @@ class DetailPetScreen extends StatelessWidget {
   if (confirm != true) return;
 
   try {
-    await ApiService.deletePet(id);
+    await petViewModel.deletePet(id);
 
     if (!context.mounted) return;
 

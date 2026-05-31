@@ -1,11 +1,12 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../services/api_service.dart';
-import '../../services/servis_auth.dart';
 import '../../theme/tema_app.dart';
+import '../../viewmodels/auth_viewmodel.dart';
+import '../../viewmodels/profile_viewmodel.dart';
 
 class EditProfilPage extends StatefulWidget {
   const EditProfilPage({super.key});
@@ -31,9 +32,9 @@ class _EditProfilPageState extends State<EditProfilPage> {
   void initState() {
     super.initState();
 
-    final auth = AuthService();
-    _namaController.text = auth.userName;
-    _emailController.text = auth.userEmail;
+    final authViewModel = context.read<AuthViewModel>();
+    _namaController.text = authViewModel.userName;
+    _emailController.text = authViewModel.userEmail;
 
     _loadProfile();
   }
@@ -49,9 +50,11 @@ class _EditProfilPageState extends State<EditProfilPage> {
 
   Future<void> _loadProfile() async {
     try {
-      final profile = await ApiService.getProfile();
+      final profileViewModel = context.read<ProfileViewModel>();
+      final profile = await profileViewModel.loadProfile();
 
       if (!mounted) return;
+      if (profile == null) throw Exception(profileViewModel.errorMessage ?? 'Gagal memuat profil');
 
       _namaController.text = profile.nama;
       _emailController.text = profile.email;
@@ -84,6 +87,9 @@ class _EditProfilPageState extends State<EditProfilPage> {
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final authViewModel = context.read<AuthViewModel>();
+    final profileViewModel = context.read<ProfileViewModel>();
+
     final nama = _namaController.text.trim();
     final email = _emailController.text.trim();
     final noHp = _noHpController.text.trim();
@@ -92,7 +98,7 @@ class _EditProfilPageState extends State<EditProfilPage> {
     setState(() => _isSaving = true);
 
     try {
-      final profile = await ApiService.updateProfile(
+      final profile = await profileViewModel.updateProfile(
         nama: nama,
         email: email,
         noHp: noHp.isEmpty ? null : noHp,
@@ -100,7 +106,11 @@ class _EditProfilPageState extends State<EditProfilPage> {
         fotoFile: _fotoFile,
       );
 
-      await AuthService().updateLocalProfile(
+      if (profile == null) {
+        throw Exception(profileViewModel.errorMessage ?? 'Gagal memperbarui profil');
+      }
+
+      await authViewModel.updateLocalProfile(
         name: profile.nama,
         email: profile.email,
         photo: profile.foto,
@@ -237,9 +247,9 @@ class _EditProfilPageState extends State<EditProfilPage> {
                                       _fotoFile!,
                                       fit: BoxFit.cover,
                                     )
-                                  : AuthService().userPhoto.isNotEmpty
+                                  : context.watch<AuthViewModel>().userPhoto.isNotEmpty
                                       ? Image.network(
-                                          AuthService().userPhoto,
+                                          context.watch<AuthViewModel>().userPhoto,
                                           fit: BoxFit.cover,
                                           errorBuilder: (_, __, ___) => const Icon(
                                             Icons.person_rounded,

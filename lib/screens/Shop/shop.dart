@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import '../../services/api_service.dart';
-import '../../services/servis_auth.dart';
+import 'package:provider/provider.dart';
+import '../../models/models.dart';
 import '../../theme/tema_app.dart';
+import '../../viewmodels/auth_viewmodel.dart';
+import '../../viewmodels/shop_viewmodel.dart';
 import '../login.dart';
 import '../../widgets/user_avatar.dart';
 import 'detail_produk.dart';
 import 'keranjang.dart';
-import '../../models/product.dart';
-import '../../services/product_repository.dart';
 import '../profile/profile.dart';
 
 class ShopContent extends StatefulWidget {
@@ -47,25 +47,24 @@ class _ShopContentState extends State<ShopContent> {
         );
   }
 
-  Future<void> _loadData() async {
+  Future<void> _loadData({bool forceRefresh = false}) async {
     setState(() {
       _loading = true;
       _error = null;
     });
 
     try {
-      final results = await Future.wait([
-        ApiService.getShopCategories(),
-        ProductRepository().getProducts(
-          search: _searchController.text,
-          kategori: _selectedCategory == 'Semua' ? null : _selectedCategory,
-        ),
-      ]);
+      final shopViewModel = context.read<ShopViewModel>();
+      await shopViewModel.loadProducts(
+        search: _searchController.text,
+        selectedCategory: _selectedCategory,
+        forceRefresh: forceRefresh,
+      );
 
       if (!mounted) return;
       setState(() {
-        _categories = ['Semua', ...(results[0] as List<String>)];
-        _products = results[1] as List<Product>;
+        _categories = shopViewModel.categories;
+        _products = shopViewModel.products;
         _loading = false;
       });
     } catch (e) {
@@ -77,8 +76,11 @@ class _ShopContentState extends State<ShopContent> {
     }
   }
 
-  Future<void> _loadCart() async {
-    if (!AuthService().isLoggedIn) {
+  Future<void> _loadCart({bool forceRefresh = false}) async {
+    final authViewModel = context.read<AuthViewModel>();
+    final shopViewModel = context.read<ShopViewModel>();
+
+    if (!authViewModel.isLoggedIn) {
       if (!mounted) return;
       setState(() {
         _cart = null;
@@ -88,11 +90,11 @@ class _ShopContentState extends State<ShopContent> {
     }
 
     try {
-      final cart = await ApiService.getCart();
+      final cart = await shopViewModel.loadCart(silent: true, forceRefresh: forceRefresh);
       if (!mounted) return;
       setState(() {
         _cart = cart;
-        _showCartSummary = cart.items.isNotEmpty;
+        _showCartSummary = cart?.items.isNotEmpty ?? false;
       });
     } catch (_) {
       if (!mounted) return;
@@ -104,13 +106,13 @@ class _ShopContentState extends State<ShopContent> {
   }
 
   void _openCart() {
-    final route = AuthService().isLoggedIn
+    final route = context.read<AuthViewModel>().isLoggedIn
         ? MaterialPageRoute(builder: (_) => const KeranjangScreen())
         : MaterialPageRoute(builder: (_) => const LoginScreen(redirectToProfile: false));
 
     Navigator.push(context, route).then((_) {
       // Reload cart summary after returning from cart or login flow.
-      _loadCart();
+      _loadCart(forceRefresh: true);
     });
   }
 
@@ -129,18 +131,20 @@ class _ShopContentState extends State<ShopContent> {
   }
 
   Widget _buildHeader() {
-    final auth = AuthService();
-    final isLoggedIn = auth.isLoggedIn;
-    final displayName = auth.userName.trim().isNotEmpty
-        ? auth.userName.trim()
-        : 'User PawPet';
-    return Padding(
+    return Selector<AuthViewModel, ({bool isLoggedIn, String userName})>(
+      selector: (_, vm) => (
+        isLoggedIn: vm.isLoggedIn,
+        userName: vm.userName.trim(),
+      ),
+      builder: (context, authState, _) {
+        final displayName = authState.userName.isNotEmpty ? authState.userName : 'User PawPet';
+        return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
       child: Row(
         children: [
           GestureDetector(
             onTap: () {
-              if (AuthService().isLoggedIn) {
+              if (context.read<AuthViewModel>().isLoggedIn) {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -164,7 +168,7 @@ class _ShopContentState extends State<ShopContent> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  isLoggedIn ? 'PET OWNER' : 'WELCOME',
+                  authState.isLoggedIn ? 'PET OWNER' : 'WELCOME',
                   style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
@@ -173,7 +177,7 @@ class _ShopContentState extends State<ShopContent> {
                   ),
                 ),
                 Text(
-                  isLoggedIn ? displayName : 'PawPet',
+                  authState.isLoggedIn ? displayName : 'PawPet',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
@@ -201,6 +205,8 @@ class _ShopContentState extends State<ShopContent> {
         ],
       ),
     );
+      },
+    );
   }
 
   Widget _buildSearchBar() {
@@ -209,13 +215,13 @@ class _ShopContentState extends State<ShopContent> {
       child: TextField(
         controller: _searchController,
         textInputAction: TextInputAction.search,
-        onSubmitted: (_) => _loadData(),
+        onSubmitted: (_) => _loadData(forceRefresh: true),
         decoration: InputDecoration(
           hintText: 'Cari produk',
           prefixIcon: const Icon(Icons.search, color: AppColors.textLight, size: 22),
           suffixIcon: IconButton(
             icon: const Icon(Icons.refresh_rounded),
-            onPressed: _loadData,
+            onPressed: () => _loadData(forceRefresh: true),
           ),
         ),
       ),
@@ -361,7 +367,7 @@ class _ShopContentState extends State<ShopContent> {
           MaterialPageRoute(builder: (_) => DetailProdukScreen(productId: product.id)),
         );
         if (updated == true) {
-          await _loadCart();
+          await _loadCart(forceRefresh: true);
         }
       },
       child: Container(
@@ -384,6 +390,7 @@ class _ShopContentState extends State<ShopContent> {
                         borderRadius: BorderRadius.circular(14), 
                         child: Image.network(
                           product.imageUrl, 
+                          cacheWidth: 420,
                           fit: BoxFit.cover,
                           loadingBuilder: (ctx, child, progress) {
                             if (progress == null) return child;

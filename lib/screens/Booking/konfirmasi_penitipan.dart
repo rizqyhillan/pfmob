@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../services/api_service.dart';
+import 'package:provider/provider.dart';
+import '../../models/models.dart';
+import '../../viewmodels/booking_viewmodel.dart';
 import '../../theme/tema_app.dart';
 
 class KonfirmasiPenitipanScreen extends StatefulWidget {
@@ -57,7 +59,7 @@ class _KonfirmasiPenitipanScreenState extends State<KonfirmasiPenitipanScreen> {
       _error = null;
     });
     try {
-      final pets = await ApiService.getMyPets();
+      final pets = await context.read<BookingViewModel>().loadPets();
       if (!mounted) return;
       setState(() {
         _pets = pets;
@@ -107,7 +109,8 @@ class _KonfirmasiPenitipanScreenState extends State<KonfirmasiPenitipanScreen> {
     if (pet == null || _saving) return;
     setState(() => _saving = true);
     try {
-      await ApiService.bookBoarding(
+      final bookingViewModel = context.read<BookingViewModel>();
+      await bookingViewModel.bookBoarding(
         idHewan: pet.id,
         idKamar: widget.room.id,
         tanggalMasuk: _date(_checkIn),
