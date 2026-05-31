@@ -1,6 +1,6 @@
-import '../screens/profile/medical_report.dart';
-import '../screens/profile/shop_report.dart';
-import '../screens/profile/transaction_detail.dart';
+import '../models/medical_record.dart';
+import '../models/transaction.dart';
+import '../models/transaction_detail.dart';
 import '../services/api_service.dart';
 import 'base_viewmodel.dart';
 
