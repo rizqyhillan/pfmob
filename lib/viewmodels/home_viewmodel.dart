@@ -9,12 +9,24 @@ class HomeViewModel extends BaseViewModel {
       : _productRepository = productRepository ?? ProductRepository();
 
   List<Product> _bestSellers = const [];
-  List<Product> get bestSellers => _bestSellers;
+  DateTime? _bestSellersLoadedAt;
 
-  Future<List<Product>> loadBestSellers() async {
+  List<Product> get bestSellers => _bestSellers;
+  bool get hasBestSellers => _bestSellers.isNotEmpty;
+
+  Future<List<Product>> loadBestSellers({bool forceRefresh = false}) async {
+    if (!forceRefresh && hasBestSellers && isCacheValid(_bestSellersLoadedAt)) {
+      return _bestSellers;
+    }
+
     final result = await runBusy(_productRepository.getBestSellerProducts);
     _bestSellers = result ?? const [];
+    _bestSellersLoadedAt = DateTime.now();
     notifyListeners();
     return _bestSellers;
+  }
+
+  void clearCache() {
+    _bestSellersLoadedAt = null;
   }
 }

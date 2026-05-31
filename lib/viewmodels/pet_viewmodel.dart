@@ -6,12 +6,16 @@ import 'base_viewmodel.dart';
 
 class PetViewModel extends BaseViewModel {
   List<Pet> _pets = const [];
+  DateTime? _petsLoadedAt;
 
   List<Pet> get pets => _pets;
 
-  Future<List<Pet>> loadPets() async {
+  Future<List<Pet>> loadPets({bool forceRefresh = false}) async {
+    if (!forceRefresh && _pets.isNotEmpty && isCacheValid(_petsLoadedAt)) return _pets;
+
     final result = await runBusy(ApiService.getMyPets);
     _pets = result ?? const [];
+    _petsLoadedAt = DateTime.now();
     notifyListeners();
     return _pets;
   }
@@ -38,7 +42,7 @@ class PetViewModel extends BaseViewModel {
           catatan: catatan,
           fotoFile: fotoFile,
         ));
-    if (success) await loadPets();
+    if (success) await loadPets(forceRefresh: true);
     return success;
   }
 
@@ -66,13 +70,17 @@ class PetViewModel extends BaseViewModel {
           catatan: catatan,
           fotoFile: fotoFile,
         ));
-    if (success) await loadPets();
+    if (success) await loadPets(forceRefresh: true);
     return success;
   }
 
   Future<bool> deletePet(int id) async {
     final success = await runAction(() => ApiService.deletePet(id));
-    if (success) await loadPets();
+    if (success) await loadPets(forceRefresh: true);
     return success;
+  }
+
+  void clearCache() {
+    _petsLoadedAt = null;
   }
 }

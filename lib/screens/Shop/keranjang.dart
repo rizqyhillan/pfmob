@@ -26,50 +26,63 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
   String _filterStatus = 'semua'; // semua | lunas | pending | batal
 
   @override
-@override
-void initState() {
-  super.initState();
+  void initState() {
+    super.initState();
 
-  final authViewModel = context.read<AuthViewModel>();
-
-  if (authViewModel.isLoggedIn) {
-    _loadCart();
-  } else {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const LoginScreen(redirectToProfile: false),
-        ),
-      );
-    });
-  }
-}
-
-String _formatHarga(num harga) => harga
-    .round()
-    .toString()
-    .replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.');
-
-  Future<void> _loadCart() async {
+    final authViewModel = context.read<AuthViewModel>();
     final shopViewModel = context.read<ShopViewModel>();
     final reportViewModel = context.read<ReportViewModel>();
-  
+
+    if (authViewModel.isLoggedIn) {
+      _loadCart(
+        shopViewModel: shopViewModel,
+        reportViewModel: reportViewModel,
+      );
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const LoginScreen(redirectToProfile: false),
+          ),
+        );
+      });
+    }
+  }
+
+  String _formatHarga(num harga) => harga
+      .round()
+      .toString()
+      .replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.');
+
+  Future<void> _reloadCartFromContext({bool forceRefresh = false}) {
+    return _loadCart(
+      shopViewModel: context.read<ShopViewModel>(),
+      reportViewModel: context.read<ReportViewModel>(),
+      forceRefresh: forceRefresh,
+    );
+  }
+
+  Future<void> _loadCart({
+    required ShopViewModel shopViewModel,
+    required ReportViewModel reportViewModel,
+    bool forceRefresh = false,
+  }) async {
     setState(() {
       _loading = true;
       _error = null;
     });
-  
+
     try {
-      final cart = await shopViewModel.loadCart();
-  
+      final cart = await shopViewModel.loadCart(forceRefresh: forceRefresh);
+
       List<Transaction> all = [];
       List<Transaction> pending = [];
-  
+
       try {
-        all = await reportViewModel.loadTransactions();
+        all = await reportViewModel.loadTransactions(forceRefresh: forceRefresh);
         pending = all
             .where(
               (t) =>
@@ -81,9 +94,9 @@ String _formatHarga(num harga) => harga
       } catch (e) {
         debugPrint('Gagal memuat transaksi: $e');
       }
-  
+
       if (!mounted) return;
-  
+
       setState(() {
         _cart = cart;
         _allTransactions = all;
@@ -92,7 +105,7 @@ String _formatHarga(num harga) => harga
       });
     } catch (e) {
       if (!mounted) return;
-  
+
       setState(() {
         _error = e.toString().replaceFirst('Exception: ', '');
         _loading = false;
@@ -102,27 +115,44 @@ String _formatHarga(num harga) => harga
 
   Future<void> _updateQty(ShopCartItem item, int qty) async {
     if (qty < 1) return;
+
+    final shopViewModel = context.read<ShopViewModel>();
+    final messenger = ScaffoldMessenger.of(context);
+
     try {
-      final cart = await context.read<ShopViewModel>().updateCartItem(itemId: item.id, quantity: qty);
+      final cart = await shopViewModel.updateCartItem(itemId: item.id, quantity: qty);
       if (mounted) setState(() => _cart = cart);
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))));
+      if (mounted) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+        );
+      }
     }
   }
 
   Future<void> _removeItem(ShopCartItem item) async {
+    final shopViewModel = context.read<ShopViewModel>();
+    final messenger = ScaffoldMessenger.of(context);
+
     try {
-      final cart = await context.read<ShopViewModel>().removeCartItem(item.id);
+      final cart = await shopViewModel.removeCartItem(item.id);
       if (mounted) setState(() => _cart = cart);
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))));
+      if (mounted) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+        );
+      }
     }
   }
 
   Future<void> _checkout() async {
     final cart = _cart;
-
     if (cart == null || cart.items.isEmpty) return;
+
+    final shopViewModel = context.read<ShopViewModel>();
+    final reportViewModel = context.read<ReportViewModel>();
 
     final success = await Navigator.push<bool>(
       context,
@@ -132,7 +162,11 @@ String _formatHarga(num harga) => harga
     );
 
     if (success == true) {
-      await _loadCart();
+      await _loadCart(
+        shopViewModel: shopViewModel,
+        reportViewModel: reportViewModel,
+        forceRefresh: true,
+      );
     }
   }
 
@@ -233,7 +267,7 @@ String _formatHarga(num harga) => harga
                   MaterialPageRoute(
                     builder: (_) => const ShopReportPage(),
                   ),
-                ).then((_) => _loadCart());
+                ).then((_) => _reloadCartFromContext(forceRefresh: true));
               },
               child: Container(
                 width: 38,
@@ -255,11 +289,11 @@ String _formatHarga(num harga) => harga
           child: _loading
               ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
               : _error != null
-                  ? _buildMessage(Image.asset('assets/images/warning.png', width: 42, height: 42,), _error!, 'Coba Lagi', _loadCart)
+                  ? _buildMessage(Image.asset('assets/images/warning.png', width: 42, height: 42,), _error!, 'Coba Lagi', _reloadCartFromContext)
                   : cart == null || cart.items.isEmpty
-                      ? _buildMessage(Image.asset('assets/images/shopping-cart.png', width: 42, height: 42,), 'Keranjang masih kosong', 'Muat ulang', _loadCart)
+                      ? _buildMessage(Image.asset('assets/images/shopping-cart.png', width: 42, height: 42,), 'Keranjang masih kosong', 'Muat ulang', _reloadCartFromContext)
                       : RefreshIndicator(
-                          onRefresh: _loadCart,
+                          onRefresh: () => _reloadCartFromContext(forceRefresh: true),
                           child: ListView.separated(
                             padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
                             itemCount: cart.items.length,
@@ -324,7 +358,7 @@ String _formatHarga(num harga) => harga
                           kodeTransaksi: trx.kodeTransaksi,
                         ),
                       ),
-                    ).then((_) => _loadCart());
+                    ).then((_) => _reloadCartFromContext(forceRefresh: true));
                   },
                   icon: const Icon(Icons.payment, size: 16),
                   label: const Text('Bayar Sekarang'),
@@ -359,7 +393,7 @@ String _formatHarga(num harga) => harga
           child: filtered.isEmpty
               ? _buildEmptyTransactions()
               : RefreshIndicator(
-                  onRefresh: _loadCart,
+                  onRefresh: () => _reloadCartFromContext(forceRefresh: true),
                   child: ListView.separated(
                     padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
                     itemCount: filtered.length,
@@ -435,7 +469,7 @@ String _formatHarga(num harga) => harga
             kodeTransaksi: trx.kodeTransaksi,
           ),
         ),
-      ).then((_) => _loadCart()),
+      ).then((_) => _reloadCartFromContext(forceRefresh: true)),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -704,7 +738,7 @@ String _formatHarga(num harga) => harga
               width: 74,
               height: 74,
               decoration: BoxDecoration(color: AppColors.categoryBg1, borderRadius: BorderRadius.circular(14)),
-              child: item.imageUrl != null ? ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.network(item.imageUrl!, fit: BoxFit.cover)) : const Center(child: Text('🐾', style: TextStyle(fontSize: 30))),
+              child: item.imageUrl != null ? ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.network(item.imageUrl!, cacheWidth: 240, cacheHeight: 240, fit: BoxFit.cover)) : const Center(child: Text('🐾', style: TextStyle(fontSize: 30))),
             ),
             const SizedBox(width: 12),
             Expanded(

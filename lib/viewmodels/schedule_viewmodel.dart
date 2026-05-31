@@ -5,13 +5,16 @@ import 'base_viewmodel.dart';
 class ScheduleViewModel extends BaseViewModel {
   List<AppScheduleItem> _items = const [];
   List<Doctor> _doctors = const [];
+  DateTime? _schedulesLoadedAt;
 
   List<AppScheduleItem> get items => _items;
   List<Doctor> get doctors => _doctors;
-  List<AppScheduleItem> get upcomingItems => _items.where((item) => !item.isHistory).toList();
-  List<AppScheduleItem> get historyItems => _items.where((item) => item.isHistory).toList();
+  List<AppScheduleItem> get upcomingItems => _items.where((item) => !item.isHistory).toList(growable: false);
+  List<AppScheduleItem> get historyItems => _items.where((item) => item.isHistory).toList(growable: false);
 
-  Future<void> loadSchedules() async {
+  Future<void> loadSchedules({bool forceRefresh = false}) async {
+    if (!forceRefresh && _items.isNotEmpty && isCacheValid(_schedulesLoadedAt)) return;
+
     await runBusy(() async {
       final results = await Future.wait([
         ApiService.getMyDoctorBookings(),
@@ -27,6 +30,7 @@ class ScheduleViewModel extends BaseViewModel {
       all.sort((a, b) => a.date.compareTo(b.date));
       _items = all;
       _doctors = results[3] as List<Doctor>;
+      _schedulesLoadedAt = DateTime.now();
     });
     notifyListeners();
   }
@@ -45,7 +49,7 @@ class ScheduleViewModel extends BaseViewModel {
       }
     });
     if (result != null) {
-      await loadSchedules();
+      await loadSchedules(forceRefresh: true);
       return true;
     }
     return false;
@@ -87,5 +91,9 @@ class ScheduleViewModel extends BaseViewModel {
           tanggalMasuk: tanggalMasuk,
           tanggalRencanaKeluar: tanggalRencanaKeluar,
         ));
+  }
+
+  void clearCache() {
+    _schedulesLoadedAt = null;
   }
 }

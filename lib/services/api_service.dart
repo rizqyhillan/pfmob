@@ -465,7 +465,6 @@ static Future<void> deletePet(int id) async {
 
   static Future<List<Doctor>> getDoctors() async {
     final response = await http.get(Uri.parse('$baseUrl/doctors'), headers: _headers);
-    debugPrint('PAWPET_DEBUG: GET /api/doctors response = ${response.body}');
     final list = _parseList(response, 'dokter');
     return list.map((e) => Doctor.fromJson(Map<String, dynamic>.from(e))).toList();
   }

@@ -342,13 +342,14 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
     Widget _buildHeader() {
-    final authViewModel = context.watch<AuthViewModel>();
-    final isLoggedIn = authViewModel.isLoggedIn;
-    final displayName = authViewModel.userName.trim().isNotEmpty
-        ? authViewModel.userName.trim()
-        : 'User PawPet';
-
-    return Padding(
+    return Selector<AuthViewModel, ({bool isLoggedIn, String userName})>(
+      selector: (_, vm) => (
+        isLoggedIn: vm.isLoggedIn,
+        userName: vm.userName.trim(),
+      ),
+      builder: (context, authState, _) {
+        final displayName = authState.userName.isNotEmpty ? authState.userName : 'User PawPet';
+        return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
       child: Row(
         children: [
@@ -378,7 +379,7 @@ class _DashboardScreenState extends State<DashboardScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  isLoggedIn ? 'PET OWNER' : 'WELCOME',
+                  authState.isLoggedIn ? 'PET OWNER' : 'WELCOME',
                   style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
@@ -387,7 +388,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                   ),
                 ),
                 Text(
-                  isLoggedIn ? displayName : 'PawPet',
+                  authState.isLoggedIn ? displayName : 'PawPet',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
@@ -439,7 +440,10 @@ class _DashboardScreenState extends State<DashboardScreen>
         ],
       ),
     );
+      },
+    );
   }
+
   Widget _buildBanner() {
     final banners = [
       'assets/images/iklan1.jpg',
@@ -585,6 +589,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                         ? Image.network(
                             url,
                             width: double.infinity,
+                            cacheWidth: 420,
                             fit: BoxFit.cover,
                             loadingBuilder: (ctx, child, progress) {
                               if (progress == null) return child;

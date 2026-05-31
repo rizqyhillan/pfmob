@@ -30,8 +30,11 @@ class _ScheduleContentState extends State<ScheduleContent> {
     _loadSchedules();
   }
 
-  Future<void> _loadSchedules() async {
-    if (!context.read<AuthViewModel>().isLoggedIn) {
+  Future<void> _loadSchedules({bool forceRefresh = false}) async {
+    final authViewModel = context.read<AuthViewModel>();
+    final scheduleViewModel = context.read<ScheduleViewModel>();
+
+    if (!authViewModel.isLoggedIn) {
       setState(() {
         _loading = false;
         _items = [];
@@ -46,8 +49,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
     });
 
     try {
-      final scheduleViewModel = context.read<ScheduleViewModel>();
-      await scheduleViewModel.loadSchedules();
+      await scheduleViewModel.loadSchedules(forceRefresh: forceRefresh);
 
       final merged = [...scheduleViewModel.items];
       merged.sort((a, b) => b.date.compareTo(a.date));
@@ -264,7 +266,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
         ),
       );
   
-      await _loadSchedules();
+      await _loadSchedules(forceRefresh: true);
     } catch (e) {
       if (!mounted) return;
   
@@ -294,15 +296,15 @@ class _ScheduleContentState extends State<ScheduleContent> {
     );
 
     if (changed == true) {
-      await _loadSchedules();
+      await _loadSchedules(forceRefresh: true);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final isLoggedIn = context.watch<AuthViewModel>().isLoggedIn;
-
-    return Column(
+    return Selector<AuthViewModel, bool>(
+      selector: (_, vm) => vm.isLoggedIn,
+      builder: (_, isLoggedIn, __) => Column(
       children: [
         _buildHeader(),
         const SizedBox(height: 16),
@@ -318,6 +320,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
                       : _buildScheduleList(),
         ),
       ],
+    ),
     );
   }
 
@@ -353,21 +356,24 @@ class _ScheduleContentState extends State<ScheduleContent> {
                     letterSpacing: 1.2,
                   ),
                 ),
-                Text(
-                  context.watch<AuthViewModel>().isLoggedIn ? _displayName : 'Masuk untuk lihat jadwal',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textDark,
+                Selector<AuthViewModel, bool>(
+                  selector: (_, vm) => vm.isLoggedIn,
+                  builder: (_, isLoggedIn, __) => Text(
+                    isLoggedIn ? _displayName : 'Masuk untuk lihat jadwal',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textDark,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
           IconButton(
-            onPressed: _loadSchedules,
+            onPressed: () => _loadSchedules(forceRefresh: true),
             icon: const Icon(Icons.refresh_rounded, color: AppColors.primary),
           ),
         ],
@@ -387,7 +393,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
           MaterialPageRoute(
             builder: (_) => const LoginScreen(redirectToProfile: false),
           ),
-        ).then((_) => _loadSchedules());
+        ).then((_) => _loadSchedules(forceRefresh: true));
       },
     );
   }
@@ -398,7 +404,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
       judul: 'Gagal Memuat Jadwal',
       deskripsi: _error ?? 'Terjadi kesalahan saat memuat jadwal.',
       actionText: 'Coba Lagi',
-      onAction: _loadSchedules,
+      onAction: () => _loadSchedules(forceRefresh: true),
     );
   }
 
@@ -420,7 +426,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
     }
 
     return RefreshIndicator(
-      onRefresh: _loadSchedules,
+      onRefresh: () => _loadSchedules(forceRefresh: true),
       child: ListView.separated(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
         itemCount: items.length,

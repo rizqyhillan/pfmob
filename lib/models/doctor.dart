@@ -32,8 +32,6 @@ class Doctor {
       tersedia: json['tersedia'] == true,
       fotoUrl: rawFoto != null ? resolveStorageUrl(rawFoto) : null,
     );
-    debugPrint('PAWPET_DEBUG: Doctor JSON = $json');
-    debugPrint('PAWPET_DEBUG: Doctor photo = ${doctor.fotoUrl}');
     return doctor;
   }
 }

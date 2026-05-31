@@ -184,7 +184,7 @@ class _KonfirmasiGroomingScreenState extends State<KonfirmasiGroomingScreen> {
                         ),
                         child: ClipOval(
                           child: h.foto.isNotEmpty 
-                            ? Image.network(h.foto, width: 68, height: 68, fit: BoxFit.cover)
+                            ? Image.network(h.foto, width: 68, height: 68, cacheWidth: 160, cacheHeight: 160, fit: BoxFit.cover)
                             : Center(child: Text(h.jenis.toLowerCase() == 'kucing' ? '🐱' : (h.jenis.toLowerCase() == 'anjing' ? '🐶' : '🐾'), style: const TextStyle(fontSize: 36))),
                         ),
                       ),

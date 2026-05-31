@@ -1,12 +1,19 @@
 import 'package:flutter/foundation.dart';
 
 class BaseViewModel extends ChangeNotifier {
+  static const Duration defaultCacheDuration = Duration(minutes: 3);
+
   bool _isLoading = false;
   String? _errorMessage;
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get hasError => _errorMessage != null && _errorMessage!.isNotEmpty;
+
+  bool isCacheValid(DateTime? lastLoadedAt, {Duration maxAge = defaultCacheDuration}) {
+    if (lastLoadedAt == null) return false;
+    return DateTime.now().difference(lastLoadedAt) < maxAge;
+  }
 
   void setLoading(bool value) {
     if (_isLoading == value) return;
@@ -15,7 +22,9 @@ class BaseViewModel extends ChangeNotifier {
   }
 
   void setError(Object? error) {
-    _errorMessage = error?.toString().replaceFirst('Exception: ', '');
+    final nextMessage = error?.toString().replaceFirst('Exception: ', '');
+    if (_errorMessage == nextMessage) return;
+    _errorMessage = nextMessage;
     notifyListeners();
   }
 
@@ -25,8 +34,8 @@ class BaseViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<T?> runBusy<T>(Future<T> Function() action) async {
-    setLoading(true);
+  Future<T?> runBusy<T>(Future<T> Function() action, {bool notifyLoading = true}) async {
+    if (notifyLoading) setLoading(true);
     clearError();
     try {
       return await action();
@@ -34,12 +43,12 @@ class BaseViewModel extends ChangeNotifier {
       setError(e);
       return null;
     } finally {
-      setLoading(false);
+      if (notifyLoading) setLoading(false);
     }
   }
 
-  Future<bool> runAction(Future<void> Function() action) async {
-    setLoading(true);
+  Future<bool> runAction(Future<void> Function() action, {bool notifyLoading = true}) async {
+    if (notifyLoading) setLoading(true);
     clearError();
     try {
       await action();
@@ -48,7 +57,7 @@ class BaseViewModel extends ChangeNotifier {
       setError(e);
       return false;
     } finally {
-      setLoading(false);
+      if (notifyLoading) setLoading(false);
     }
   }
 }

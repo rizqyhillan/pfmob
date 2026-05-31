@@ -6,12 +6,16 @@ import 'base_viewmodel.dart';
 
 class ProfileViewModel extends BaseViewModel {
   UserProfile? _profile;
+  DateTime? _profileLoadedAt;
 
   UserProfile? get profile => _profile;
 
-  Future<UserProfile?> loadProfile() async {
+  Future<UserProfile?> loadProfile({bool forceRefresh = false}) async {
+    if (!forceRefresh && _profile != null && isCacheValid(_profileLoadedAt)) return _profile;
+
     final result = await runBusy(ApiService.getProfile);
     _profile = result;
+    _profileLoadedAt = DateTime.now();
     notifyListeners();
     return result;
   }
@@ -31,6 +35,7 @@ class ProfileViewModel extends BaseViewModel {
           fotoFile: fotoFile,
         ));
     _profile = result;
+    _profileLoadedAt = DateTime.now();
     notifyListeners();
     return result;
   }
@@ -45,5 +50,9 @@ class ProfileViewModel extends BaseViewModel {
           newPassword: newPassword,
           confirmPassword: confirmPassword,
         ));
+  }
+
+  void clearCache() {
+    _profileLoadedAt = null;
   }
 }
