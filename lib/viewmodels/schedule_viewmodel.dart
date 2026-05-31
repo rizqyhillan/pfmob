@@ -1,3 +1,4 @@
+import '../models/models.dart';
 import '../services/api_service.dart';
 import 'base_viewmodel.dart';
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../theme/tema_app.dart';
 import '../../viewmodels/report_viewmodel.dart';
+import '../../models/medical_record.dart';
 import 'medical_report.dart';
 
 class MedicalReportPage extends StatefulWidget {

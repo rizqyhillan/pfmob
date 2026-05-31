@@ -29,6 +29,8 @@ class DetailPetScreen extends StatelessWidget {
   });
 
   Future<void> _hapusHewan(BuildContext context) async {
+  final petViewModel = context.read<PetViewModel>();
+
   final confirm = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
@@ -64,7 +66,7 @@ class DetailPetScreen extends StatelessWidget {
   if (confirm != true) return;
 
   try {
-    await context.read<PetViewModel>().deletePet(id);
+    await petViewModel.deletePet(id);
 
     if (!context.mounted) return;
 

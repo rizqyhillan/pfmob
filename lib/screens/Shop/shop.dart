@@ -90,7 +90,7 @@ class _ShopContentState extends State<ShopContent> {
       if (!mounted) return;
       setState(() {
         _cart = cart;
-        _showCartSummary = cart.items.isNotEmpty;
+        _showCartSummary = cart?.items.isNotEmpty ?? false;
       });
     } catch (_) {
       if (!mounted) return;

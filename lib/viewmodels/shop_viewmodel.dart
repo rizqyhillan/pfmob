@@ -1,4 +1,4 @@
-import '../models/product.dart';
+import '../models/models.dart';
 import '../services/api_service.dart';
 import '../services/product_repository.dart';
 import 'base_viewmodel.dart';

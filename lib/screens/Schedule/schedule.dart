@@ -139,12 +139,16 @@ class _ScheduleContentState extends State<ScheduleContent> {
 
   Future<void> _cancelBooking(AppScheduleItem item) async {
     if (!item.canCancel || _cancellingId != null) return;
-
+  
+    final scheduleViewModel = context.read<ScheduleViewModel>();
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+  
     final confirm = await showModalBottomSheet<bool>(
       context: context,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.5),
-      builder: (_) => Container(
+      builder: (sheetContext) => Container(
         padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
         decoration: const BoxDecoration(
           color: Colors.white,
@@ -154,8 +158,12 @@ class _ScheduleContentState extends State<ScheduleContent> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 40, height: 4,
-              decoration: BoxDecoration(color: AppColors.divider, borderRadius: BorderRadius.circular(2)),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.divider,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
             const SizedBox(height: 28),
             Image.asset(
@@ -167,20 +175,28 @@ class _ScheduleContentState extends State<ScheduleContent> {
             const SizedBox(height: 20),
             const Text(
               'Batalkan Booking?',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.textDark),
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textDark,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               'Booking ${item.serviceTypeLabel.toLowerCase()} ini akan dibatalkan.\nAksi ini tidak bisa dibatalkan dari aplikasi.',
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 13, color: AppColors.textLight, height: 1.5),
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textLight,
+                height: 1.5,
+              ),
             ),
             const SizedBox(height: 28),
             Row(
               children: [
                 Expanded(
                   child: GestureDetector(
-                    onTap: () => Navigator.pop(context, false),
+                    onTap: () => Navigator.pop(sheetContext, false),
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       decoration: BoxDecoration(
@@ -190,7 +206,11 @@ class _ScheduleContentState extends State<ScheduleContent> {
                       child: const Text(
                         'Tidak',
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textDark),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textDark,
+                        ),
                       ),
                     ),
                   ),
@@ -199,17 +219,21 @@ class _ScheduleContentState extends State<ScheduleContent> {
                 Expanded(
                   flex: 2,
                   child: GestureDetector(
-                    onTap: () => Navigator.pop(context, true),
+                    onTap: () => Navigator.pop(sheetContext, true),
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       decoration: BoxDecoration(
-                        color: const Color.fromARGB(255, 223, 16, 16),
+                        color: Color.fromARGB(255, 223, 16, 16),
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: const Text(
                         'Ya, Batalkan',
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
@@ -220,26 +244,41 @@ class _ScheduleContentState extends State<ScheduleContent> {
         ),
       ),
     );
-
-    if (confirm != true) return;
-
+  
+    if (!mounted || confirm != true) return;
+  
     setState(() => _cancellingId = item.id);
+  
     try {
-      await context.read<ScheduleViewModel>().cancelSchedule(item);
-
+      await scheduleViewModel.cancelSchedule(item);
+  
       if (!mounted) return;
-      Navigator.of(context).maybePop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Booking ${item.serviceTypeLabel.toLowerCase()} berhasil dibatalkan.')),
+  
+      navigator.maybePop();
+  
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            'Booking ${item.serviceTypeLabel.toLowerCase()} berhasil dibatalkan.',
+          ),
+        ),
       );
+  
       await _loadSchedules();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+  
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            e.toString().replaceFirst('Exception: ', ''),
+          ),
+        ),
       );
     } finally {
-      if (mounted) setState(() => _cancellingId = null);
+      if (mounted) {
+        setState(() => _cancellingId = null);
+      }
     }
   }
 

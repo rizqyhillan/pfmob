@@ -7,8 +7,6 @@ import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/models.dart';
 
-export '../models/models.dart';
-
 class ApiService {
   static final String baseUrl = ApiConfig.baseUrl;
 

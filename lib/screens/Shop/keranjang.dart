@@ -26,46 +26,64 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
   String _filterStatus = 'semua'; // semua | lunas | pending | batal
 
   @override
-  void initState() {
-    super.initState();
-  
-    if (context.read<AuthViewModel>().isLoggedIn) {
-      _loadCart();
-    } else {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-  
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const LoginScreen(redirectToProfile: false),
-          ),
-        );
-      });
-    }
-  }
+@override
+void initState() {
+  super.initState();
 
-  String _formatHarga(num harga) => harga.round().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.');
+  final authViewModel = context.read<AuthViewModel>();
+
+  if (authViewModel.isLoggedIn) {
+    _loadCart();
+  } else {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const LoginScreen(redirectToProfile: false),
+        ),
+      );
+    });
+  }
+}
+
+String _formatHarga(num harga) => harga
+    .round()
+    .toString()
+    .replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.');
 
   Future<void> _loadCart() async {
+    final shopViewModel = context.read<ShopViewModel>();
+    final reportViewModel = context.read<ReportViewModel>();
+  
     setState(() {
       _loading = true;
       _error = null;
     });
+  
     try {
-      final cart = await context.read<ShopViewModel>().loadCart();
+      final cart = await shopViewModel.loadCart();
+  
       List<Transaction> all = [];
       List<Transaction> pending = [];
-      
+  
       try {
-        all = await context.read<ReportViewModel>().loadTransactions();
-        pending = all.where((t) => t.status.toLowerCase() == 'pending' && 
-            (t.metodeBayar.toLowerCase() == 'transfer' || t.metodeBayar.toLowerCase() == 'ewallet')).toList();
+        all = await reportViewModel.loadTransactions();
+        pending = all
+            .where(
+              (t) =>
+                  t.status.toLowerCase() == 'pending' &&
+                  (t.metodeBayar.toLowerCase() == 'transfer' ||
+                      t.metodeBayar.toLowerCase() == 'ewallet'),
+            )
+            .toList();
       } catch (e) {
         debugPrint('Gagal memuat transaksi: $e');
       }
-
+  
       if (!mounted) return;
+  
       setState(() {
         _cart = cart;
         _allTransactions = all;
@@ -74,6 +92,7 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
       });
     } catch (e) {
       if (!mounted) return;
+  
       setState(() {
         _error = e.toString().replaceFirst('Exception: ', '');
         _loading = false;

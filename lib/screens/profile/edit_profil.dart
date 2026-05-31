@@ -33,7 +33,6 @@ class _EditProfilPageState extends State<EditProfilPage> {
     super.initState();
 
     final authViewModel = context.read<AuthViewModel>();
-    final profileViewModel = context.read<ProfileViewModel>();
     _namaController.text = authViewModel.userName;
     _emailController.text = authViewModel.userEmail;
 
