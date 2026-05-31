@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+
 import '../theme/tema_app.dart';
+import '../viewmodels/auth_viewmodel.dart';
 import 'pass_baru.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import '../config/api_config.dart';
 
 class OtpScreen extends StatefulWidget {
   final String email;
@@ -26,7 +26,6 @@ class _OtpScreenState extends State<OtpScreen>
   final List<TextEditingController> _controllers =
       List.generate(4, (_) => TextEditingController());
   final List<FocusNode> _focusNodes = List.generate(4, (_) => FocusNode());
-  bool _isLoading = false;
   int _countdown = 60;
   Timer? _timer;
   late AnimationController _animController;
@@ -71,40 +70,29 @@ class _OtpScreenState extends State<OtpScreen>
 
   String get _otpCode => _controllers.map((c) => c.text).join();
 
-Future<void> _verify() async {
-  if (_otpCode.length < 4) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Masukkan 4 digit kode verifikasi'),
-        backgroundColor: AppColors.primary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
+  Future<void> _verify() async {
+    if (_otpCode.length < 4) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Masukkan 4 digit kode verifikasi'),
+          backgroundColor: AppColors.primary,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+      return;
+    }
+
+    final authViewModel = context.read<AuthViewModel>();
+
+    final success = await authViewModel.verifyForgotPasswordOtp(
+      email: widget.email,
+      otp: _otpCode,
     );
-    return;
-  }
-
-  setState(() => _isLoading = true);
-
-  try {
-    final response = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/forgot-password/verify-otp'),
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'email': widget.email,
-        'otp': _otpCode,
-      }),
-    );
-
-    final data = jsonDecode(response.body);
 
     if (!mounted) return;
-    setState(() => _isLoading = false);
 
-    if (response.statusCode == 200) {
+    if (success) {
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -117,23 +105,45 @@ Future<void> _verify() async {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(data['message'] ?? 'Verifikasi OTP gagal'),
+          content: Text(
+            authViewModel.errorMessage ?? 'Verifikasi OTP gagal',
+          ),
           backgroundColor: Colors.red,
         ),
       );
     }
-  } catch (e) {
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Error: $e'),
-        backgroundColor: Colors.red,
-      ),
-    );
   }
-}
+
+  Future<void> _resendCode() async {
+    final authViewModel = context.read<AuthViewModel>();
+
+    final success = await authViewModel.sendForgotPasswordOtp(
+      email: widget.email,
+    );
+
+    if (!mounted) return;
+
+    if (success) {
+      _startCountdown();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Kode OTP berhasil dikirim ulang'),
+          backgroundColor: AppColors.accent,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            authViewModel.errorMessage ?? 'Gagal mengirim ulang OTP',
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   void _onChanged(int index, String value) {
     if (value.length == 1 && index < 3) {
@@ -146,6 +156,7 @@ Future<void> _verify() async {
 
   @override
   Widget build(BuildContext context) {
+    final authViewModel = context.watch<AuthViewModel>();
     final maskedEmail = _maskEmail(widget.email);
 
     return Scaffold(
@@ -247,7 +258,7 @@ Future<void> _verify() async {
                         ),
                       )
                     : TextButton(
-                        onPressed: _startCountdown,
+                        onPressed: authViewModel.isLoading ? null : _resendCode,
                         child: const Text(
                           'Kirim Ulang Kode',
                           style: TextStyle(
@@ -264,8 +275,8 @@ Future<void> _verify() async {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : _verify,
-                    child: _isLoading
+                    onPressed: authViewModel.isLoading ? null : _verify,
+                    child: authViewModel.isLoading
                         ? const SizedBox(
                             height: 20,
                             width: 20,

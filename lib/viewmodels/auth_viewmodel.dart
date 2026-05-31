@@ -111,6 +111,70 @@ class AuthViewModel extends ChangeNotifier {
     return result['success'] == true;
   }
 
+
+  Future<bool> sendForgotPasswordOtp({
+    required String email,
+  }) async {
+    _setLoading(true);
+
+    final result = await _authService.sendForgotPasswordOtp(
+      email: email,
+    );
+
+    if (result['success'] == true) {
+      _errorMessage = null;
+    } else {
+      _errorMessage = result['message']?.toString() ?? 'Gagal mengirim OTP.';
+    }
+
+    _setLoading(false);
+    return result['success'] == true;
+  }
+
+  Future<bool> verifyForgotPasswordOtp({
+    required String email,
+    required String otp,
+  }) async {
+    _setLoading(true);
+
+    final result = await _authService.verifyForgotPasswordOtp(
+      email: email,
+      otp: otp,
+    );
+
+    if (result['success'] == true) {
+      _errorMessage = null;
+    } else {
+      _errorMessage = result['message']?.toString() ?? 'Verifikasi OTP gagal.';
+    }
+
+    _setLoading(false);
+    return result['success'] == true;
+  }
+
+  Future<bool> resetForgotPassword({
+    required String email,
+    required String otp,
+    required String password,
+  }) async {
+    _setLoading(true);
+
+    final result = await _authService.resetForgotPassword(
+      email: email,
+      otp: otp,
+      password: password,
+    );
+
+    if (result['success'] == true) {
+      _errorMessage = result['message']?.toString() ?? 'Password berhasil diubah';
+    } else {
+      _errorMessage = result['message']?.toString() ?? 'Gagal mengubah password.';
+    }
+
+    _setLoading(false);
+    return result['success'] == true;
+  }
+
   Future<void> logout() async {
     _setLoading(true);
     await _authService.logout();
