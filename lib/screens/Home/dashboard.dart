@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../../theme/tema_app.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import '../../models/product.dart';
+import '../../models/home_banner.dart';
+import '../../services/api_service.dart';
 import '../../viewmodels/home_viewmodel.dart';
 import '../login.dart';
 import '../Shop/shop.dart';
@@ -29,6 +31,8 @@ class _DashboardScreenState extends State<DashboardScreen>
   late Animation<double> _fadeAnim;
   final PageController _bannerController = PageController();
   int _currentBanner = 0;
+  List<HomeBanner> _homeBanners = const [];
+  bool _isHomeBannersLoading = true;
 
   // ─── Best Seller state ──────────────────────────────────────
   List<Product> _bestSellers = [];
@@ -45,6 +49,7 @@ class _DashboardScreenState extends State<DashboardScreen>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      _loadHomeBanners();
       _loadBestSellers();
     });
   }
@@ -57,6 +62,26 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   // ─── Async data loading ─────────────────────────────────────
+  Future<void> _loadHomeBanners() async {
+    try {
+      final banners = await ApiService.getHomeBanners();
+      if (!mounted) return;
+
+      setState(() {
+        _homeBanners = banners.where((banner) => banner.imageUrl.isNotEmpty).toList();
+        _isHomeBannersLoading = false;
+        _currentBanner = 0;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _homeBanners = const [];
+        _isHomeBannersLoading = false;
+        _currentBanner = 0;
+      });
+    }
+  }
+
   Future<void> _loadBestSellers() async {
     if (!mounted) return;
     setState(() {
@@ -445,11 +470,15 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
   Widget _buildBanner() {
-    final banners = [
+    const fallbackBanners = [
       'assets/images/iklan1.jpg',
       'assets/images/iklan2.jpg',
       'assets/images/iklan3.jpg',
     ];
+
+    final useDynamicBanners = !_isHomeBannersLoading && _homeBanners.isNotEmpty;
+    final bannerCount = useDynamicBanners ? _homeBanners.length : fallbackBanners.length;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
       child: Column(
@@ -458,14 +487,18 @@ class _DashboardScreenState extends State<DashboardScreen>
             height: 140,
             child: PageView.builder(
               controller: _bannerController,
-              onPageChanged: (i) => setState(() => _currentBanner = i % banners.length),
-              itemCount: 999999,
+              onPageChanged: (i) => setState(() => _currentBanner = i % bannerCount),
+              itemCount: bannerCount == 1 ? 1 : 999999,
               itemBuilder: (context, i) {
-                final index = i % banners.length;
+                final index = i % bannerCount;
+                if (useDynamicBanners) {
+                  return _buildDynamicBanner(_homeBanners[index]);
+                }
+
                 return ClipRRect(
                   borderRadius: BorderRadius.circular(20),
                   child: Image.asset(
-                    banners[index],
+                    fallbackBanners[index],
                     width: double.infinity,
                     height: 140,
                     fit: BoxFit.cover,
@@ -477,7 +510,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(banners.length, (i) {
+            children: List.generate(bannerCount, (i) {
               return AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -490,6 +523,76 @@ class _DashboardScreenState extends State<DashboardScreen>
               );
             }),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDynamicBanner(HomeBanner banner) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.network(
+            banner.imageUrl,
+            width: double.infinity,
+            height: 140,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Image.asset(
+              'assets/images/iklan1.jpg',
+              width: double.infinity,
+              height: 140,
+              fit: BoxFit.cover,
+            ),
+          ),
+          if (banner.title.isNotEmpty || banner.subtitle.isNotEmpty)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(16, 24, 16, 14),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.55),
+                    ],
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (banner.title.isNotEmpty)
+                      Text(
+                        banner.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    if (banner.subtitle.isNotEmpty)
+                      Text(
+                        banner.subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );

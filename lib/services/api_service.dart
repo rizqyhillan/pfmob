@@ -42,6 +42,21 @@ class ApiService {
     }
   }
 
+
+  // ════════════════════════════════════════════════════════════
+  // HOME BANNER
+  // ════════════════════════════════════════════════════════════
+
+  /// GET /api/home-banners
+  static Future<List<HomeBanner>> getHomeBanners() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/home-banners'),
+      headers: _headers,
+    );
+    final list = _parseList(response, 'banner home');
+    return list.map((e) => HomeBanner.fromJson(Map<String, dynamic>.from(e))).toList();
+  }
+
   static void _addMultipartField(
   http.MultipartRequest request,
   String key,

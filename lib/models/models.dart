@@ -3,6 +3,7 @@ export 'boarding_room.dart';
 export 'doctor.dart';
 export 'doctor_schedule_item.dart';
 export 'doctor_service_item.dart';
+export 'home_banner.dart';
 export 'medical_record.dart';
 export 'package_type.dart';
 export 'pet.dart';

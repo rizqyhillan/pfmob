@@ -13,24 +13,60 @@ class TransactionItem {
     required this.tipe,
   });
 
-  factory TransactionItem.fromBarang(Map<String, dynamic> json) {
+  static Map<String, dynamic> _asMap(dynamic value) {
+    if (value is Map<String, dynamic>) return value;
+    if (value is Map) return Map<String, dynamic>.from(value);
+    return <String, dynamic>{};
+  }
+
+  static String _string(dynamic value, {String fallback = '-'}) {
+    final text = value?.toString().trim() ?? '';
+    return text.isEmpty ? fallback : text;
+  }
+
+  static int _int(dynamic value, {int fallback = 1}) {
+    return int.tryParse((value ?? fallback).toString()) ?? fallback;
+  }
+
+  static double _double(dynamic value) {
+    return double.tryParse((value ?? 0).toString()) ?? 0;
+  }
+
+  factory TransactionItem.fromJson(Map<String, dynamic> json) {
+    final barang = _asMap(json['barang']);
+    final layanan = _asMap(json['layanan']);
+    final tipe = _string(
+      json['tipe'] ?? (json.containsKey('id_barang') ? 'barang' : 'layanan'),
+      fallback: 'barang',
+    );
+
     return TransactionItem(
-      namaItem: json['barang']?['nama_barang'] ?? '-',
-      jumlah: json['jumlah'] ?? 1,
-      hargaSatuan: double.tryParse(json['harga_satuan'].toString()) ?? 0,
-      subtotal: double.tryParse(json['subtotal'].toString()) ?? 0,
-      tipe: 'barang',
+      namaItem: _string(
+        json['nama'] ??
+            json['nama_barang'] ??
+            json['nama_layanan'] ??
+            barang['nama_barang'] ??
+            layanan['nama_layanan'],
+      ),
+      jumlah: _int(json['jumlah']),
+      hargaSatuan: _double(json['harga_satuan']),
+      subtotal: _double(json['subtotal']),
+      tipe: tipe,
     );
   }
 
+  factory TransactionItem.fromBarang(Map<String, dynamic> json) {
+    return TransactionItem.fromJson({
+      ...json,
+      'tipe': json['tipe'] ?? 'barang',
+    });
+  }
+
   factory TransactionItem.fromLayanan(Map<String, dynamic> json) {
-    return TransactionItem(
-      namaItem: json['layanan']?['nama_layanan'] ?? '-',
-      jumlah: json['jumlah'] ?? 1,
-      hargaSatuan: double.tryParse(json['harga_satuan'].toString()) ?? 0,
-      subtotal: double.tryParse(json['subtotal'].toString()) ?? 0,
-      tipe: 'layanan',
-    );
+    return TransactionItem.fromJson({
+      ...json,
+      'tipe': json['tipe'] ?? 'layanan',
+    });
   }
 }
 
@@ -80,16 +116,20 @@ class TransactionDetail {
     final json = rawJson.containsKey('data') ? rawJson['data'] as Map<String, dynamic> : rawJson;
     final List<TransactionItem> items = [];
 
-    // Barang
-    if (json['barang'] != null) {
-      for (final b in json['barang']) {
-        items.add(TransactionItem.fromBarang(b));
+    if (json['items'] is List) {
+      for (final item in json['items']) {
+        items.add(TransactionItem.fromJson(Map<String, dynamic>.from(item)));
       }
-    }
-    // Layanan
-    if (json['layanan'] != null) {
-      for (final l in json['layanan']) {
-        items.add(TransactionItem.fromLayanan(l));
+    } else {
+      if (json['barang'] is List) {
+        for (final b in json['barang']) {
+          items.add(TransactionItem.fromBarang(Map<String, dynamic>.from(b)));
+        }
+      }
+      if (json['layanan'] is List) {
+        for (final l in json['layanan']) {
+          items.add(TransactionItem.fromLayanan(Map<String, dynamic>.from(l)));
+        }
       }
     }
 
