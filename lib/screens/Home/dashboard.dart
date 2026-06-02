@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 import '../../theme/tema_app.dart';
 import '../../viewmodels/auth_viewmodel.dart';
@@ -469,6 +470,52 @@ class _DashboardScreenState extends State<DashboardScreen>
       ),
     );
   }
+  Future<void> _openBannerLink(HomeBanner banner) async {
+    final rawLink = banner.linkUrl?.trim();
+
+    if (rawLink == null || rawLink.isEmpty) {
+      return;
+    }
+
+    String normalizedLink = rawLink;
+    final lowerLink = rawLink.toLowerCase();
+
+    // Biar admin boleh isi link seperti "pawpet.my.id" tanpa http/https.
+    if (!lowerLink.startsWith('http://') &&
+        !lowerLink.startsWith('https://') &&
+        !lowerLink.startsWith('mailto:') &&
+        !lowerLink.startsWith('tel:')) {
+      normalizedLink = 'https://$rawLink';
+    }
+
+    final uri = Uri.tryParse(normalizedLink);
+    if (uri == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Link banner tidak valid.')),
+      );
+      return;
+    }
+
+    try {
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!launched && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Link banner tidak bisa dibuka.')),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal membuka link banner: $e')),
+      );
+    }
+  }
+
   Widget _buildBanner() {
     const fallbackBanners = [
       'assets/images/iklan1.jpg',
@@ -529,7 +576,9 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   Widget _buildDynamicBanner(HomeBanner banner) {
-    return ClipRRect(
+    final hasLink = banner.linkUrl != null && banner.linkUrl!.trim().isNotEmpty;
+
+    final bannerContent = ClipRRect(
       borderRadius: BorderRadius.circular(20),
       child: Stack(
         fit: StackFit.expand,
@@ -593,7 +642,45 @@ class _DashboardScreenState extends State<DashboardScreen>
                 ),
               ),
             ),
+          if (hasLink)
+            Positioned(
+              top: 10,
+              right: 10,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.45),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.touch_app_rounded, color: Colors.white, size: 14),
+                    SizedBox(width: 4),
+                    Text(
+                      'Buka',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
         ],
+      ),
+    );
+
+    if (!hasLink) return bannerContent;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () => _openBannerLink(banner),
+        child: bannerContent,
       ),
     );
   }
