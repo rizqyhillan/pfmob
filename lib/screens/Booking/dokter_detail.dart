@@ -262,7 +262,7 @@ void _toggleServiceDropdown() {
     });
   }
 
-  void _continue() {
+  void _continue() async {
     final service = _selectedService;
     final slot = _selectedSlot;
 
@@ -292,7 +292,7 @@ void _toggleServiceDropdown() {
 
     final selectedDay = _days[_selectedDay];
 
-    Navigator.push(
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => DataPasienScreen(
@@ -310,6 +310,10 @@ void _toggleServiceDropdown() {
         ),
       ),
     );
+
+    if (result == true && mounted) {
+      _loadOptions();
+    }
   }
 
   @override

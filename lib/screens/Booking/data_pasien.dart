@@ -88,9 +88,37 @@ class _DataPasienScreenState extends State<DataPasienScreen> {
       _showSuksesPopup(context);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
-        );
+        final errorMsg = e.toString().replaceFirst('Exception: ', '');
+        final lowerMsg = errorMsg.toLowerCase();
+        
+        if (lowerMsg.contains('tersedia') || 
+            lowerMsg.contains('jadwal') || 
+            lowerMsg.contains('penuh') || 
+            lowerMsg.contains('dipesan') ||
+            lowerMsg.contains('diambil')) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Jadwal Tidak Tersedia', style: TextStyle(fontWeight: FontWeight.bold)),
+              content: Text(errorMsg),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    Navigator.pop(context, true);
+                  },
+                  child: const Text('Pilih Jadwal Lain'),
+                ),
+              ],
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(errorMsg)),
+          );
+        }
       }
     } finally {
       if (mounted) setState(() => _saving = false);
